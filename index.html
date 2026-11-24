@@ -20,6 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <!-- Клиентский генератор QR-кодов -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Supabase Auth & Cloud DB -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Конфигурация Tailwind CSS и светлой/темной темы -->
@@ -94,10 +95,6 @@
          ВЕРХНЯЯ НАВИГАЦИЯ (MINIMAL SAAS HEADER)
     ===================================================================== -->
     <header class="sticky top-0 z-30 bg-white/90 dark:bg-obsidian-bg/90 backdrop-blur-md border-b border-[#E2E8F0] dark:border-obsidian-border transition-colors">
-        <button onclick="openAccountEntry()" id="header-auth-btn" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-2xs transition" title="Личный кабинет">
-                    <i data-lucide="user" class="w-3.5 h-3.5 shrink-0"></i>
-                    <span id="header-auth-label" class="hidden sm:inline max-w-[120px] truncate">Войти</span>
-                </button>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
             <!-- Логотип -->
             <div class="flex items-center gap-3 min-w-0">
@@ -113,7 +110,7 @@
                 </div>
             </div>
 
-            <!-- Действия в шапке: только Поделиться, Настройки ИИ и Переключатель темы -->
+            <!-- Действия в шапке: Поделиться, Настройки ИИ, Тема и Личный кабинет -->
             <div class="flex items-center gap-2">
                 <button onclick="openShareModal()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-[#E2E8F0] shadow-2xs dark:bg-obsidian-card dark:text-zinc-200 dark:border-obsidian-border dark:hover:bg-obsidian-panel transition" title="Поделиться по AirDrop, ссылкой или QR">
                     <i data-lucide="share" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0"></i>
@@ -129,6 +126,11 @@
                 <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 bg-white hover:bg-slate-50 border border-[#E2E8F0] shadow-2xs dark:bg-obsidian-card dark:text-zinc-300 dark:border-obsidian-border dark:hover:bg-obsidian-panel transition" title="Переключить светлую/темную тему" aria-label="Переключить тему">
                     <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
                     <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-amber-400"></i>
+                </button>
+
+                <button onclick="openAccountEntry()" id="header-auth-btn" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-2xs transition" title="Личный кабинет">
+                    <i data-lucide="user" class="w-3.5 h-3.5 shrink-0"></i>
+                    <span id="header-auth-label" class="hidden sm:inline max-w-[120px] truncate">Войти</span>
                 </button>
             </div>
         </div>
@@ -370,10 +372,9 @@
                 </div>
             </div>
 
-            <!-- 1. ГЛАВНАЯ КАРТОЧКА РЕЗУЛЬТАТА (ИНДИКАТОР + КОНКРЕТНЫЙ ТЕХНИЧЕСКИЙ ВЕРДИКТ + 3-ЦВЕТНАЯ ШКАЛА) -->
+            <!-- 1. ГЛАВНАЯ КАРТОЧКА РЕЗУЛЬТАТА -->
             <div class="bg-white dark:bg-obsidian-card rounded-2xl border border-[#E2E8F0] dark:border-obsidian-border shadow-sm p-6 space-y-6">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-                    <!-- Круговой индикатор и вердикт -->
                     <div class="lg:col-span-6 flex flex-col sm:flex-row items-center gap-6">
                         <div class="relative w-36 h-36 shrink-0 flex items-center justify-center">
                             <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120">
@@ -395,7 +396,6 @@
                         </div>
                     </div>
 
-                    <!-- Факторы Explainable AI -->
                     <div class="lg:col-span-6 lg:border-l lg:border-[#E2E8F0] dark:lg:border-obsidian-border lg:pl-6 space-y-3">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 flex items-center gap-1.5">
@@ -408,7 +408,7 @@
                     </div>
                 </div>
 
-                <!-- 3-цветная полоса распределения (математически синхронизирована с сегментами) -->
+                <!-- 3-цветная полоса распределения -->
                 <div class="pt-5 border-t border-slate-100 dark:border-obsidian-border space-y-2">
                     <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
                         <span class="text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
@@ -431,7 +431,6 @@
                     </div>
                 </div>
 
-                <!-- Статус приватности и защиты -->
                 <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600 dark:text-zinc-400">
                     <div class="flex items-start gap-2.5">
                         <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"></i>
@@ -445,10 +444,8 @@
                 </div>
             </div>
 
-            <!-- 2. КАРТОЧКА ПРОБЕЛОВ, ОПЕРАТОРОВ И ТИПОГРАФИКИ + 3. КАРТОЧКА ЛЕКСИКИ И КОММЕНТАРИЕВ -->
+            <!-- 2. ПРОБЕЛЫ, ОПЕРАТОРЫ И ТИПОГРАФИКА + 3. ЛЕКСИКА И КОММЕНТАРИИ -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-                <!-- Анализ пробелов, операторов и типографики (6 кол.) -->
                 <div class="lg:col-span-6 bg-white dark:bg-obsidian-card rounded-2xl border border-[#E2E8F0] dark:border-obsidian-border shadow-sm p-6 flex flex-col justify-between gap-4">
                     <div class="space-y-4">
                         <div class="flex items-center justify-between gap-2">
@@ -461,16 +458,11 @@
                             </div>
                             <span id="sterility-badge" class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-obsidian-panel text-slate-700 dark:text-zinc-200 border border-[#E2E8F0] dark:border-obsidian-border shrink-0">0%</span>
                         </div>
-
                         <div id="formatting-metrics-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
                     </div>
-
-                    <div id="formatting-summary-box" class="p-3.5 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">
-                        —
-                    </div>
+                    <div id="formatting-summary-box" class="p-3.5 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">—</div>
                 </div>
 
-                <!-- Лексический анализ, комментарии и предлоги (6 кол.) -->
                 <div class="lg:col-span-6 bg-white dark:bg-obsidian-card rounded-2xl border border-[#E2E8F0] dark:border-obsidian-border shadow-sm p-6 flex flex-col justify-between gap-4">
                     <div class="space-y-4">
                         <div class="flex items-center justify-between gap-2">
@@ -483,12 +475,8 @@
                             </div>
                             <span id="markers-count-pill" class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-500/30 shrink-0">0</span>
                         </div>
-
-                        <!-- 3 мини-блока -->
                         <div id="forensics-3part-container" class="space-y-3"></div>
                     </div>
-
-                    <!-- Теги маркеров -->
                     <div class="pt-3 border-t border-slate-100 dark:border-obsidian-border">
                         <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500 mb-2">Конкретные выявленные конструкции:</p>
                         <div id="lexical-tags-container" class="flex flex-wrap gap-1.5"></div>
@@ -496,7 +484,7 @@
                 </div>
             </div>
 
-            <!-- 4. ИНТЕРАКТИВНЫЙ МОДУЛЬ «ДОПРОС АВТОРА (АНТИ-КОПИПАСТ)» -->
+            <!-- 4. ДОПРОС АВТОРА -->
             <div class="bg-white dark:bg-obsidian-card rounded-2xl border-2 border-indigo-200/80 dark:border-indigo-500/30 shadow-sm p-6 space-y-5">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-obsidian-border">
                     <div>
@@ -515,11 +503,10 @@
                         <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Новые вопросы
                     </button>
                 </div>
-
                 <div id="author-defense-container" class="space-y-4"></div>
             </div>
 
-            <!-- 5. БЛОК ОБРАТНОЙ ИНЖЕНЕРИИ (ВЕРОЯТНЫЕ ПРОМПТЫ ПОЛЬЗОВАТЕЛЯ) -->
+            <!-- 5. ОБРАТНАЯ ИНЖЕНЕРИЯ -->
             <div class="bg-white dark:bg-obsidian-card rounded-2xl border border-[#E2E8F0] dark:border-obsidian-border shadow-sm p-6 space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
@@ -531,11 +518,10 @@
                     </div>
                     <span class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-500/30 self-start sm:self-auto">Reverse Engineering</span>
                 </div>
-
                 <div id="reverse-qa-container" class="space-y-3"></div>
             </div>
 
-            <!-- 6. ПОЛНЫЙ ИСХОДНЫЙ ТЕКСТ / КОД С ПОСТРОЧНОЙ ЦВЕТОВОЙ ПОДСВЕТКОЙ -->
+            <!-- 6. ПОСТРОЧНАЯ ПОДСВЕТКА -->
             <div class="bg-white dark:bg-obsidian-card rounded-2xl border border-[#E2E8F0] dark:border-obsidian-border shadow-sm p-6 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-obsidian-border">
                     <div>
@@ -545,8 +531,6 @@
                         </h3>
                         <p class="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">Нажмите на любой фрагмент, чтобы раскрыть детальное техническое объяснение оценки</p>
                     </div>
-
-                    <!-- Фильтры сегментов -->
                     <div class="flex flex-wrap items-center gap-1.5" id="segment-filter-pills">
                         <button onclick="filterSegments('all')" data-filter="all" class="seg-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900 transition">Все</button>
                         <button onclick="filterSegments('ai')" data-filter="ai" class="seg-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30 transition">ИИ (Красный)</button>
@@ -554,15 +538,12 @@
                         <button onclick="filterSegments('human')" data-filter="human" class="seg-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30 transition">Человек (Зеленый)</button>
                     </div>
                 </div>
-
                 <div id="highlighted-segments-container" class="space-y-3"></div>
             </div>
-
         </section>
-
     </main>
 
-    <!-- Чистый коммерческий подвал -->
+    <!-- Подвал -->
     <footer class="mt-12 border-t border-[#E2E8F0] dark:border-obsidian-border bg-white/80 dark:bg-obsidian-card/50 py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-zinc-400">
             <div class="flex items-center gap-2">
@@ -577,9 +558,7 @@
         </div>
     </footer>
 
-    <!-- =====================================================================
-         МОДАЛКА 1: НАСТРОЙКИ ИИ (3 РЕЖИМА + ПРОВАЙДЕРЫ + МАСКИРОВАНИЕ ПДН)
-    ===================================================================== -->
+    <!-- МОДАЛКА 1: НАСТРОЙКИ ИИ -->
     <div id="settings-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 dark:bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
         <div class="bg-white dark:bg-obsidian-card rounded-2xl border border-[#E2E8F0] dark:border-obsidian-border max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
             <div class="px-6 py-4 border-b border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/70 dark:bg-obsidian-panel/70 flex items-center justify-between">
@@ -598,11 +577,8 @@
             </div>
 
             <div class="p-6 overflow-y-auto space-y-5 text-xs sm:text-sm">
-                <!-- Выбор 1 из 3 режимов -->
                 <div class="space-y-2.5">
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">Режим работы анализатора</label>
-
-                    <!-- Режим 1: Встроенный движок (VeriScan Core v5) -->
                     <label class="flex items-start gap-3 p-3.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border cursor-pointer hover:bg-slate-50 dark:hover:bg-obsidian-panel transition">
                         <input type="radio" name="ai-mode" value="local" onchange="onAiModeRadioChange()" class="mt-1 accent-indigo-600">
                         <div class="space-y-0.5">
@@ -613,8 +589,6 @@
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Точный оффлайн-анализ информатических паттернов (C++, Python, Pascal, JS, HTML), операторных «слитков» и предлогов без отправки кода в сеть.</p>
                         </div>
                     </label>
-
-                    <!-- Режим 2: Встроенный облачный ИИ (Cloud Auto) -->
                     <label class="flex items-start gap-3 p-3.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border cursor-pointer hover:bg-slate-50 dark:hover:bg-obsidian-panel transition">
                         <input type="radio" name="ai-mode" value="cloud_free" onchange="onAiModeRadioChange()" class="mt-1 accent-indigo-600">
                         <div class="space-y-0.5">
@@ -625,20 +599,15 @@
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Облачный анализ со строгим техническим промптом и автоматическим переключением на Core v5 при таймауте или недоступности сети.</p>
                         </div>
                     </label>
-
-                    <!-- Режим 3: Свой API-ключ -->
                     <label class="flex items-start gap-3 p-3.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border cursor-pointer hover:bg-slate-50 dark:hover:bg-obsidian-panel transition">
                         <input type="radio" name="ai-mode" value="custom" onchange="onAiModeRadioChange()" class="mt-1 accent-indigo-600">
                         <div class="space-y-0.5">
-                            <div class="font-semibold text-slate-900 dark:text-zinc-100">
-                                Свой API-ключ (OpenAI / OpenRouter / Gemini / Groq / Custom URL)
-                            </div>
+                            <div class="font-semibold text-slate-900 dark:text-zinc-100">Свой API-ключ (OpenAI / OpenRouter / Gemini / Groq / Custom URL)</div>
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Подключите любую OpenAI-совместимую модель (включая Vision для фото кода). Ключ хранится только в вашем браузере.</p>
                         </div>
                     </label>
                 </div>
 
-                <!-- Поля своего API -->
                 <div id="custom-api-fields" class="hidden p-4 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border space-y-3.5">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
@@ -656,12 +625,10 @@
                             <input id="cfg-model" type="text" placeholder="gpt-4o-mini" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg text-xs font-mono text-slate-800 dark:text-zinc-100 outline-none focus:border-indigo-500">
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">Endpoint URL</label>
                         <input id="cfg-endpoint" type="url" placeholder="https://api.openai.com/v1/chat/completions" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg text-xs font-mono text-slate-800 dark:text-zinc-100 outline-none focus:border-indigo-500">
                     </div>
-
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">API-ключ (localStorage)</label>
                         <div class="relative">
@@ -669,7 +636,6 @@
                             <button type="button" onclick="toggleKeyVisibility()" class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-[11px] text-slate-600 dark:text-zinc-300">Показать</button>
                         </div>
                     </div>
-
                     <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
                         <span id="test-conn-status" class="text-xs text-slate-500 dark:text-zinc-400"></span>
                         <button type="button" onclick="testCustomApiConnection()" class="px-3.5 py-1.5 rounded-lg bg-white dark:bg-obsidian-card border border-[#E2E8F0] dark:border-obsidian-border hover:border-indigo-500 text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 transition">
@@ -678,7 +644,6 @@
                     </div>
                 </div>
 
-                <!-- Переключатель автомаскирования ПДн -->
                 <div class="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-500/10 border border-emerald-200/80 dark:border-emerald-500/25 flex items-center justify-between gap-4">
                     <div class="space-y-0.5">
                         <div class="text-xs font-bold text-emerald-950 dark:text-emerald-200 flex items-center gap-1.5">
@@ -693,7 +658,6 @@
                     </label>
                 </div>
 
-                <!-- Системный промпт -->
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <label class="text-xs font-semibold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
@@ -713,9 +677,7 @@
         </div>
     </div>
 
-    <!-- =====================================================================
-         МОДАЛКА 2: ПОДЕЛИТЬСЯ (AIRDROP + ССЫЛКА + QR + ЭКСПОРТ/ИМПОРТ)
-    ===================================================================== -->
+    <!-- МОДАЛКА 2: ПОДЕЛИТЬСЯ -->
     <div id="share-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 dark:bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
         <div class="bg-white dark:bg-obsidian-card rounded-2xl border border-[#E2E8F0] dark:border-obsidian-border max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
             <div class="px-6 py-4 border-b border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/70 dark:bg-obsidian-panel/70 flex items-center justify-between">
@@ -734,7 +696,6 @@
                     <span>Страница открыта локально. Нативный AirDrop и камера смартфона работают по HTTPS (например, на <code class="font-mono font-bold">veriscandemo.alwaysdata.net</code>).</span>
                 </div>
 
-                <!-- 1. Нативный AirDrop / Системное меню (Web Share API) -->
                 <div class="space-y-2">
                     <p class="font-bold text-slate-800 dark:text-zinc-100 flex items-center gap-1.5">
                         <i data-lucide="radio" class="w-4 h-4 text-indigo-600 dark:text-indigo-400"></i>
@@ -752,7 +713,6 @@
                     </div>
                 </div>
 
-                <!-- 2. Скопировать ссылку с результатом (#share=...) -->
                 <div class="p-4 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border space-y-3">
                     <div class="flex items-center justify-between gap-2">
                         <span class="font-semibold text-slate-700 dark:text-zinc-200">Формат ссылки:</span>
@@ -761,7 +721,6 @@
                             <button id="share-mode-analysis" onclick="setShareUrlMode('analysis')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white dark:bg-obsidian-card text-slate-900 dark:text-zinc-100 shadow-2xs transition">С результатом</button>
                         </div>
                     </div>
-
                     <div class="flex items-center gap-2">
                         <input id="share-url-input" type="text" readonly class="flex-1 px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg font-mono text-[11px] text-slate-700 dark:text-zinc-300 outline-none">
                         <button onclick="copyShareUrl()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shrink-0 flex items-center gap-1.5 transition">
@@ -773,13 +732,11 @@
                     </p>
                 </div>
 
-                <!-- 3. Локальный QR-код + Файлы / Медиатека -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center pt-1">
                     <div class="p-4 rounded-xl bg-white dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border flex flex-col items-center text-center gap-2">
                         <div id="qrcode-box" class="qr-wrapper bg-white p-2 rounded-xl border border-slate-100"></div>
                         <span class="text-[11px] text-slate-500 dark:text-zinc-400">Отсканируйте камерой телефона</span>
                     </div>
-
                     <div class="space-y-2.5">
                         <p class="font-semibold text-slate-800 dark:text-zinc-200">Отчет и перенос сессии:</p>
                         <button onclick="downloadTextReport()" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-panel hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 font-semibold flex items-center justify-center gap-1.5 transition">
@@ -798,13 +755,122 @@
         </div>
     </div>
 
+    <!-- МОДАЛКА 3: АВТОРИЗАЦИЯ (EMAIL + ПАРОЛЬ + СБРОС) -->
+    <div id="auth-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 dark:bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-obsidian-card rounded-2xl border border-[#E2E8F0] dark:border-obsidian-border max-w-md w-full shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/70 dark:bg-obsidian-panel/70 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-indigo-600 dark:text-indigo-400"></i>
+                    <h3 id="auth-modal-title" class="font-bold text-sm text-slate-900 dark:text-zinc-50">Вход в VeriScan AI</h3>
+                </div>
+                <button onclick="closeAuthModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4 text-xs">
+                <div id="auth-tabs" class="grid grid-cols-2 p-1 rounded-xl bg-slate-100 dark:bg-obsidian-bg border border-[#E2E8F0] dark:border-obsidian-border">
+                    <button id="auth-tab-login" onclick="switchAuthView('login')" class="py-1.5 rounded-lg font-semibold bg-white dark:bg-obsidian-card text-slate-900 dark:text-zinc-100 shadow-2xs transition">Вход</button>
+                    <button id="auth-tab-register" onclick="switchAuthView('register')" class="py-1.5 rounded-lg font-semibold text-slate-500 dark:text-zinc-400 transition">Регистрация</button>
+                </div>
+
+                <!-- ВХОД -->
+                <form id="form-login" onsubmit="handleLogin(event)" class="space-y-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Email</label>
+                        <input id="login-email" type="email" required placeholder="teacher@mail.ru" class="w-full px-3 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="font-semibold text-slate-700 dark:text-zinc-300">Пароль</label>
+                            <button type="button" onclick="switchAuthView('forgot')" class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline">Забыли пароль?</button>
+                        </div>
+                        <input id="login-password" type="password" required placeholder="••••••••" class="w-full px-3 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                    </div>
+                    <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm transition">Войти в кабинет</button>
+                </form>
+
+                <!-- РЕГИСТРАЦИЯ -->
+                <form id="form-register" onsubmit="handleRegister(event)" class="hidden space-y-3">
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Имя</label>
+                            <input id="reg-name" type="text" required placeholder="Айгуль" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Роль</label>
+                            <select id="reg-role" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                                <option value="Преподаватель">Преподаватель</option>
+                                <option value="Студент">Студент</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Email (придет письмо подтверждения)</label>
+                        <input id="reg-email" type="email" required placeholder="teacher@mail.ru" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Пароль (от 6 символов)</label>
+                        <input id="reg-password" type="password" minlength="6" required placeholder="••••••••" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                    </div>
+                    <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm transition">Создать аккаунт</button>
+                </form>
+
+                <!-- ЗАБЫЛИ ПАРОЛЬ -->
+                <form id="form-forgot" onsubmit="handleForgotPassword(event)" class="hidden space-y-3">
+                    <p class="text-[11px] text-slate-500 dark:text-zinc-400">Отправим ссылку для сброса пароля на вашу почту.</p>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Ваш Email</label>
+                        <input id="forgot-email" type="email" required placeholder="teacher@mail.ru" class="w-full px-3 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                    </div>
+                    <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm transition">Отправить письмо</button>
+                    <button type="button" onclick="switchAuthView('login')" class="w-full py-1 text-slate-500 hover:text-indigo-600">← Назад ко входу</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА 4: ЛИЧНЫЙ КАБИНЕТ -->
+    <div id="cabinet-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 dark:bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-obsidian-card rounded-2xl border border-[#E2E8F0] dark:border-obsidian-border max-w-md w-full shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/70 dark:bg-obsidian-panel/70 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div id="cab-avatar" class="w-10 h-10 rounded-xl bg-indigo-600 text-white font-bold text-sm flex items-center justify-center">U</div>
+                    <div>
+                        <h3 id="cab-name" class="font-bold text-sm text-slate-900 dark:text-zinc-50">Пользователь</h3>
+                        <p id="cab-meta" class="text-[11px] text-slate-500 dark:text-zinc-400">email • Роль</p>
+                    </div>
+                </div>
+                <button onclick="closeCabinetModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4 text-xs">
+                <div class="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-500/10 border border-emerald-200/80 dark:border-emerald-500/30 flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
+                    <i data-lucide="cloud" class="w-4 h-4 shrink-0"></i>
+                    <span>Облачная синхронизация Медиатеки активна</span>
+                </div>
+
+                <form onsubmit="handleChangePassword(event)" class="p-4 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border space-y-2.5">
+                    <div class="font-bold text-slate-800 dark:text-zinc-100">Сменить пароль</div>
+                    <input id="cab-new-pass" type="password" minlength="6" required placeholder="Новый пароль (от 6 символов)" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                    <button type="submit" class="px-4 py-1.5 rounded-lg bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-semibold transition">Обновить пароль</button>
+                </form>
+            </div>
+
+            <div class="px-6 py-4 border-t border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/70 dark:bg-obsidian-panel/70 flex justify-end">
+                <button onclick="handleLogout()" class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Выйти из аккаунта
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- =====================================================================
          СКРИПТ ПРИЛОЖЕНИЯ VERISCAN AI CORE v5.0
     ===================================================================== -->
     <script>
-        // =========================================================================
-        // 1. ВШИТЫЙ СИСТЕМНЫЙ ПРОМПТ ДЛЯ ОБЛАЧНЫХ МОДЕЛЕЙ (СТРОГИЙ JSON, БЕЗ «ВОДЫ»)
-        // =========================================================================
         const SYSTEM_PROMPT = `Ты — ведущий эксперт по стилометрии текста и криминалистике программного кода (VeriScan AI v5.0).
 Твоя задача — провести объективную техническую экспертизу текста или кода на предмет генерации ИИ (ChatGPT, Claude, Gemini, DeepSeek, Copilot) и вернуть СТРОГО валидный JSON.
 
@@ -860,9 +926,6 @@
   ]
 }`;
 
-        // =========================================================================
-        // 2. ЧЕТЫРЕ ЭТАЛОННЫХ ПРЕСЕТА (ИНФОРМАТИКА C++, PYTHON ИИ, ТЕКСТ ИИ, СМЕШАННЫЙ)
-        // =========================================================================
         const PRESETS = {
             cpp_human: {
                 id: 'preset_cpp_human',
@@ -1014,9 +1077,6 @@ print(len(ans))`
             custom: { endpoint: '', model: '' }
         };
 
-        // =========================================================================
-        // 3. ГЛОБАЛЬНОЕ СОСТОЯНИЕ ПРИЛОЖЕНИЯ
-        // =========================================================================
         const state = {
             currentDocId: 'preset_cpp_human',
             currentDocName: 'binsearch_contest.cpp',
@@ -1027,7 +1087,7 @@ print(len(ans))`
             segmentFilter: 'all',
             shareUrlMode: 'analysis',
             config: {
-                mode: localStorage.getItem('veriscan_mode') || 'local', // 'local' | 'cloud_free' | 'custom'
+                mode: localStorage.getItem('veriscan_mode') || 'local',
                 provider: localStorage.getItem('veriscan_provider') || 'openai',
                 endpoint: localStorage.getItem('veriscan_endpoint') || PROVIDER_PRESETS.openai.endpoint,
                 model: localStorage.getItem('veriscan_model') || PROVIDER_PRESETS.openai.model,
@@ -1037,9 +1097,6 @@ print(len(ans))`
             }
         };
 
-        // =========================================================================
-        // 4. ИНИЦИАЛИЗАЦИЯ
-        // =========================================================================
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             loadLibraryFromStorage();
@@ -1050,22 +1107,15 @@ print(len(ans))`
             if (tryRestoreFromShareHash()) {
                 return;
             }
-
-            // По умолчанию загружаем олимпиадный C++ код человека, чтобы пользователь сразу увидел точную работу без ложных срабатываний на <> "" ., ;
             loadPreset('cpp_human', true);
         });
 
         function toggleTheme() {
             const isDark = document.documentElement.classList.toggle('dark');
-            try {
-                localStorage.setItem('veriscan_theme', isDark ? 'dark' : 'light');
-            } catch (e) {}
+            try { localStorage.setItem('veriscan_theme', isDark ? 'dark' : 'light'); } catch (e) {}
             lucide.createIcons();
         }
 
-        // =========================================================================
-        // 5. МЕДИАТЕКА (ПЕРЕКЛЮЧЕНИЕ В 1 КЛИК + LOCALSTORAGE)
-        // =========================================================================
         function loadLibraryFromStorage() {
             try {
                 const raw = localStorage.getItem('veriscan_library_v5');
@@ -1080,22 +1130,16 @@ print(len(ans))`
             } catch (e) {}
 
             state.library = Object.values(PRESETS).map(p => ({
-                id: p.id,
-                name: p.name,
-                ext: p.ext,
+                id: p.id, name: p.name, ext: p.ext,
                 size: formatBytes(new Blob([p.content]).size),
-                time: 'Шаблон',
-                lastScore: null,
-                content: p.content
+                time: 'Шаблон', lastScore: null, content: p.content
             }));
             persistLibrary();
             renderLibrary();
         }
 
         function persistLibrary() {
-            try {
-                localStorage.setItem('veriscan_library_v5', JSON.stringify(state.library.slice(0, 25)));
-            } catch (e) {}
+            try { localStorage.setItem('veriscan_library_v5', JSON.stringify(state.library.slice(0, 25))); } catch (e) {}
         }
 
         function resetLibraryDefaults() {
@@ -1142,10 +1186,8 @@ print(len(ans))`
                                 <p class="text-xs font-semibold text-slate-800 dark:text-zinc-100 truncate">${escapeHtml(item.name)}</p>
                                 <div class="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-zinc-500">
                                     <span class="uppercase font-mono">${escapeHtml(item.ext)}</span>
-                                    <span>•</span>
-                                    <span>${escapeHtml(item.size)}</span>
-                                    <span>•</span>
-                                    <span>${escapeHtml(item.time)}</span>
+                                    <span>•</span><span>${escapeHtml(item.size)}</span>
+                                    <span>•</span><span>${escapeHtml(item.time)}</span>
                                 </div>
                             </div>
                         </div>
@@ -1184,21 +1226,14 @@ print(len(ans))`
 
         function saveCurrentToLibrary() {
             const text = document.getElementById('source-input').value.trim();
-            if (!text) {
-                showToast('Поле редактора пустое — нечего сохранять.', 'warning');
-                return;
-            }
+            if (!text) return showToast('Поле редактора пустое — нечего сохранять.', 'warning');
             const info = detectContentType(text);
             const ext = info.isCode ? info.ext : 'txt';
             const now = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
             const newItem = {
                 id: 'doc_' + Date.now(),
                 name: state.currentDocName || `Документ_${state.library.length + 1}.${ext}`,
-                ext,
-                size: formatBytes(new Blob([text]).size),
-                time: now,
-                lastScore: null,
-                content: text
+                ext, size: formatBytes(new Blob([text]).size), time: now, lastScore: null, content: text
             };
             state.library.unshift(newItem);
             state.currentDocId = newItem.id;
@@ -1248,14 +1283,10 @@ print(len(ans))`
             document.getElementById('stat-chars').textContent = text.length.toLocaleString('ru-RU');
             document.getElementById('stat-words').textContent = (text.trim() ? text.trim().split(/\s+/).length : 0).toLocaleString('ru-RU');
             document.getElementById('stat-lines').textContent = (text ? text.split(/\r\n|\r|\n/).length : 0).toLocaleString('ru-RU');
-
             const info = detectContentType(text);
             document.getElementById('live-type-badge').textContent = info.isCode ? `Код: ${info.lang}` : 'Текст';
         }
 
-        // =========================================================================
-        // 6. ЗАГРУЗКА ФАЙЛОВ И РАСПОЗНАВАНИЕ С ФОТО (TESSERACT OCR + VISION API)
-        // =========================================================================
         function setupDragAndDrop() {
             const zone = document.getElementById('drop-zone');
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
@@ -1282,7 +1313,6 @@ print(len(ans))`
                     await processImageOCR(file, file.name);
                     return;
                 }
-
                 let text = '';
                 try {
                     if (ext === 'docx' && window.mammoth) {
@@ -1298,16 +1328,10 @@ print(len(ans))`
                     showToast(`Ошибка чтения ${file.name}: ${err.message}`, 'warning');
                     continue;
                 }
-
                 const now = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
                 const newItem = {
                     id: 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
-                    name: file.name,
-                    ext,
-                    size: formatBytes(file.size),
-                    time: now,
-                    lastScore: null,
-                    content: text
+                    name: file.name, ext, size: formatBytes(file.size), time: now, lastScore: null, content: text
                 };
                 state.library.unshift(newItem);
                 state.currentDocId = newItem.id;
@@ -1315,7 +1339,6 @@ print(len(ans))`
                 document.getElementById('source-input').value = text;
                 document.getElementById('current-doc-name').textContent = newItem.name;
             }
-
             persistLibrary();
             renderLibrary();
             switchInputTab('editor');
@@ -1374,18 +1397,14 @@ print(len(ans))`
 
             try {
                 let extracted = '';
-
                 if (state.config.mode === 'custom' && state.config.apiKey && state.config.endpoint) {
                     try {
                         statusLbl.textContent = 'Распознавание кода через Vision API...';
                         pctLbl.textContent = '45%';
                         bar.style.width = '45%';
                         extracted = await extractTextWithVisionAPI(file);
-                    } catch (vErr) {
-                        console.warn('Vision API недоступен, переход на локальный Tesseract:', vErr);
-                    }
+                    } catch (vErr) { console.warn('Vision API недоступен:', vErr); }
                 }
-
                 if (!extracted && window.Tesseract) {
                     const res = await window.Tesseract.recognize(file, 'rus+eng', {
                         logger: m => {
@@ -1399,25 +1418,14 @@ print(len(ans))`
                     });
                     extracted = (res?.data?.text || '').trim();
                 }
-
-                if (!extracted || extracted.length < 5) {
-                    throw new Error('Не удалось распознать читаемый текст на изображении.');
-                }
+                if (!extracted || extracted.length < 5) throw new Error('Не удалось распознать читаемый текст на изображении.');
 
                 pctLbl.textContent = '100%';
                 bar.style.width = '100%';
                 statusLbl.textContent = 'Готово! Перенос в редактор...';
 
                 const now = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-                const newItem = {
-                    id: 'ocr_' + Date.now(),
-                    name: `[OCR] ${name}`,
-                    ext: 'ocr',
-                    size: formatBytes(file.size),
-                    time: now,
-                    lastScore: null,
-                    content: extracted
-                };
+                const newItem = { id: 'ocr_' + Date.now(), name: `[OCR] ${name}`, ext: 'ocr', size: formatBytes(file.size), time: now, lastScore: null, content: extracted };
                 state.library.unshift(newItem);
                 state.currentDocId = newItem.id;
                 state.currentDocName = newItem.name;
@@ -1425,12 +1433,7 @@ print(len(ans))`
                 document.getElementById('current-doc-name').textContent = newItem.name;
                 persistLibrary();
                 renderLibrary();
-
-                setTimeout(() => {
-                    switchInputTab('editor');
-                    handleEditorInput();
-                    runAnalysis();
-                }, 350);
+                setTimeout(() => { switchInputTab('editor'); handleEditorInput(); runAnalysis(); }, 350);
                 showToast('Текст/код с изображения успешно распознан!', 'success');
             } catch (err) {
                 statusLbl.textContent = 'Ошибка OCR: ' + err.message;
@@ -1447,10 +1450,7 @@ print(len(ans))`
             });
             const resp = await fetch(state.config.endpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${state.config.apiKey.trim()}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.apiKey.trim()}` },
                 body: JSON.stringify({
                     model: state.config.model || 'gpt-4o-mini',
                     messages: [{
@@ -1467,9 +1467,6 @@ print(len(ans))`
             return (data.choices?.[0]?.message?.content || '').replace(/^```[\w]*\n?|```$/g, '').trim();
         }
 
-        // =========================================================================
-        // 7. ДВИЖОК VERISCAN CORE v5: ИНФОРМАТИЧЕСКИЕ ПАТТЕРНЫ И НУЛЕВОЙ ШТРАФ ЗА <> "" ., ;
-        // =========================================================================
         function classifyScore(score) {
             if (score >= 65) return 'ai';
             if (score >= 36) return 'mixed';
@@ -1497,7 +1494,6 @@ print(len(ans))`
             return { isCode: true, lang: 'Java', ext: 'java' };
         }
 
-        // Проверка пробелов вокруг операторов и «слитков» с полным исключением <>, "", ., ;, C++ потоков (<< >>) и шаблонов (vector<int>)
         function inspectOperatorSpacing(codeText) {
             const rawLines = codeText.split(/\r\n|\r|\n/);
             let wellSpacedOps = 0;
@@ -1507,78 +1503,43 @@ print(len(ans))`
                 const t = rawLine.trim();
                 if (!t || t.startsWith('#') || t.startsWith('//') || t.startsWith('/*') || t.startsWith('*')) continue;
 
-                // Удаляем строковые литералы "" и однострочные комментарии
-                let clean = t
-                    .replace(/(["'`])(?:\\.|(?!\1).)*\1/g, '""')
-                    .replace(/\/\/.*$/, '')
-                    .replace(/#.*$/, '');
-
-                // Убираем C++ шаблоны (vector<long long>, pair<int, int>) и HTML теги (<div>), чтобы <> не мешали
+                let clean = t.replace(/(["'`])(?:\\.|(?!\1).)*\1/g, '""').replace(/\/\/.*$/, '').replace(/#.*$/, '');
                 clean = clean
                     .replace(/\b(vector|set|map|unordered_map|unordered_set|pair|queue|stack|priority_queue|deque|List|Dict|Tuple|Optional|Set|Array|Promise)\s*<[^>]+>/g, '$1_TPL')
                     .replace(/<\/?[a-zA-Z][a-zA-Z0-9-]*[^>]*>/g, 'HTML_TAG');
 
-                // Исключаем легитимные PEP8 keyword-аргументы: (..., key=lambda, reverse=True)
                 const cleanNoKwargs = clean.replace(/([,(]\s*)([a-zA-Z_]\w*)=([a-zA-Z0-9_"'\[\(\{])/g, (full, pre, k, val) => {
-                    if (pre.startsWith('(') || pre.includes(' ')) {
-                        return `${pre}${k} __KW__ ${val}`;
-                    }
+                    if (pre.startsWith('(') || pre.includes(' ')) return `${pre}${k} __KW__ ${val}`;
                     return full;
                 });
 
-                // Считаем аккуратные операторы с пробелами с обеих сторон
                 const spaced = cleanNoKwargs.match(/\s(===|!==|==|!=|>=|<=|>>|<<|\+=|-=|\*=|\/=|&&|\|\||=>|->|:=|=|\+|\-|\*)\s/g) || [];
                 wellSpacedOps += spaced.length;
 
-                // Ищем «слитки» (операторы без пробелов: cin>>n, a[i]+=x, i=0, l<=r, l+(r-l)/2)
                 const opMatches = cleanNoKwargs.match(/[a-zA-Z0-9_)\]]\s*(===|!==|==|!=|>=|<=|>>|<<|\+=|-=|\*=|&&|\|\||:=|=|<|>|\+|\-|\*)\s*[a-zA-Z0-9_(\[!]/g) || [];
                 for (const m of opMatches) {
                     if (!/\s(===|!==|==|!=|>=|<=|>>|<<|\+=|-=|\*=|&&|\|\||:=|=|<|>|\+|\-|\*)\s/.test(m)) {
-                        if (!/[a-zA-Z0-9_]-[a-zA-Z0-9_]/.test(m.replace(/\b\d+-[a-zA-Z_]/g, ''))) {
-                            slitki.push(m.trim());
-                        }
+                        if (!/[a-zA-Z0-9_]-[a-zA-Z0-9_]/.test(m.replace(/\b\d+-[a-zA-Z_]/g, ''))) slitki.push(m.trim());
                     }
                 }
 
-                // Слипшиеся управляющие конструкции: for(, if(, while(, ){, }else{
-                const tightCtrl = clean.match(/\b(if|for|while|switch|catch)\(|\)\{|\}else\{/g) || [];
-                tightCtrl.forEach(x => slitki.push(x));
-
-                // Запятые без пробела после них в объявлениях/вызовах: int n,k; или n,m=map(...)
-                const tightCommas = clean.match(/[a-zA-Z0-9_\)],[a-zA-Z0-9_\(]/g) || [];
-                tightCommas.forEach(x => slitki.push(x));
+                (clean.match(/\b(if|for|while|switch|catch)\(|\)\{|\}else\{/g) || []).forEach(x => slitki.push(x));
+                (clean.match(/[a-zA-Z0-9_\)],[a-zA-Z0-9_\(]/g) || []).forEach(x => slitki.push(x));
             }
 
             const total = wellSpacedOps + slitki.length;
             const cleanSpacingRatio = total > 0 ? Math.round((wellSpacedOps / total) * 100) : 100;
-            return {
-                wellSpacedOps,
-                slitkiCount: slitki.length,
-                slitkiExamples: Array.from(new Set(slitki)).slice(0, 6),
-                cleanSpacingRatio
-            };
+            return { wellSpacedOps, slitkiCount: slitki.length, slitkiExamples: Array.from(new Set(slitki)).slice(0, 6), cleanSpacingRatio };
         }
 
-        // Олимпиадные / информатические маркеры живого программиста
         const INFORMATICS_HUMAN_CONSTRUCTS = [
-            /#include\s*<bits\/stdc\+\+\.h>/,
-            /#include\s*<iostream>/,
-            /using\s+namespace\s+std\s*;/,
-            /ios_base::sync_with_stdio/,
-            /cin\.tie\s*\(/,
-            /cin\s*>>/,
-            /cout\s*<</,
-            /\b(scanf|printf|freopen)\s*\(/,
-            /map\s*\(\s*int\s*,\s*input\s*\(\s*\)\.split/,
-            /sys\.stdin\.readline/,
-            /\b(readln|writeln|longint)\b/i,
-            /\bint\s+main\s*\(/
+            /#include\s*<bits\/stdc\+\+\.h>/, /#include\s*<iostream>/, /using\s+namespace\s+std\s*;/,
+            /ios_base::sync_with_stdio/, /cin\.tie\s*\(/, /cin\s*>>/, /cout\s*<</,
+            /\b(scanf|printf|freopen)\s*\(/, /map\s*\(\s*int\s*,\s*input\s*\(\s*\)\.split/,
+            /sys\.stdin\.readline/, /\b(readln|writeln|longint)\b/i, /\bint\s+main\s*\(/
         ];
-
         const INFORMATICS_SHORT_VARS_REGEX = /\b(n|m|k|t|q|a|b|c|d|x|y|z|i|j|l|r|mid|ans|res|cnt|cur|tmp|dp|adj|used|vis|mx|mn|inf|mod|mas|kvo|sum)\b/g;
-
         const AI_TUTORIAL_COMMENTS_REGEX = /^\s*(#|\/\/)\s*(Инициализируем|Проверяем|Проходим|Возвращаем|Вычисляем|Обновляем|Считываем|Создаем|Добавляем|Находим|Сортируем|Выводим)\b/i;
-
         const AI_PREPOSITIONS = [
             'в современном мире', 'для того чтобы', 'в случае если', 'с целью', 'в качестве',
             'на основе', 'в зависимости от', 'при помощи', 'с помощью', 'в рамках',
@@ -1587,7 +1548,6 @@ print(len(ans))`
             'важно отметить', 'стоит подчеркнуть', 'ключевую роль', 'ключевой аспект',
             'представляет собой', 'можно с уверенностью сказать', 'существенно снизить'
         ];
-
         const HUMAN_SHORT_NOTES_REGEX = /\/\/\s*(fix|test|todo|hack|костыль|поправить|потом|тут|вручную|проверить)|#\s*(fix|test|todo|костыль|поправить|тут|вручную|проверить)/i;
 
         function detectInformaticsHumanSignals(codeText) {
@@ -1596,24 +1556,13 @@ print(len(ans))`
                 const m = codeText.match(rx);
                 if (m) constructsFound.push(m[0].trim());
             }
-
-            // Убираем строки и комментарии перед поиском коротких переменных
-            const stripped = codeText
-                .replace(/(["'`])(?:\\.|(?!\1).)*\1/g, '""')
-                .replace(/\/\/.*$/gm, '')
-                .replace(/#.*$/gm, '');
+            const stripped = codeText.replace(/(["'`])(?:\\.|(?!\1).)*\1/g, '""').replace(/\/\/.*$/gm, '').replace(/#.*$/gm, '');
             const shortVars = Array.from(new Set(stripped.match(INFORMATICS_SHORT_VARS_REGEX) || []));
-
-            return {
-                constructsFound,
-                shortVars,
-                isStrongCompetitive: constructsFound.length >= 2 || (constructsFound.length >= 1 && shortVars.length >= 4) || shortVars.length >= 6
-            };
+            return { constructsFound, shortVars, isStrongCompetitive: constructsFound.length >= 2 || (constructsFound.length >= 1 && shortVars.length >= 4) || shortVars.length >= 6 };
         }
 
         function buildSmartSegments(text, isCode) {
             const rawBlocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
-
             if (!isCode) {
                 const segs = [];
                 for (const block of rawBlocks) {
@@ -1623,13 +1572,10 @@ print(len(ans))`
                             const chunk = sentences.slice(i, i + 2).join(' ').trim();
                             if (chunk) segs.push(chunk);
                         }
-                    } else {
-                        segs.push(block);
-                    }
+                    } else segs.push(block);
                 }
                 return segs.length ? segs : [text.trim()];
             }
-
             if (rawBlocks.length >= 2) {
                 const merged = [];
                 for (const blk of rawBlocks) {
@@ -1637,13 +1583,10 @@ print(len(ans))`
                     const startsNewDef = /^(\/\*\*|#|\/\/|def\s|class\s|function\s|int\s+main|void\s+|const\s+\w+\s*=\s*\(|export\s)/.test(blk);
                     if (merged.length > 0 && lineCount <= 2 && !startsNewDef && !blk.startsWith('return') && !blk.startsWith('cout') && !blk.startsWith('print')) {
                         merged[merged.length - 1] += '\n\n' + blk;
-                    } else {
-                        merged.push(blk);
-                    }
+                    } else merged.push(blk);
                 }
                 return merged;
             }
-
             const lines = text.split(/\r\n|\r|\n/);
             const chunks = [];
             let current = [];
@@ -1651,9 +1594,7 @@ print(len(ans))`
                 if (current.length >= 6 && /^\s*(def\s|class\s|function\s|int\s+main|\/\/|#|\/\*\*)/.test(line)) {
                     chunks.push(current.join('\n').trim());
                     current = [line];
-                } else {
-                    current.push(line);
-                }
+                } else current.push(line);
             }
             if (current.length) chunks.push(current.join('\n').trim());
             return chunks.filter(Boolean);
@@ -1664,13 +1605,9 @@ print(len(ans))`
             const ops = inspectOperatorSpacing(segText);
             const inf = detectInformaticsHumanSignals(segText);
             const lines = segText.split(/\r\n|\r|\n/);
+            const reasonsAi = [], reasonsHuman = [];
+            let delta = 0, evidence = 0;
 
-            const reasonsAi = [];
-            const reasonsHuman = [];
-            let delta = 0;
-            let evidence = 0;
-
-            // 1. Информатические и олимпиадные паттерны человека
             if (inf.constructsFound.length > 0) {
                 delta -= Math.min(38, 18 + inf.constructsFound.length * 8);
                 evidence += 0.55;
@@ -1681,23 +1618,18 @@ print(len(ans))`
                 evidence += 0.45;
                 reasonsHuman.push(`короткие математические переменные (${inf.shortVars.slice(0, 5).join(', ')})`);
             }
-
-            // 2. Операторные «слитки» vs стерильные пробелы
             if (ops.slitkiCount >= 2) {
                 delta -= Math.min(42, 18 + ops.slitkiCount * 5);
                 evidence += 0.55;
                 reasonsHuman.push(`компактные «слитки» операторов (${ops.slitkiExamples.slice(0, 3).join(', ')})`);
             } else if (ops.slitkiCount === 1) {
-                delta -= 14;
-                evidence += 0.35;
+                delta -= 14; evidence += 0.35;
                 reasonsHuman.push(`слиток без пробелов (${ops.slitkiExamples[0]})`);
             } else if (ops.wellSpacedOps >= 2 && inf.constructsFound.length === 0 && inf.shortVars.length < 3) {
-                delta += 26;
-                evidence += 0.4;
+                delta += 26; evidence += 0.4;
                 reasonsAi.push(`100% стерильные пробелы вокруг операторов (${ops.wellSpacedOps}/${ops.wellSpacedOps})`);
             }
 
-            // 3. Длинные академические имена переменных, аннотации типов и докстринги (признаки ИИ)
             const verboseAcademicIds = Array.from(new Set(
                 (segText.match(/\b([a-z]{4,}_[a-z]{3,}_[a-z]{2,}|[a-z]{4,}_[a-z]{4,}|[a-z]{4,}[A-Z][a-z]{4,}[A-Z][a-z]+)\b/g) || [])
                     .filter(id => !/^(ios_base|sync_with_stdio|unordered_map|unordered_set|priority_queue)$/i.test(id))
@@ -1706,41 +1638,22 @@ print(len(ans))`
             const hasDocstring = /\/\*\*[\s\S]*?\*\/|"""[\s\S]*?"""/.test(segText);
 
             if (verboseAcademicIds.length >= 2) {
-                delta += Math.min(32, 16 + verboseAcademicIds.length * 4);
-                evidence += 0.45;
+                delta += Math.min(32, 16 + verboseAcademicIds.length * 4); evidence += 0.45;
                 reasonsAi.push(`длинный академический нейминг (${verboseAcademicIds.slice(0, 3).join(', ')})`);
             }
-            if (hasTypeHints) {
-                delta += 22;
-                evidence += 0.4;
-                reasonsAi.push('строгие аннотации типов (Type Hints)');
-            }
-            if (hasDocstring) {
-                delta += 22;
-                evidence += 0.4;
-                reasonsAi.push('оформленный Docstring / JSDoc');
-            }
+            if (hasTypeHints) { delta += 22; evidence += 0.4; reasonsAi.push('строгие аннотации типов (Type Hints)'); }
+            if (hasDocstring) { delta += 22; evidence += 0.4; reasonsAi.push('оформленный Docstring / JSDoc'); }
 
-            // 4. Комментарии: пошаговые учебные комментарии ИИ vs короткие заметки человека
             const tutorialComments = lines.filter(l => AI_TUTORIAL_COMMENTS_REGEX.test(l));
             const shortHumanNotes = lines.filter(l => HUMAN_SHORT_NOTES_REGEX.test(l));
             const prepHits = AI_PREPOSITIONS.filter(p => lower.includes(p));
 
             if (tutorialComments.length > 0) {
-                delta += Math.min(30, 16 + tutorialComments.length * 7);
-                evidence += 0.45;
+                delta += Math.min(30, 16 + tutorialComments.length * 7); evidence += 0.45;
                 reasonsAi.push(`учебные комментарии к очевидным шагам (${tutorialComments.length} шт.)`);
             }
-            if (prepHits.length > 0) {
-                delta += 16;
-                evidence += 0.3;
-                reasonsAi.push(`канцелярские связки («${prepHits[0]}»)`);
-            }
-            if (shortHumanNotes.length > 0) {
-                delta -= 24;
-                evidence += 0.4;
-                reasonsHuman.push(`рабочая заметка программиста («${shortHumanNotes[0].trim()}»)`);
-            }
+            if (prepHits.length > 0) { delta += 16; evidence += 0.3; reasonsAi.push(`канцелярские связки («${prepHits[0]}»)`); }
+            if (shortHumanNotes.length > 0) { delta -= 24; evidence += 0.4; reasonsHuman.push(`рабочая заметка программиста («${shortHumanNotes[0].trim()}»)`); }
 
             const localScore = Math.max(4, Math.min(97, Math.round(50 + delta)));
             const strength = Math.min(1, evidence);
@@ -1749,67 +1662,36 @@ print(len(ans))`
                 : localScore <= 35
                     ? (reasonsHuman.join('; ') || 'живой информатический стиль без шаблонов ИИ')
                     : ([...reasonsAi.slice(0, 1), ...reasonsHuman.slice(0, 1)].join(' + ') || 'сочетание чистого шаблона и ручных правок');
-
             return { localScore, strength, reason };
         }
 
         function scoreTextSegment(segText) {
             const lower = segText.toLowerCase();
-            const reasonsAi = [];
-            const reasonsHuman = [];
-            let delta = 0;
-            let evidence = 0;
+            const reasonsAi = [], reasonsHuman = [];
+            let delta = 0, evidence = 0;
 
             const prepHits = AI_PREPOSITIONS.filter(p => lower.includes(p));
             if (prepHits.length >= 2) {
-                delta += Math.min(46, 20 + prepHits.length * 10);
-                evidence += 0.6;
+                delta += Math.min(46, 20 + prepHits.length * 10); evidence += 0.6;
                 reasonsAi.push(`клише и предлоги ИИ («${prepHits.slice(0, 3).join('», «')}»)`);
             } else if (prepHits.length === 1) {
-                delta += 24;
-                evidence += 0.4;
-                reasonsAi.push(`конструкция ИИ «${prepHits[0]}»`);
+                delta += 24; evidence += 0.4; reasonsAi.push(`конструкция ИИ «${prepHits[0]}»`);
             }
 
-            // Редкая типографика ТОЛЬКО для обычного текста: пара «ёлочки» + длинное тире — (не более +8%)
-            const hasEmDash = /\u2014/.test(segText);
-            const hasGuillemets = /«[^»]+»/.test(segText);
-            if (hasEmDash && hasGuillemets) {
-                delta += 8;
-                evidence += 0.15;
+            if (/\u2014/.test(segText) && /«[^»]+»/.test(segText)) {
+                delta += 8; evidence += 0.15;
                 reasonsAi.push('сочетание кавычек «ёлочек» и длинного тире — (+8%)');
             }
-
-            // Обычные <> "" ., ; НЕ дают штрафных баллов!
-            const hasDoubleSpaces = /  +/.test(segText.trim());
-            const hasEmotionalPunct = /[!?]{2,}|\)\)/.test(segText);
-            const hasHyphenAsDash = /\s-\s/.test(segText);
-
-            if (hasEmotionalPunct) {
-                delta -= 28;
-                evidence += 0.45;
-                reasonsHuman.push('эмоциональная пунктуация (!! / )))');
-            }
-            if (hasDoubleSpaces || hasHyphenAsDash) {
-                delta -= 18;
-                evidence += 0.35;
-                reasonsHuman.push('неровная ручная пунктуация (двойные пробелы / дефисы)');
-            }
+            if (/[!?]{2,}|\)\)/.test(segText)) { delta -= 28; evidence += 0.45; reasonsHuman.push('эмоциональная пунктуация (!! / )))'); }
+            if (/  +/.test(segText.trim()) || /\s-\s/.test(segText)) { delta -= 18; evidence += 0.35; reasonsHuman.push('неровная ручная пунктуация'); }
 
             const sentences = (segText.match(/[^.!?]+[.!?]+/g) || [segText]).map(s => s.trim().split(/\s+/).length).filter(n => n > 2);
             if (sentences.length >= 2) {
                 const mean = sentences.reduce((a, b) => a + b, 0) / sentences.length;
                 const std = Math.sqrt(sentences.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / sentences.length);
                 const cv = mean > 0 ? std / mean : 0;
-                if (cv < 0.30) {
-                    delta += 16;
-                    evidence += 0.25;
-                    reasonsAi.push('ровный монотонный ритм предложений');
-                } else if (cv > 0.50) {
-                    delta -= 18;
-                    evidence += 0.25;
-                    reasonsHuman.push('естественная вариативность длины предложений');
-                }
+                if (cv < 0.30) { delta += 16; evidence += 0.25; reasonsAi.push('ровный монотонный ритм предложений'); }
+                else if (cv > 0.50) { delta -= 18; evidence += 0.25; reasonsHuman.push('естественная вариативность длины предложений'); }
             }
 
             const localScore = Math.max(4, Math.min(97, Math.round(50 + delta)));
@@ -1819,7 +1701,6 @@ print(len(ans))`
                 : localScore <= 35
                     ? (reasonsHuman.join('; ') || 'живая авторская речь и естественный ритм')
                     : ([...reasonsAi.slice(0, 1), ...reasonsHuman.slice(0, 1)].join(' + ') || 'смешение сгенерированного каркаса с ручными правками');
-
             return { localScore, strength, reason };
         }
 
@@ -1828,17 +1709,13 @@ print(len(ans))`
             const isCode = info.isCode;
             const lines = rawText.split(/\r\n|\r|\n/);
             const lowerAll = rawText.toLowerCase();
-
             const ops = inspectOperatorSpacing(rawText);
             const inf = isCode ? detectInformaticsHumanSignals(rawText) : { constructsFound: [], shortVars: [], isStrongCompetitive: false };
 
             const inlineDoubleSpaces = lines.reduce((acc, l) => acc + ((l.trim().match(/ {2,}/g) || []).length), 0);
             const hasTabs = /\t/.test(rawText);
             const spaceIndented = lines.filter(l => /^ {2,}/.test(l));
-            const uniformIndents = spaceIndented.filter(l => {
-                const n = l.match(/^ +/)[0].length;
-                return n % 4 === 0 || n % 2 === 0;
-            }).length;
+            const uniformIndents = spaceIndented.filter(l => { const n = l.match(/^ +/)[0].length; return n % 4 === 0 || n % 2 === 0; }).length;
             const indentRatio = spaceIndented.length > 0 ? Math.round((uniformIndents / spaceIndented.length) * 100) : 100;
 
             const foundPreps = AI_PREPOSITIONS.filter(p => lowerAll.includes(p));
@@ -1846,7 +1723,6 @@ print(len(ans))`
             const shortHumanNotes = lines.filter(l => HUMAN_SHORT_NOTES_REGEX.test(l));
             const docstringCount = (rawText.match(/\/\*\*[\s\S]*?\*\/|"""[\s\S]*?"""/g) || []).length;
             const commentLines = lines.filter(l => /^\s*(#|\/\/)/.test(l));
-
             const hasEmDash = /\u2014/.test(rawText);
             const hasGuillemets = /«[^»]+»/.test(rawText);
 
@@ -1858,22 +1734,18 @@ print(len(ans))`
                 burstinessCV = mean > 0 ? std / mean : 0.35;
             }
 
-            // Макро-приор документа
             let docPrior = 50;
             if (isCode) {
                 if (inf.isStrongCompetitive) docPrior -= 34;
                 else if (inf.constructsFound.length > 0 || inf.shortVars.length >= 3) docPrior -= 18;
-
                 if (ops.slitkiCount >= 3) docPrior -= 24;
                 else if (ops.slitkiCount === 0 && ops.wellSpacedOps >= 4 && !inf.isStrongCompetitive) docPrior += 26;
-
                 if (docstringCount > 0) docPrior += 16;
                 if (tutorialComments.length >= 2) docPrior += 18;
                 if (/:\s*(List|Dict|Optional|Tuple|int|float|str)\b/.test(rawText)) docPrior += 18;
                 if (shortHumanNotes.length > 0) docPrior -= 16;
             } else {
                 docPrior += Math.min(40, foundPreps.length * 10);
-                // Только пара «ёлочки» + длинное тире — и максимум +8%
                 if (hasEmDash && hasGuillemets) docPrior += 8;
                 if (burstinessCV < 0.32) docPrior += 14;
                 else if (burstinessCV > 0.50) docPrior -= 16;
@@ -1882,106 +1754,51 @@ print(len(ans))`
             }
             docPrior = Math.max(5, Math.min(96, Math.round(docPrior)));
 
-            // Сегментация и оценка каждого блока
             const rawSegs = buildSmartSegments(rawText, isCode);
             const segments = rawSegs.map(segText => {
                 const evalRes = isCode ? scoreCodeSegment(segText) : scoreTextSegment(segText);
                 const localWeight = evalRes.strength >= 0.45 ? 0.86 : (evalRes.strength >= 0.25 ? 0.70 : 0.45);
                 const blended = Math.max(4, Math.min(97, Math.round(evalRes.localScore * localWeight + docPrior * (1 - localWeight))));
-                return {
-                    text: segText,
-                    score: blended,
-                    status: classifyScore(blended),
-                    reason: evalRes.reason
-                };
+                return { text: segText, score: blended, status: classifyScore(blended), reason: evalRes.reason };
             });
 
             const { aiProbability, distribution } = computeWeightedStats(segments);
 
-            // Декомпозиция признаков (Explainable AI)
             const factorSpacing = isCode
                 ? (ops.slitkiCount === 0 && !inf.isStrongCompetitive ? 94 : Math.max(8, ops.cleanSpacingRatio - ops.slitkiCount * 6 - (inf.isStrongCompetitive ? 20 : 0)))
                 : (inlineDoubleSpaces === 0 && hasEmDash && hasGuillemets ? 86 : (inlineDoubleSpaces > 0 ? 22 : 60));
-
             const factorNaming = isCode
                 ? Math.max(6, Math.min(96, 52 + (/:\s*(List|Dict|Optional|Tuple|int|float|str)\b/.test(rawText) ? 26 : 0) + (docstringCount * 14) - (inf.shortVars.length * 6) - (inf.constructsFound.length * 8)))
                 : Math.max(8, Math.min(96, 42 + foundPreps.length * 12));
-
             const factorComments = isCode
                 ? Math.max(6, Math.min(96, 48 + (tutorialComments.length * 16) + (docstringCount * 16) + (foundPreps.length * 12) - (shortHumanNotes.length * 22) - (commentLines.length === 0 && inf.isStrongCompetitive ? 28 : 0)))
                 : Math.max(8, Math.min(96, 45 + foundPreps.length * 11));
-
             const factorStructure = isCode
                 ? Math.max(8, Math.min(96, Math.round(indentRatio * 0.65 + (ops.slitkiCount === 0 ? 25 : 0) - (inf.isStrongCompetitive ? 32 : 0) - (hasTabs ? 18 : 0))))
                 : (burstinessCV < 0.32 ? 91 : (burstinessCV > 0.50 ? 22 : 58));
 
             const sterilityScore = Math.round((factorSpacing + factorStructure) / 2);
 
-            // Метрики пробелов, операторов и типографики
             const formattingMetrics = [
-                {
-                    label: 'Отступы и табуляция',
-                    value: hasTabs ? 'Смешанные (Tab + пробелы)' : `${indentRatio}% ровных (2/4 пробела)`,
-                    status: !hasTabs && indentRatio >= 95 && !inf.isStrongCompetitive ? 'ai' : 'human',
-                    detail: hasTabs ? 'Смешивание табов и пробелов характерно для ручного набора.' : 'Равномерные отступы по стандарту форматирования.'
-                },
-                {
-                    label: isCode ? 'Пробелы вокруг операторов / «слитки»' : 'Двойные пробелы в тексте',
-                    value: isCode
-                        ? (ops.slitkiCount === 0 ? `0 слитков (${ops.wellSpacedOps} идеальных)` : `${ops.slitkiCount} слитков (${ops.slitkiExamples.slice(0, 2).join(', ')})`)
-                        : (inlineDoubleSpaces === 0 ? '0 двойных пробелов' : `${inlineDoubleSpaces} шт.`),
-                    status: isCode ? (ops.slitkiCount === 0 ? 'ai' : (ops.slitkiCount === 1 ? 'mixed' : 'human')) : (inlineDoubleSpaces === 0 ? 'ai' : 'human'),
-                    detail: isCode
-                        ? (ops.slitkiCount === 0 ? 'Все операторы окружены пробелами.' : 'Компактная запись без пробелов вокруг операторов — признак человека.')
-                        : 'Отсутствие случайных двойных пробелов.'
-                },
-                {
-                    label: 'Проверка типографики',
-                    value: isCode
-                        ? 'Отключено для кода (0 баллов)'
-                        : (hasEmDash && hasGuillemets ? 'Пара «» + — (+8% макс.)' : 'Нейтральная (<> "" ., игнорируются)'),
-                    status: 'human',
-                    detail: isCode
-                        ? 'Символы <> "" ., ; в коде и C++ шаблонах никогда не считаются типографикой ИИ.'
-                        : 'Обычные скобки и кавычки исключены; учитывается только пара «ёлочки» + длинное тире —.'
-                },
-                {
-                    label: isCode ? 'Информатические конструкции' : 'Ритм предложений (Burstiness)',
-                    value: isCode
-                        ? (inf.constructsFound.length ? `Найдено: ${inf.constructsFound.slice(0, 2).join(', ')}` : 'Академический стиль')
-                        : `Коэфф. CV: ${burstinessCV.toFixed(2)}`,
-                    status: isCode
-                        ? (inf.constructsFound.length > 0 ? 'human' : 'ai')
-                        : (burstinessCV < 0.32 ? 'ai' : (burstinessCV > 0.50 ? 'human' : 'mixed')),
-                    detail: isCode
-                        ? (inf.constructsFound.length > 0 ? 'Олимпиадные директивы и потоковый ввод/вывод указывают на человека.' : 'Отсутствуют характерные для олимпиадной информатики сокращения.')
-                        : 'Коэффициент < 0.32 указывает на монотонный ритм нейросети.'
-                }
+                { label: 'Отступы и табуляция', value: hasTabs ? 'Смешанные (Tab + пробелы)' : `${indentRatio}% ровных (2/4 пробела)`, status: !hasTabs && indentRatio >= 95 && !inf.isStrongCompetitive ? 'ai' : 'human', detail: hasTabs ? 'Смешивание табов и пробелов характерно для ручного набора.' : 'Равномерные отступы по стандарту форматирования.' },
+                { label: isCode ? 'Пробелы вокруг операторов / «слитки»' : 'Двойные пробелы в тексте', value: isCode ? (ops.slitkiCount === 0 ? `0 слитков (${ops.wellSpacedOps} идеальных)` : `${ops.slitkiCount} слитков (${ops.slitkiExamples.slice(0, 2).join(', ')})`) : (inlineDoubleSpaces === 0 ? '0 двойных пробелов' : `${inlineDoubleSpaces} шт.`), status: isCode ? (ops.slitkiCount === 0 ? 'ai' : (ops.slitkiCount === 1 ? 'mixed' : 'human')) : (inlineDoubleSpaces === 0 ? 'ai' : 'human'), detail: isCode ? (ops.slitkiCount === 0 ? 'Все операторы окружены пробелами.' : 'Компактная запись без пробелов вокруг операторов — признак человека.') : 'Отсутствие случайных двойных пробелов.' },
+                { label: 'Проверка типографики', value: isCode ? 'Отключено для кода (0 баллов)' : (hasEmDash && hasGuillemets ? 'Пара «» + — (+8% макс.)' : 'Нейтральная (<> "" ., игнорируются)'), status: 'human', detail: isCode ? 'Символы <> "" ., ; в коде и C++ шаблонах никогда не считаются типографикой ИИ.' : 'Обычные скобки и кавычки исключены; учитывается только пара «ёлочки» + длинное тире —.' },
+                { label: isCode ? 'Информатические конструкции' : 'Ритм предложений (Burstiness)', value: isCode ? (inf.constructsFound.length ? `Найдено: ${inf.constructsFound.slice(0, 2).join(', ')}` : 'Академический стиль') : `Коэфф. CV: ${burstinessCV.toFixed(2)}`, status: isCode ? (inf.constructsFound.length > 0 ? 'human' : 'ai') : (burstinessCV < 0.32 ? 'ai' : (burstinessCV > 0.50 ? 'human' : 'mixed')), detail: isCode ? (inf.constructsFound.length > 0 ? 'Олимпиадные директивы и потоковый ввод/вывод указывают на человека.' : 'Отсутствуют характерные для олимпиадной информатики сокращения.') : 'Коэффициент < 0.32 указывает на монотонный ритм нейросети.' }
             ];
 
-            let placementDesc = '';
-            if (isCode) {
-                placementDesc = `Найдено ${docstringCount} docstring, ${tutorialComments.length} учебных комментариев ИИ и ${shortHumanNotes.length} рабочих заметок программиста.`;
-            } else {
-                placementDesc = `Абзацная структура: ${rawSegs.length} смысловых блоков с проверкой вводных связок.`;
-            }
+            const placementDesc = isCode
+                ? `Найдено ${docstringCount} docstring, ${tutorialComments.length} учебных комментариев ИИ и ${shortHumanNotes.length} рабочих заметок программиста.`
+                : `Абзацная структура: ${rawSegs.length} смысловых блоков с проверкой вводных связок.`;
 
             const lexicalMarkers = [];
             inf.constructsFound.slice(0, 4).forEach(c => lexicalMarkers.push({ text: c, kind: 'human', category: 'Информатика (Человек)' }));
-            if (inf.shortVars.length >= 2) {
-                lexicalMarkers.push({ text: `Переменные: ${inf.shortVars.slice(0, 5).join(', ')}`, kind: 'human', category: 'Математический нейминг' });
-            }
+            if (inf.shortVars.length >= 2) lexicalMarkers.push({ text: `Переменные: ${inf.shortVars.slice(0, 5).join(', ')}`, kind: 'human', category: 'Математический нейминг' });
             ops.slitkiExamples.slice(0, 4).forEach(s => lexicalMarkers.push({ text: s, kind: 'human', category: 'Операторный слиток' }));
             shortHumanNotes.slice(0, 3).forEach(n => lexicalMarkers.push({ text: n.trim(), kind: 'human', category: 'Заметка автора' }));
-
             foundPreps.slice(0, 5).forEach(p => lexicalMarkers.push({ text: p, kind: 'ai', category: 'Предлог / союз ИИ' }));
             tutorialComments.slice(0, 3).forEach(tc => lexicalMarkers.push({ text: tc.trim(), kind: 'ai', category: 'Учебный комментарий ИИ' }));
-            if (/:\s*(List|Dict|Optional|Tuple|int|float|str)\b/.test(rawText)) {
-                lexicalMarkers.push({ text: 'Type Hints (: int / List[...])', kind: 'ai', category: 'Аннотации типов ИИ' });
-            }
-            if (isCode && ops.slitkiCount === 0 && ops.wellSpacedOps >= 3 && !inf.isStrongCompetitive) {
-                lexicalMarkers.push({ text: `0 слитков (${ops.cleanSpacingRatio}% пробелы)`, kind: 'ai', category: 'Стерильное форматирование' });
-            }
+            if (/:\s*(List|Dict|Optional|Tuple|int|float|str)\b/.test(rawText)) lexicalMarkers.push({ text: 'Type Hints (: int / List[...])', kind: 'ai', category: 'Аннотации типов ИИ' });
+            if (isCode && ops.slitkiCount === 0 && ops.wellSpacedOps >= 3 && !inf.isStrongCompetitive) lexicalMarkers.push({ text: `0 слитков (${ops.cleanSpacingRatio}% пробелы)`, kind: 'ai', category: 'Стерильное форматирование' });
 
             let verdictTitle = 'Смешанное авторство';
             let verdictSummary = `Документ сочетает сгенерированные фрагменты (${distribution.ai}%), смешанные блоки (${distribution.mixed}%) и ручные правки (${distribution.human}%).`;
@@ -1998,11 +1815,7 @@ print(len(ans))`
             }
 
             return {
-                aiProbability,
-                contentType: isCode ? `Программный код (${info.lang})` : 'Текст',
-                verdictTitle,
-                verdictSummary,
-                distribution,
+                aiProbability, contentType: isCode ? `Программный код (${info.lang})` : 'Текст', verdictTitle, verdictSummary, distribution,
                 xaiFactors: [
                     { label: 'Синтаксис и операторные «слитки»', score: factorSpacing },
                     { label: 'Именование переменных и типизация', score: factorNaming },
@@ -2011,17 +1824,13 @@ print(len(ans))`
                 ],
                 formatting: {
                     sterilityScore,
-                    summary: isCode
-                        ? `Язык: ${info.lang}. Пробелы вокруг операторов: ${ops.cleanSpacingRatio}% (${ops.slitkiCount} слитков). Типографика отключена (символы <> "" ., ; не штрафуются).`
-                        : `Двойных пробелов: ${inlineDoubleSpaces}. Коэффициент ритма (Burstiness CV): ${burstinessCV.toFixed(2)}. Символы <> "" ., игнорируются.`,
+                    summary: isCode ? `Язык: ${info.lang}. Пробелы вокруг операторов: ${ops.cleanSpacingRatio}% (${ops.slitkiCount} слитков). Типографика отключена (символы <> "" ., ; не штрафуются).` : `Двойных пробелов: ${inlineDoubleSpaces}. Коэффициент ритма (Burstiness CV): ${burstinessCV.toFixed(2)}. Символы <> "" ., игнорируются.`,
                     metrics: formattingMetrics
                 },
                 commentForensics: {
                     placement: placementDesc,
                     prepositions: foundPreps.length ? foundPreps.slice(0, 7) : ['Канцелярских предлогов ИИ не найдено'],
-                    verbsAndPatterns: tutorialComments.length
-                        ? tutorialComments.slice(0, 4).map(c => c.trim())
-                        : (shortHumanNotes.length ? shortHumanNotes.map(n => n.trim()) : (inf.constructsFound.length ? inf.constructsFound.slice(0, 4) : ['Нейтральный технический стиль']))
+                    verbsAndPatterns: tutorialComments.length ? tutorialComments.slice(0, 4).map(c => c.trim()) : (shortHumanNotes.length ? shortHumanNotes.map(n => n.trim()) : (inf.constructsFound.length ? inf.constructsFound.slice(0, 4) : ['Нейтральный технический стиль']))
                 },
                 lexicalMarkers,
                 reverseQA: buildReverseQA(segments, isCode),
@@ -2031,89 +1840,55 @@ print(len(ans))`
         }
 
         function computeWeightedStats(segments) {
-            if (!segments || !segments.length) {
-                return { aiProbability: 50, distribution: { ai: 0, mixed: 100, human: 0 } };
-            }
-            let totalChars = 0;
-            let weightedScoreSum = 0;
-            let aiChars = 0, mixedChars = 0, humanChars = 0;
-
+            if (!segments || !segments.length) return { aiProbability: 50, distribution: { ai: 0, mixed: 100, human: 0 } };
+            let totalChars = 0, weightedScoreSum = 0, aiChars = 0, mixedChars = 0, humanChars = 0;
             for (const s of segments) {
                 const len = Math.max(10, (s.text || '').length);
                 const sc = Math.max(1, Math.min(99, Number(s.score) || 50));
-                s.score = sc;
-                s.status = classifyScore(sc);
-
-                totalChars += len;
-                weightedScoreSum += sc * len;
+                s.score = sc; s.status = classifyScore(sc);
+                totalChars += len; weightedScoreSum += sc * len;
                 if (s.status === 'ai') aiChars += len;
                 else if (s.status === 'mixed') mixedChars += len;
                 else humanChars += len;
             }
-
             const aiPct = Math.round((aiChars / totalChars) * 100);
             const humanPct = Math.round((humanChars / totalChars) * 100);
-            let mixedPct = 100 - aiPct - humanPct;
-            if (mixedPct < 0) mixedPct = 0;
+            let mixedPct = Math.max(0, 100 - aiPct - humanPct);
             const fixedAi = aiPct + humanPct + mixedPct !== 100 ? Math.max(0, 100 - humanPct - mixedPct) : aiPct;
-            const aiProbability = Math.max(1, Math.min(99, Math.round(weightedScoreSum / totalChars)));
-
-            return {
-                aiProbability,
-                distribution: { ai: fixedAi, mixed: mixedPct, human: humanPct }
-            };
+            return { aiProbability: Math.max(1, Math.min(99, Math.round(weightedScoreSum / totalChars))), distribution: { ai: fixedAi, mixed: mixedPct, human: humanPct } };
         }
 
         function reconcileExternalReport(llmData, originalText) {
             const local = analyzeLocally(originalText);
             const merged = { ...local, ...llmData };
-
             if (Array.isArray(llmData.segments) && llmData.segments.length > 0) {
                 merged.segments = llmData.segments.map(s => {
-                    const sc = typeof s.score === 'number'
-                        ? s.score
-                        : (s.status === 'ai' ? 86 : (s.status === 'human' ? 16 : 50));
-                    return {
-                        text: s.text || '',
-                        score: Math.max(1, Math.min(99, Math.round(sc))),
-                        status: classifyScore(sc),
-                        reason: s.reason || 'Оценка облачной модели'
-                    };
+                    const sc = typeof s.score === 'number' ? s.score : (s.status === 'ai' ? 86 : (s.status === 'human' ? 16 : 50));
+                    return { text: s.text || '', score: Math.max(1, Math.min(99, Math.round(sc))), status: classifyScore(sc), reason: s.reason || 'Оценка облачной модели' };
                 }).filter(s => s.text.trim().length > 0);
-            } else {
-                merged.segments = local.segments;
-            }
+            } else merged.segments = local.segments;
 
             const stats = computeWeightedStats(merged.segments);
             merged.aiProbability = stats.aiProbability;
             merged.distribution = stats.distribution;
-
             if (!Array.isArray(merged.xaiFactors) || merged.xaiFactors.length < 4) merged.xaiFactors = local.xaiFactors;
             if (!merged.formatting || !Array.isArray(merged.formatting.metrics)) merged.formatting = local.formatting;
             if (!merged.commentForensics) merged.commentForensics = local.commentForensics;
             if (!Array.isArray(merged.lexicalMarkers)) merged.lexicalMarkers = local.lexicalMarkers;
             if (!Array.isArray(merged.reverseQA) || !merged.reverseQA.length) merged.reverseQA = local.reverseQA;
             if (!Array.isArray(merged.defenseQuestions) || !merged.defenseQuestions.length) merged.defenseQuestions = local.defenseQuestions;
-
             return merged;
         }
 
-        // =========================================================================
-        // 8. ОБРАТНАЯ ИНЖЕНЕРИЯ (ПРОМПТЫ) И ДОПРОС АВТОРА (АНТИ-КОПИПАСТ)
-        // =========================================================================
         function buildReverseQA(segments, isCode) {
             return segments.slice(0, 3).map((seg, idx) => {
                 const excerpt = seg.text.length > 260 ? seg.text.slice(0, 260) + '…' : seg.text;
                 let prompt = '';
                 if (isCode) {
                     const fnMatch = seg.text.match(/(?:def|function)\s+([a-zA-Z0-9_]+)/);
-                    if (fnMatch) {
-                        prompt = `Напиши функцию ${fnMatch[1]} с аннотациями типов и подробными комментариями для решения задачи.`;
-                    } else if (/while\s*\(|for\s*\(|for\s+\w+\s+in/.test(seg.text)) {
-                        prompt = 'Реализуй основной вычислительный цикл алгоритма с обновлением промежуточных переменных.';
-                    } else {
-                        prompt = 'Напиши шаблон ввода-вывода и инициализации структур данных для решения олимпиадной задачи.';
-                    }
+                    if (fnMatch) prompt = `Напиши функцию ${fnMatch[1]} с аннотациями типов и подробными комментариями для решения задачи.`;
+                    else if (/while\s*\(|for\s*\(|for\s+\w+\s+in/.test(seg.text)) prompt = 'Реализуй основной вычислительный цикл алгоритма с обновлением промежуточных переменных.';
+                    else prompt = 'Напиши шаблон ввода-вывода и инициализации структур данных для решения олимпиадной задачи.';
                 } else {
                     const keywords = seg.text.replace(/[.,!?;:«»"—()]/g, '').split(/\s+/).filter(w => w.length >= 6).slice(0, 4);
                     prompt = `Напиши структурированный абзац в академическом стиле, раскрыв тему: ${keywords.join(', ') || 'алгоритмическое мышление'}.`;
@@ -2126,81 +1901,16 @@ print(len(ans))`
         function generateDefenseQuestions(rawText, isCode, rotation = 0) {
             const lines = rawText.split(/\r\n|\r|\n/);
             const pool = [];
-
             if (isCode) {
                 const rules = [
-                    {
-                        regex: /long\s+long\s+mid\s*=\s*l\s*\+\s*\(\s*r\s*-\s*l\s*\)\s*\/\s*2|mid\s*=\s*\(\s*l\s*\+\s*r\s*\)\s*\/\s*2/,
-                        make: (m, line, num) => ({
-                            target: `Бинарный поиск (mid) — строка ${num}`,
-                            snippet: line.trim(),
-                            question: `Зачем на строке ${num} середина считается как «l + (r - l) / 2», а не просто «(l + r) / 2»? Что может произойти на больших тестах?`,
-                            expectedAnswer: `Формула l + (r - l) / 2 защищает от переполнения целочисленного типа при сложении больших границ l и r.`,
-                            keywords: ['переполнен', 'overflow', 'сумма', 'больш', 'границ', 'числ', 'тип']
-                        })
-                    },
-                    {
-                        regex: /ios_base::sync_with_stdio\s*\(\s*false\s*\)/,
-                        make: (m, line, num) => ({
-                            target: `Ускорение ввода-вывода — строка ${num}`,
-                            snippet: line.trim(),
-                            question: `Что делает «ios_base::sync_with_stdio(false)» на строке ${num} и какую функцию вывода после этого нельзя смешивать с cout?`,
-                            expectedAnswer: `Отключает синхронизацию потоков C++ (cin/cout) с потоками C (scanf/printf) для ускорения чтения больших входных данных.`,
-                            keywords: ['синхрониз', 'ускор', 'быстр', 'printf', 'scanf', 'поток', 'ввод']
-                        })
-                    },
-                    {
-                        regex: /\bwhile\s*\(\s*([^)]+)\s*\)/,
-                        make: (m, line, num) => ({
-                            target: `Цикл while (${m[1].trim()}) — строка ${num}`,
-                            snippet: line.trim(),
-                            question: `Объясните условие выхода из цикла «while (${m[1].trim()})» на строке ${num}: при каком условии цикл завершится и почему он не зациклится?`,
-                            expectedAnswer: `На каждой итерации границы сужаются (или очередь уменьшается), поэтому условие ${m[1].trim()} гарантированно станет ложным.`,
-                            keywords: ['границ', 'уменьш', 'очеред', 'итерац', 'услови', 'выход', 'сдвиг']
-                        })
-                    },
-                    {
-                        regex: /\b(?:def|function)\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)/,
-                        make: (m, line, num) => ({
-                            target: `Функция ${m[1]}() — строка ${num}`,
-                            snippet: line.trim(),
-                            question: `Объясните логику функции «${m[1]}» (строка ${num}): какая у нее асимптотическая сложность по времени и что она вернет на пустом входе?`,
-                            expectedAnswer: `Автор должен назвать сложность алгоритма (например, O(N) или O(N log S)) и объяснить обработку граничного случая при пустом массиве/графе.`,
-                            keywords: ['сложност', 'o(n', 'пуст', 'вернет', 'возвращает', 'массив', 'граф', 'цикл']
-                        })
-                    },
-                    {
-                        regex: /map\s*\(\s*int\s*,\s*input\s*\(\s*\)\.split\s*\(\s*\)\s*\)/,
-                        make: (m, line, num) => ({
-                            target: `Чтение данных map(int, input().split()) — строка ${num}`,
-                            snippet: line.trim(),
-                            question: `Что произойдет на строке ${num} при выполнении «map(int, input().split())», если в строке ввода окажется на одно число меньше, чем переменных слева?`,
-                            expectedAnswer: `Возникнет исключение ValueError: not enough values to unpack, так как распаковка ожидает точное количество элементов.`,
-                            keywords: ['valueerror', 'ошибк', 'распаков', 'меньше', 'количеств', 'элемент']
-                        })
-                    },
-                    {
-                        regex: /deque\s*\(\s*\[([^\]]+)\]\s*\)/,
-                        make: (m, line, num) => ({
-                            target: `Очередь deque([${m[1]}]) — строка ${num}`,
-                            snippet: line.trim(),
-                            question: `Почему на строке ${num} использован «deque» и метод «popleft()», а не обычный список Python «list» с «pop(0)»?`,
-                            expectedAnswer: `В deque удаление с начала popleft() работает за O(1), тогда как list.pop(0) сдвигает все элементы и работает за O(N).`,
-                            keywords: ['o(1)', 'o(n)', 'сдвиг', 'быстр', 'начал', 'очеред', 'сложност']
-                        })
-                    },
-                    {
-                        regex: /\bfor\s*\(\s*int\s+(\w+)\s*=\s*0\s*;\s*\1\s*<\s*([^;]+);/,
-                        make: (m, line, num) => ({
-                            target: `Цикл for по ${m[2].trim()} — строка ${num}`,
-                            snippet: line.trim(),
-                            question: `На строке ${num} цикл идет до «< ${m[2].trim()}». Что сломается, если заменить «<» на «<=»?`,
-                            expectedAnswer: `Произойдет выход за пределы массива (обращение к несуществующему индексу n), что приведет к мусорным данным или ошибке памяти.`,
-                            keywords: ['выход', 'границ', 'индекс', 'ошибк', 'предел', 'память', 'массив']
-                        })
-                    }
+                    { regex: /long\s+long\s+mid\s*=\s*l\s*\+\s*\(\s*r\s*-\s*l\s*\)\s*\/\s*2|mid\s*=\s*\(\s*l\s*\+\s*r\s*\)\s*\/\s*2/, make: (m, line, num) => ({ target: `Бинарный поиск (mid) — строка ${num}`, snippet: line.trim(), question: `Зачем на строке ${num} середина считается как «l + (r - l) / 2», а не просто «(l + r) / 2»?`, expectedAnswer: `Формула l + (r - l) / 2 защищает от переполнения целочисленного типа при сложении больших границ l и r.`, keywords: ['переполнен', 'overflow', 'сумма', 'больш', 'границ', 'числ', 'тип'] }) },
+                    { regex: /ios_base::sync_with_stdio\s*\(\s*false\s*\)/, make: (m, line, num) => ({ target: `Ускорение ввода-вывода — строка ${num}`, snippet: line.trim(), question: `Что делает «ios_base::sync_with_stdio(false)» на строке ${num} и какую функцию вывода после этого нельзя смешивать с cout?`, expectedAnswer: `Отключает синхронизацию потоков C++ (cin/cout) с потоками C (scanf/printf) для ускорения чтения больших входных данных.`, keywords: ['синхрониз', 'ускор', 'быстр', 'printf', 'scanf', 'поток', 'ввод'] }) },
+                    { regex: /\bwhile\s*\(\s*([^)]+)\s*\)/, make: (m, line, num) => ({ target: `Цикл while (${m[1].trim()}) — строка ${num}`, snippet: line.trim(), question: `Объясните условие выхода из цикла «while (${m[1].trim()})» на строке ${num}: почему он не зациклится?`, expectedAnswer: `На каждой итерации границы сужаются (или очередь уменьшается), поэтому условие ${m[1].trim()} гарантированно станет ложным.`, keywords: ['границ', 'уменьш', 'очеред', 'итерац', 'услови', 'выход', 'сдвиг'] }) },
+                    { regex: /\b(?:def|function)\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)/, make: (m, line, num) => ({ target: `Функция ${m[1]}() — строка ${num}`, snippet: line.trim(), question: `Объясните логику функции «${m[1]}» (строка ${num}): какая у нее сложность по времени и что она вернет на пустом входе?`, expectedAnswer: `Автор должен назвать сложность алгоритма и объяснить обработку граничного случая при пустом массиве/графе.`, keywords: ['сложност', 'o(n', 'пуст', 'вернет', 'возвращает', 'массив', 'граф', 'цикл'] }) },
+                    { regex: /map\s*\(\s*int\s*,\s*input\s*\(\s*\)\.split\s*\(\s*\)\s*\)/, make: (m, line, num) => ({ target: `Чтение данных map(int, input().split()) — строка ${num}`, snippet: line.trim(), question: `Что произойдет на строке ${num} при «map(int, input().split())», если в строке ввода окажется меньше чисел, чем переменных?`, expectedAnswer: `Возникнет исключение ValueError: not enough values to unpack.`, keywords: ['valueerror', 'ошибк', 'распаков', 'меньше', 'количеств', 'элемент'] }) },
+                    { regex: /deque\s*\(\s*\[([^\]]+)\]\s*\)/, make: (m, line, num) => ({ target: `Очередь deque([${m[1]}]) — строка ${num}`, snippet: line.trim(), question: `Почему на строке ${num} использован «deque» и «popleft()», а не обычный «list» с «pop(0)»?`, expectedAnswer: `В deque удаление с начала popleft() работает за O(1), тогда как list.pop(0) работает за O(N).`, keywords: ['o(1)', 'o(n)', 'сдвиг', 'быстр', 'начал', 'очеред', 'сложност'] }) },
+                    { regex: /\bfor\s*\(\s*int\s+(\w+)\s*=\s*0\s*;\s*\1\s*<\s*([^;]+);/, make: (m, line, num) => ({ target: `Цикл for по ${m[2].trim()} — строка ${num}`, snippet: line.trim(), question: `На строке ${num} цикл идет до «< ${m[2].trim()}». Что сломается, если заменить «<» на «<=»?`, expectedAnswer: `Произойдет выход за пределы массива (обращение к несуществующему индексу).`, keywords: ['выход', 'границ', 'индекс', 'ошибк', 'предел', 'память', 'массив'] }) }
                 ];
-
                 lines.forEach((line, idx) => {
                     for (const r of rules) {
                         const match = line.match(r.regex);
@@ -2211,22 +1921,14 @@ print(len(ans))`
                     }
                 });
             }
-
             if (pool.length < 3) {
                 const paras = rawText.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 35);
                 paras.slice(0, 4).forEach((p, idx) => {
                     const terms = p.replace(/[^а-яА-Яa-zA-Z0-9-]/g, ' ').split(/\s+/).filter(w => w.length >= 7);
                     const term = terms[1] || terms[0] || 'тезис';
-                    pool.push({
-                        target: `Термин «${term}» — абзац ${idx + 1}`,
-                        snippet: p.slice(0, 130) + (p.length > 130 ? '…' : ''),
-                        question: `Объясните своими словами, не глядя в текст, что означает «${term}» в абзаце ${idx + 1}, и приведите 1 конкретный пример.`,
-                        expectedAnswer: `Автор должен своими словами раскрыть смысл термина и привести конкретный пример из практики.`,
-                        keywords: [term.toLowerCase().slice(0, 5), 'пример', 'означает', 'потому', 'практик', 'работает']
-                    });
+                    pool.push({ target: `Термин «${term}» — абзац ${idx + 1}`, snippet: p.slice(0, 130) + (p.length > 130 ? '…' : ''), question: `Объясните своими словами, что означает «${term}» в абзаце ${idx + 1}, и приведите 1 пример.`, expectedAnswer: `Автор должен своими словами раскрыть смысл термина и привести конкретный пример.`, keywords: [term.toLowerCase().slice(0, 5), 'пример', 'означает', 'потому', 'практик', 'работает'] });
                 });
             }
-
             if (rotation > 0 && pool.length > 3) {
                 const shift = rotation % pool.length;
                 return pool.slice(shift).concat(pool.slice(0, shift)).slice(0, 4);
@@ -2246,18 +1948,12 @@ print(len(ans))`
         function checkAuthorAnswer(idx) {
             const q = state.lastReport?.defenseQuestions?.[idx];
             if (!q) return;
-            const input = document.getElementById(`defense-input-${idx}`);
+            const val = (document.getElementById(`defense-input-${idx}`)?.value || '').trim().toLowerCase();
             const box = document.getElementById(`defense-feedback-${idx}`);
-            const val = (input?.value || '').trim().toLowerCase();
-
-            if (val.length < 6) {
-                showToast('Введите ответ автора (минимум 6 символов).', 'warning');
-                return;
-            }
+            if (val.length < 6) return showToast('Введите ответ автора (минимум 6 символов).', 'warning');
 
             const matched = (q.keywords || []).filter(k => val.includes(k.toLowerCase()));
             const redFlag = /(не знаю|хз|чатгпт|chatgpt|скопировал|не помню|просто так)/i.test(val);
-
             box.classList.remove('hidden');
             if (redFlag || (matched.length === 0 && val.length < 35)) {
                 box.className = 'mt-2.5 p-3 rounded-xl bg-rose-50 dark:bg-rose-500/15 border border-rose-200 dark:border-rose-500/30 text-xs text-rose-800 dark:text-rose-200';
@@ -2276,33 +1972,22 @@ print(len(ans))`
             if (el) el.classList.toggle('hidden');
         }
 
-        // =========================================================================
-        // 9. АВТОМАСКИРОВАНИЕ ПДН И ЗАПРОС К ОБЛАЧНОМУ API
-        // =========================================================================
         function maskSensitiveData(text) {
             let maskedCount = 0;
             const clean = text
                 .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, () => { maskedCount++; return '[EMAIL_MASKED]'; })
                 .replace(/\b(?:\d{4}[\s-]?){3}\d{4}\b/g, () => { maskedCount++; return '[CARD_MASKED]'; })
-                .replace(/(?:\+?\d[\d\s\-()]{9,15}\d)/g, m => {
-                    const digits = m.replace(/\D/g, '');
-                    if (digits.length >= 10 && digits.length <= 12) { maskedCount++; return '[PHONE_MASKED]'; }
-                    return m;
-                })
+                .replace(/(?:\+?\d[\d\s\-()]{9,15}\d)/g, m => { const d = m.replace(/\D/g, ''); if (d.length >= 10 && d.length <= 12) { maskedCount++; return '[PHONE_MASKED]'; } return m; })
                 .replace(/\b\d{12}\b/g, () => { maskedCount++; return '[IIN_MASKED]'; });
             return { text: clean, maskedCount };
         }
 
         async function runAnalysis() {
             const rawText = document.getElementById('source-input').value;
-            if (!rawText || rawText.trim().length < 12) {
-                showToast('Введите текст или программный код (минимум 12 символов).', 'warning');
-                return;
-            }
+            if (!rawText || rawText.trim().length < 12) return showToast('Введите текст или программный код (минимум 12 символов).', 'warning');
 
             state.lastAnalyzedText = rawText;
             state.segmentFilter = 'all';
-
             const loading = document.getElementById('loading-panel');
             const results = document.getElementById('results-section');
             const bar = document.getElementById('loading-progress');
@@ -2311,32 +1996,19 @@ print(len(ans))`
             results.classList.add('hidden');
             bar.style.width = '30%';
 
-            let report = null;
-            let engineLabel = 'VeriScan Core v5 (Офлайн)';
-            let usedCloud = false;
-            let piiMaskedCount = 0;
-
+            let report = null, engineLabel = 'VeriScan Core v5 (Офлайн)', usedCloud = false, piiMaskedCount = 0;
             const mode = state.config.mode;
             if (mode === 'cloud_free' || (mode === 'custom' && state.config.apiKey && state.config.endpoint)) {
                 try {
                     let payloadText = rawText;
-                    if (state.config.maskPii) {
-                        const res = maskSensitiveData(rawText);
-                        payloadText = res.text;
-                        piiMaskedCount = res.maskedCount;
-                    }
-
-                    document.getElementById('loading-title').textContent = mode === 'cloud_free'
-                        ? 'Подключение к облачному ИИ (Cloud Auto)...'
-                        : `Запрос к вашему API (${state.config.model})...`;
+                    if (state.config.maskPii) { const res = maskSensitiveData(rawText); payloadText = res.text; piiMaskedCount = res.maskedCount; }
+                    document.getElementById('loading-title').textContent = mode === 'cloud_free' ? 'Подключение к облачному ИИ (Cloud Auto)...' : `Запрос к вашему API (${state.config.model})...`;
                     bar.style.width = '65%';
-
                     const llmJson = await fetchCloudAnalysis(payloadText, mode);
                     report = reconcileExternalReport(llmJson, rawText);
                     usedCloud = true;
                     engineLabel = mode === 'cloud_free' ? 'Cloud Auto ИИ' : `API: ${state.config.model}`;
                 } catch (err) {
-                    console.warn('Облачный ИИ недоступен, выполнен переход на VeriScan Core v5:', err);
                     showToast(`Облачный API недоступен (${err.message}). Анализ выполнен локальным движком VeriScan Core v5.`, 'warning');
                     report = analyzeLocally(rawText);
                     engineLabel = 'VeriScan Core v5 (Авто-фолбэк)';
@@ -2349,15 +2021,8 @@ print(len(ans))`
             }
 
             state.lastReport = report;
-
             const libItem = state.library.find(x => x.id === state.currentDocId);
-            if (libItem) {
-                libItem.lastScore = report.aiProbability;
-                libItem.content = rawText;
-                persistLibrary();
-                renderLibrary();
-            }
-
+            if (libItem) { libItem.lastScore = report.aiProbability; libItem.content = rawText; persistLibrary(); renderLibrary(); }
             loading.classList.add('hidden');
             results.classList.remove('hidden');
             renderResults(report, engineLabel, usedCloud, piiMaskedCount);
@@ -2366,64 +2031,39 @@ print(len(ans))`
         async function fetchCloudAnalysis(textToSend, mode) {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 15000);
-
             try {
-                const endpoint = mode === 'cloud_free'
-                    ? 'https://text.pollinations.ai/openai'
-                    : state.config.endpoint.trim();
-
+                const endpoint = mode === 'cloud_free' ? 'https://text.pollinations.ai/openai' : state.config.endpoint.trim();
                 const headers = { 'Content-Type': 'application/json' };
-                if (mode === 'custom' && state.config.apiKey) {
-                    headers['Authorization'] = `Bearer ${state.config.apiKey.trim()}`;
-                }
-
-                const body = {
-                    model: mode === 'cloud_free' ? 'openai' : (state.config.model.trim() || 'gpt-4o-mini'),
-                    temperature: 0.1,
-                    messages: [
-                        { role: 'system', content: state.config.systemPrompt || SYSTEM_PROMPT },
-                        { role: 'user', content: `Проанализируй документ и верни строго JSON:\n\n${textToSend.slice(0, 7500)}` }
-                    ]
-                };
-
+                if (mode === 'custom' && state.config.apiKey) headers['Authorization'] = `Bearer ${state.config.apiKey.trim()}`;
                 const resp = await fetch(endpoint, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(body),
-                    signal: controller.signal
+                    method: 'POST', headers, signal: controller.signal,
+                    body: JSON.stringify({
+                        model: mode === 'cloud_free' ? 'openai' : (state.config.model.trim() || 'gpt-4o-mini'),
+                        temperature: 0.1,
+                        messages: [
+                            { role: 'system', content: state.config.systemPrompt || SYSTEM_PROMPT },
+                            { role: 'user', content: `Проанализируй документ и верни строго JSON:\n\n${textToSend.slice(0, 7500)}` }
+                        ]
+                    })
                 });
-
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                 const data = await resp.json();
-                const content = data.choices?.[0]?.message?.content || '';
-                const jsonMatch = content.match(/\{[\s\S]*\}/);
+                const jsonMatch = (data.choices?.[0]?.message?.content || '').match(/\{[\s\S]*\}/);
                 if (!jsonMatch) throw new Error('Некорректный JSON от модели');
                 return JSON.parse(jsonMatch[0]);
-            } finally {
-                clearTimeout(timeoutId);
-            }
+            } finally { clearTimeout(timeoutId); }
         }
 
-        // =========================================================================
-        // 10. ОТРИСОВКА ЭКРАНА РЕЗУЛЬТАТОВ
-        // =========================================================================
         function renderResults(report, engineLabel, usedCloud, piiMaskedCount) {
             document.getElementById('result-engine-badge').textContent = engineLabel;
             document.getElementById('result-meta-line').textContent = `Документ: ${state.currentDocName} • Сегментов: ${report.segments.length}`;
+            document.getElementById('privacy-status-pill').innerHTML = usedCloud
+                ? `<i data-lucide="cloud" class="w-3.5 h-3.5"></i> Облачный ИИ${piiMaskedCount > 0 ? ` • Скрыто ПДн: ${piiMaskedCount}` : ''}`
+                : `<i data-lucide="shield" class="w-3.5 h-3.5"></i> Локальный анализ`;
 
-            const privPill = document.getElementById('privacy-status-pill');
-            if (usedCloud) {
-                privPill.innerHTML = `<i data-lucide="cloud" class="w-3.5 h-3.5"></i> Облачный ИИ${piiMaskedCount > 0 ? ` • Скрыто ПДн: ${piiMaskedCount}` : ''}`;
-            } else {
-                privPill.innerHTML = `<i data-lucide="shield" class="w-3.5 h-3.5"></i> Локальный анализ`;
-            }
-
-            // 1. Круговой индикатор
             const score = report.aiProbability;
             const arc = document.getElementById('score-gauge-arc');
-            const circ = 314.16;
-            arc.style.strokeDashoffset = circ - (score / 100) * circ;
-
+            arc.style.strokeDashoffset = 314.16 - (score / 100) * 314.16;
             const vPill = document.getElementById('verdict-pill');
             if (score >= 65) {
                 arc.setAttribute('stroke', '#E11D48');
@@ -2441,23 +2081,11 @@ print(len(ans))`
             document.getElementById('detected-kind-pill').textContent = report.contentType;
             document.getElementById('verdict-description').textContent = report.verdictSummary;
 
-            // Декомпозиция признаков
             document.getElementById('xai-factors-container').innerHTML = report.xaiFactors.map(f => {
                 const color = f.score >= 65 ? 'bg-rose-600' : (f.score >= 36 ? 'bg-amber-500' : 'bg-emerald-600');
-                return `
-                    <div class="space-y-1">
-                        <div class="flex items-center justify-between text-xs">
-                            <span class="text-slate-600 dark:text-zinc-300 font-medium">${escapeHtml(f.label)}</span>
-                            <span class="font-mono font-bold text-slate-800 dark:text-zinc-100">${f.score}%</span>
-                        </div>
-                        <div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden">
-                            <div class="${color} h-full rounded-full transition-all duration-700" style="width: ${f.score}%"></div>
-                        </div>
-                    </div>
-                `;
+                return `<div class="space-y-1"><div class="flex items-center justify-between text-xs"><span class="text-slate-600 dark:text-zinc-300 font-medium">${escapeHtml(f.label)}</span><span class="font-mono font-bold text-slate-800 dark:text-zinc-100">${f.score}%</span></div><div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden"><div class="${color} h-full rounded-full transition-all duration-700" style="width: ${f.score}%"></div></div></div>`;
             }).join('');
 
-            // 3-цветная полоса распределения
             const d = report.distribution;
             document.getElementById('dist-ai-label').textContent = `${d.ai}%`;
             document.getElementById('dist-mixed-label').textContent = `${d.mixed}%`;
@@ -2466,72 +2094,34 @@ print(len(ans))`
             document.getElementById('dist-mixed-bar').style.width = `${d.mixed}%`;
             document.getElementById('dist-human-bar').style.width = `${d.human}%`;
 
-            // 2. Пробелы, операторы и типографика
             const fmt = report.formatting;
             document.getElementById('sterility-badge').textContent = `Стерильность: ${fmt.sterilityScore}%`;
             document.getElementById('formatting-summary-box').innerHTML = `<strong>Вывод:</strong> ${escapeHtml(fmt.summary)}`;
             document.getElementById('formatting-metrics-list').innerHTML = fmt.metrics.map(m => {
-                const stCls = m.status === 'ai'
-                    ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30'
-                    : m.status === 'mixed'
-                        ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30'
-                        : 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30';
+                const stCls = m.status === 'ai' ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30' : m.status === 'mixed' ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30' : 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30';
                 const stText = m.status === 'ai' ? 'ИИ' : (m.status === 'mixed' ? 'Смеш.' : 'Норма');
-                return `
-                    <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border space-y-1">
-                        <div class="flex items-start justify-between gap-1.5">
-                            <span class="text-[11px] font-semibold text-slate-600 dark:text-zinc-300">${escapeHtml(m.label)}</span>
-                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${stCls}">${stText}</span>
-                        </div>
-                        <div class="text-xs font-mono font-bold text-slate-900 dark:text-zinc-50 break-words">${escapeHtml(m.value)}</div>
-                        <p class="text-[11px] text-slate-500 dark:text-zinc-400 leading-snug">${escapeHtml(m.detail)}</p>
-                    </div>
-                `;
+                return `<div class="p-3 rounded-xl bg-slate-50/80 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border space-y-1"><div class="flex items-start justify-between gap-1.5"><span class="text-[11px] font-semibold text-slate-600 dark:text-zinc-300">${escapeHtml(m.label)}</span><span class="text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${stCls}">${stText}</span></div><div class="text-xs font-mono font-bold text-slate-900 dark:text-zinc-50 break-words">${escapeHtml(m.value)}</div><p class="text-[11px] text-slate-500 dark:text-zinc-400 leading-snug">${escapeHtml(m.detail)}</p></div>`;
             }).join('');
 
-            // 3. Лексика, комментарии и предлоги
             const cf = report.commentForensics;
             document.getElementById('markers-count-pill').textContent = `Маркеров: ${report.lexicalMarkers.length}`;
             document.getElementById('forensics-3part-container').innerHTML = `
-                <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border">
-                    <div class="text-[11px] font-bold text-slate-800 dark:text-zinc-100 mb-1">Анализ комментариев</div>
-                    <p class="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">${escapeHtml(cf.placement)}</p>
-                </div>
-                <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border">
-                    <div class="text-[11px] font-bold text-slate-800 dark:text-zinc-100 mb-1.5">Предлоги и речевые связки</div>
-                    <div class="flex flex-wrap gap-1.5">
-                        ${(cf.prepositions || []).map(p => `<span class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-white dark:bg-obsidian-card border border-[#E2E8F0] dark:border-obsidian-border text-slate-700 dark:text-zinc-200">${escapeHtml(p)}</span>`).join('')}
-                    </div>
-                </div>
-                <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border">
-                    <div class="text-[11px] font-bold text-slate-800 dark:text-zinc-100 mb-1.5">Паттерны кода / Заметки автора</div>
-                    <div class="flex flex-wrap gap-1.5">
-                        ${(cf.verbsAndPatterns || []).map(v => `<span class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-white dark:bg-obsidian-card border border-[#E2E8F0] dark:border-obsidian-border text-slate-700 dark:text-zinc-200">${escapeHtml(v)}</span>`).join('')}
-                    </div>
-                </div>
+                <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border"><div class="text-[11px] font-bold text-slate-800 dark:text-zinc-100 mb-1">Анализ комментариев</div><p class="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">${escapeHtml(cf.placement)}</p></div>
+                <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border"><div class="text-[11px] font-bold text-slate-800 dark:text-zinc-100 mb-1.5">Предлоги и речевые связки</div><div class="flex flex-wrap gap-1.5">${(cf.prepositions || []).map(p => `<span class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-white dark:bg-obsidian-card border border-[#E2E8F0] dark:border-obsidian-border text-slate-700 dark:text-zinc-200">${escapeHtml(p)}</span>`).join('')}</div></div>
+                <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border"><div class="text-[11px] font-bold text-slate-800 dark:text-zinc-100 mb-1.5">Паттерны кода / Заметки автора</div><div class="flex flex-wrap gap-1.5">${(cf.verbsAndPatterns || []).map(v => `<span class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-white dark:bg-obsidian-card border border-[#E2E8F0] dark:border-obsidian-border text-slate-700 dark:text-zinc-200">${escapeHtml(v)}</span>`).join('')}</div></div>
             `;
 
             document.getElementById('lexical-tags-container').innerHTML = report.lexicalMarkers.length
-                ? report.lexicalMarkers.map(m => {
-                    const cls = m.kind === 'ai'
-                        ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30'
-                        : 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30';
-                    return `<span title="${escapeHtml(m.category)}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] font-mono font-semibold ${cls}">${escapeHtml(m.text)}</span>`;
-                }).join('')
+                ? report.lexicalMarkers.map(m => `<span title="${escapeHtml(m.category)}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] font-mono font-semibold ${m.kind === 'ai' ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30' : 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30'}">${escapeHtml(m.text)}</span>`).join('')
                 : `<span class="text-xs text-slate-400">Явных шаблонных маркеров не выделено.</span>`;
 
-            // 4. Допрос автора (Анти-копипаст)
             renderDefenseQuestions(report.defenseQuestions);
 
-            // 5. Обратная инженерия (Вероятные промпты)
             const isCodeMode = (report.contentType || '').includes('код');
             document.getElementById('reverse-qa-container').innerHTML = report.reverseQA.map((qa, idx) => `
                 <div class="rounded-xl border border-[#E2E8F0] dark:border-obsidian-border overflow-hidden grid grid-cols-1 lg:grid-cols-12">
                     <div class="lg:col-span-5 p-4 bg-indigo-50/40 dark:bg-indigo-500/5 border-b lg:border-b-0 lg:border-r border-[#E2E8F0] dark:border-obsidian-border space-y-1.5">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">Промпт #${idx + 1}</span>
-                            <span class="text-[11px] font-mono font-semibold text-slate-500 dark:text-zinc-400">${escapeHtml(qa.confidence || '88%')}</span>
-                        </div>
+                        <div class="flex items-center justify-between"><span class="text-[11px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">Промпт #${idx + 1}</span><span class="text-[11px] font-mono font-semibold text-slate-500 dark:text-zinc-400">${escapeHtml(qa.confidence || '88%')}</span></div>
                         <p class="text-xs sm:text-sm font-medium text-slate-800 dark:text-zinc-100 leading-relaxed">«${escapeHtml(qa.prompt)}»</p>
                     </div>
                     <div class="lg:col-span-7 p-4 bg-white dark:bg-obsidian-card space-y-1.5">
@@ -2541,7 +2131,6 @@ print(len(ans))`
                 </div>
             `).join('');
 
-            // 6. Построчная цветовая подсветка
             renderHighlightedSegments();
             lucide.createIcons();
         }
@@ -2550,31 +2139,15 @@ print(len(ans))`
             document.getElementById('author-defense-container').innerHTML = (questions || []).map((q, idx) => `
                 <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border space-y-3">
                     <div class="flex flex-wrap items-center justify-between gap-2">
-                        <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-500/30">
-                            Вопрос #${idx + 1}: ${escapeHtml(q.target)}
-                        </span>
-                        <button onclick="toggleSpoiler(${idx})" class="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
-                            <i data-lucide="eye" class="w-3.5 h-3.5"></i> Показать эталонный ответ
-                        </button>
+                        <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-500/30">Вопрос #${idx + 1}: ${escapeHtml(q.target)}</span>
+                        <button onclick="toggleSpoiler(${idx})" class="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5"></i> Показать эталонный ответ</button>
                     </div>
-
-                    <div class="p-2.5 rounded-lg bg-slate-900 dark:bg-obsidian-bg text-emerald-300 font-mono text-xs overflow-x-auto border border-zinc-800">
-                        ${escapeHtml(q.snippet)}
-                    </div>
-
-                    <p class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-zinc-100 leading-relaxed">
-                        ${escapeHtml(q.question)}
-                    </p>
-
-                    <div id="defense-spoiler-${idx}" class="hidden p-3 rounded-xl bg-indigo-50/80 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-xs text-indigo-950 dark:text-indigo-200 leading-relaxed">
-                        <strong>Эталонный ответ:</strong> ${escapeHtml(q.expectedAnswer)}
-                    </div>
-
+                    <div class="p-2.5 rounded-lg bg-slate-900 dark:bg-obsidian-bg text-emerald-300 font-mono text-xs overflow-x-auto border border-zinc-800">${escapeHtml(q.snippet)}</div>
+                    <p class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-zinc-100 leading-relaxed">${escapeHtml(q.question)}</p>
+                    <div id="defense-spoiler-${idx}" class="hidden p-3 rounded-xl bg-indigo-50/80 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-xs text-indigo-950 dark:text-indigo-200 leading-relaxed"><strong>Эталонный ответ:</strong> ${escapeHtml(q.expectedAnswer)}</div>
                     <div class="flex flex-col sm:flex-row gap-2">
                         <input id="defense-input-${idx}" type="text" placeholder="Введите ответ автора для проверки понимания..." class="flex-1 px-3.5 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg text-xs text-slate-800 dark:text-zinc-100 outline-none focus:border-indigo-500">
-                        <button onclick="checkAuthorAnswer(${idx})" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shrink-0 transition">
-                            Проверить ответ
-                        </button>
+                        <button onclick="checkAuthorAnswer(${idx})" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shrink-0 transition">Проверить ответ</button>
                     </div>
                     <div id="defense-feedback-${idx}" class="hidden"></div>
                 </div>
@@ -2603,23 +2176,18 @@ print(len(ans))`
             const isCodeMode = (state.lastReport.contentType || '').includes('код');
             const filtered = state.lastReport.segments.filter(s => state.segmentFilter === 'all' || s.status === state.segmentFilter);
             const container = document.getElementById('highlighted-segments-container');
-
             if (!filtered.length) {
                 container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 dark:text-zinc-500">Нет фрагментов для выбранного фильтра.</div>`;
                 return;
             }
-
             let runningLine = 1;
             container.innerHTML = filtered.map((seg, i) => {
                 const segLines = seg.text.split(/\r\n|\r|\n/);
-                const startLine = runningLine;
-                const endLine = runningLine + segLines.length - 1;
+                const startLine = runningLine, endLine = runningLine + segLines.length - 1;
                 runningLine = endLine + 2;
-
                 let boxCls = 'bg-emerald-50/75 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 border-l-emerald-600';
                 let pillCls = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300';
                 let label = 'Написал человек';
-
                 if (seg.status === 'ai') {
                     boxCls = 'bg-rose-50/80 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 border-l-rose-600';
                     pillCls = 'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300';
@@ -2629,297 +2197,138 @@ print(len(ans))`
                     pillCls = 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300';
                     label = 'Смешанный стиль';
                 }
-
                 const numberedContent = isCodeMode
                     ? segLines.map((ln, lIdx) => `<div class="flex gap-3"><span class="select-none text-slate-400 dark:text-zinc-500 w-7 text-right shrink-0">${startLine + lIdx}</span><span class="flex-1 whitespace-pre-wrap break-words">${escapeHtml(ln) || ' '}</span></div>`).join('')
                     : `<div class="whitespace-pre-line">${escapeHtml(seg.text)}</div>`;
-
-                return `
-                    <div onclick="toggleSegmentDetail(${i})" title="Причина: ${escapeHtml(seg.reason)}" class="cursor-pointer p-4 rounded-xl border border-l-4 ${boxCls} space-y-2 transition hover:shadow-xs">
-                        <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-black/5 dark:border-white/5">
-                            <div class="flex items-center gap-2">
-                                <span class="text-[11px] font-mono text-slate-500 dark:text-zinc-400">${isCodeMode ? `Строки ${startLine}–${endLine}` : `Блок #${i + 1}`}</span>
-                                <span class="text-[11px] font-bold px-2 py-0.5 rounded-md ${pillCls}">${label} • ${seg.score}%</span>
-                            </div>
-                            <span class="text-xs text-slate-600 dark:text-zinc-300">${escapeHtml(seg.reason)}</span>
-                        </div>
-                        <div class="text-xs sm:text-[13px] text-slate-900 dark:text-zinc-100 leading-relaxed ${isCodeMode ? 'font-mono overflow-x-auto' : ''}">${numberedContent}</div>
-                        <div id="seg-detail-${i}" class="hidden pt-2 border-t border-black/5 dark:border-white/5 text-[11px] text-slate-600 dark:text-zinc-400">
-                            <strong>Детальный разбор оценки:</strong> Вероятность генерации ИИ — <strong>${seg.score}%</strong> (${label.toLowerCase()}). Технические основания: ${escapeHtml(seg.reason)}.
-                        </div>
-                    </div>
-                `;
+                return `<div onclick="toggleSegmentDetail(${i})" title="Причина: ${escapeHtml(seg.reason)}" class="cursor-pointer p-4 rounded-xl border border-l-4 ${boxCls} space-y-2 transition hover:shadow-xs"><div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-black/5 dark:border-white/5"><div class="flex items-center gap-2"><span class="text-[11px] font-mono text-slate-500 dark:text-zinc-400">${isCodeMode ? `Строки ${startLine}–${endLine}` : `Блок #${i + 1}`}</span><span class="text-[11px] font-bold px-2 py-0.5 rounded-md ${pillCls}">${label} • ${seg.score}%</span></div><span class="text-xs text-slate-600 dark:text-zinc-300">${escapeHtml(seg.reason)}</span></div><div class="text-xs sm:text-[13px] text-slate-900 dark:text-zinc-100 leading-relaxed ${isCodeMode ? 'font-mono overflow-x-auto' : ''}">${numberedContent}</div><div id="seg-detail-${i}" class="hidden pt-2 border-t border-black/5 dark:border-white/5 text-[11px] text-slate-600 dark:text-zinc-400"><strong>Детальный разбор оценки:</strong> Вероятность генерации ИИ — <strong>${seg.score}%</strong> (${label.toLowerCase()}). Технические основания: ${escapeHtml(seg.reason)}.</div></div>`;
             }).join('');
         }
 
-        // =========================================================================
-        // 11. ПОДЕЛИТЬСЯ (AIRDROP WEB SHARE API + #SHARE= + QR + ЭКСПОРТ)
-        // =========================================================================
         function openShareModal() {
             document.getElementById('share-modal').classList.remove('hidden');
-            const isInsecure = !window.isSecureContext || window.location.protocol !== 'https:';
-            document.getElementById('share-https-notice').classList.toggle('hidden', !isInsecure);
+            document.getElementById('share-https-notice').classList.toggle('hidden', window.isSecureContext && window.location.protocol === 'https:');
             setShareUrlMode(state.shareUrlMode);
             lucide.createIcons();
         }
-
-        function closeShareModal() {
-            document.getElementById('share-modal').classList.add('hidden');
-        }
-
+        function closeShareModal() { document.getElementById('share-modal').classList.add('hidden'); }
         function utf8ToBase64(str) {
-            const bytes = new TextEncoder().encode(str);
-            let bin = '';
+            const bytes = new TextEncoder().encode(str); let bin = '';
             bytes.forEach(b => bin += String.fromCharCode(b));
             return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         }
-
         function base64ToUtf8(b64) {
-            const norm = b64.replace(/-/g, '+').replace(/_/g, '/');
-            const bin = atob(norm);
+            const bin = atob(b64.replace(/-/g, '+').replace(/_/g, '/'));
             const bytes = new Uint8Array(bin.length);
             for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
             return new TextDecoder().decode(bytes);
         }
-
-        function getBaseSiteUrl() {
-            if (window.location.protocol.startsWith('http')) {
-                return `${window.location.origin}${window.location.pathname}`;
-            }
-            return 'https://veriscandemo.alwaysdata.net/';
-        }
-
+        function getBaseSiteUrl() { return window.location.protocol.startsWith('http') ? `${window.location.origin}${window.location.pathname}` : 'https://veriscandemo.alwaysdata.net/'; }
         function buildCurrentShareUrl(mode) {
             const base = getBaseSiteUrl();
             if (mode === 'site') return base;
             const text = (document.getElementById('source-input').value || '').slice(0, 2600);
             if (!text.trim()) return base;
-            const payload = {
-                n: state.currentDocName,
-                c: text,
-                s: state.lastReport ? state.lastReport.aiProbability : null
-            };
-            return `${base}#share=${utf8ToBase64(JSON.stringify(payload))}`;
+            return `${base}#share=${utf8ToBase64(JSON.stringify({ n: state.currentDocName, c: text, s: state.lastReport ? state.lastReport.aiProbability : null }))}`;
         }
-
         function setShareUrlMode(mode) {
             state.shareUrlMode = mode;
-            const btnSite = document.getElementById('share-mode-site');
-            const btnAn = document.getElementById('share-mode-analysis');
             const activeCls = 'px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white dark:bg-obsidian-card text-slate-900 dark:text-zinc-100 shadow-2xs transition';
             const idleCls = 'px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-600 dark:text-zinc-400 transition';
-
-            btnSite.className = mode === 'site' ? activeCls : idleCls;
-            btnAn.className = mode === 'analysis' ? activeCls : idleCls;
-
+            document.getElementById('share-mode-site').className = mode === 'site' ? activeCls : idleCls;
+            document.getElementById('share-mode-analysis').className = mode === 'analysis' ? activeCls : idleCls;
             const url = buildCurrentShareUrl(mode);
             document.getElementById('share-url-input').value = url;
             renderQRCode(url);
         }
-
         function renderQRCode(url) {
             const box = document.getElementById('qrcode-box');
             box.innerHTML = '';
             const qrTarget = url.length > 900 ? getBaseSiteUrl() : url;
             if (window.QRCode) {
-                try {
-                    new window.QRCode(box, {
-                        text: qrTarget,
-                        width: 144,
-                        height: 144,
-                        colorDark: '#0F172A',
-                        colorLight: '#FFFFFF',
-                        correctLevel: window.QRCode.CorrectLevel.L
-                    });
-                } catch (e) {
-                    box.innerHTML = `<span class="text-[11px] text-slate-400">QR доступен по HTTPS</span>`;
-                }
+                try { new window.QRCode(box, { text: qrTarget, width: 144, height: 144, colorDark: '#0F172A', colorLight: '#FFFFFF', correctLevel: window.QRCode.CorrectLevel.L }); }
+                catch (e) { box.innerHTML = `<span class="text-[11px] text-slate-400">QR доступен по HTTPS</span>`; }
             }
         }
-
         async function nativeShareLink() {
             const url = buildCurrentShareUrl(state.shareUrlMode);
             const scoreText = state.lastReport ? ` (${state.lastReport.aiProbability}% ИИ — ${state.lastReport.verdictTitle})` : '';
-            const sharePayload = {
-                title: `VeriScan AI v5.0 — ${state.currentDocName}`,
-                text: `Результат проверки «${state.currentDocName}» в VeriScan AI${scoreText}`,
-                url
-            };
-
             if (navigator.share) {
-                try {
-                    await navigator.share(sharePayload);
-                    showToast('Отправлено через системное меню / AirDrop', 'success');
-                    return;
-                } catch (err) {
-                    if (err.name === 'AbortError') return;
-                }
+                try { await navigator.share({ title: `VeriScan AI v5.0 — ${state.currentDocName}`, text: `Результат проверки «${state.currentDocName}» в VeriScan AI${scoreText}`, url }); showToast('Отправлено через системное меню / AirDrop', 'success'); return; }
+                catch (err) { if (err.name === 'AbortError') return; }
             }
             await reliableCopy(url);
-            showToast('Нативный AirDrop работает на iOS/macOS по HTTPS. Ссылка скопирована в буфер обмена!', 'info');
+            showToast('Ссылка скопирована в буфер обмена!', 'info');
         }
-
         function generatePlainTextReport() {
             const r = state.lastReport;
             if (!r) return 'VeriScan AI v5.0 — Отчет еще не сформирован.';
-            return [
-                '==================================================',
-                'VERISCAN AI v5.0 — ОТЧЕТ СТИЛОМЕТРИЧЕСКОЙ ЭКСПЕРТИЗЫ',
-                '==================================================',
-                `Документ: ${state.currentDocName}`,
-                `Тип: ${r.contentType}`,
-                `Вероятность ИИ: ${r.aiProbability}% (${r.verdictTitle})`,
-                `Распределение: ИИ ${r.distribution.ai}% | Смешанный ${r.distribution.mixed}% | Человек ${r.distribution.human}%`,
-                `Обоснование: ${r.verdictSummary}`,
-                '',
-                '--- ПРОБЕЛЫ, ОПЕРАТОРЫ И ТИПОГРАФИКА ---',
-                r.formatting.summary,
-                '',
-                '--- КОММЕНТАРИИ И ПРЕДЛОГИ ---',
-                r.commentForensics.placement,
-                'Предлоги и связки: ' + (r.commentForensics.prepositions || []).join(', '),
-                '',
-                '--- ВОПРОСЫ ДЛЯ ДОПРОСА АВТОРА ---',
-                ...(r.defenseQuestions || []).map((q, i) => `${i + 1}. [${q.target}] ${q.question}\n   Эталон: ${q.expectedAnswer}`)
-            ].join('\n');
+            return ['VERISCAN AI v5.0 — ОТЧЕТ', `Документ: ${state.currentDocName}`, `Тип: ${r.contentType}`, `Вероятность ИИ: ${r.aiProbability}% (${r.verdictTitle})`, `Обоснование: ${r.verdictSummary}`, '', '--- ВОПРОСЫ ДЛЯ ДОПРОСА АВТОРА ---', ...(r.defenseQuestions || []).map((q, i) => `${i + 1}. [${q.target}] ${q.question}\n   Эталон: ${q.expectedAnswer}`)].join('\n');
         }
-
         async function nativeShareReportFile() {
             const text = generatePlainTextReport();
             const fileName = `VeriScan_Report_${state.currentDocName.replace(/[^a-zA-Z0-9а-яА-Я_-]/g, '_')}.txt`;
-
             try {
                 const file = new File([text], fileName, { type: 'text/plain;charset=utf-8' });
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: `Отчет VeriScan AI — ${state.currentDocName}`
-                    });
-                    showToast('Файл отчета отправлен через AirDrop / системное меню!', 'success');
-                    return;
+                    await navigator.share({ files: [file], title: `Отчет VeriScan AI — ${state.currentDocName}` });
+                    showToast('Файл отчета отправлен!', 'success'); return;
                 }
-            } catch (err) {
-                if (err.name === 'AbortError') return;
-            }
-
+            } catch (err) { if (err.name === 'AbortError') return; }
             downloadTextReport();
-            showToast('Отчет (.txt) скачан — отправьте его через AirDrop из Finder или «Файлов».', 'info');
         }
-
         function downloadTextReport() {
             const blob = new Blob([generatePlainTextReport()], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `VeriScan_Report_${Date.now()}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
+            const url = URL.createObjectURL(blob); const a = document.createElement('a');
+            a.href = url; a.download = `VeriScan_Report_${Date.now()}.txt`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
             showToast('Отчет сохранен в формате .txt', 'success');
         }
-
         async function copyShareUrl() {
-            const url = document.getElementById('share-url-input').value;
-            const ok = await reliableCopy(url);
-            showToast(ok ? 'Ссылка с результатом скопирована в буфер обмена!' : 'Выделите ссылку в поле и скопируйте вручную.', ok ? 'success' : 'warning');
+            const ok = await reliableCopy(document.getElementById('share-url-input').value);
+            showToast(ok ? 'Ссылка скопирована!' : 'Скопируйте ссылку вручную.', ok ? 'success' : 'warning');
         }
-
         async function copyJsonReport() {
             if (!state.lastReport) return;
             const ok = await reliableCopy(JSON.stringify(state.lastReport, null, 2));
-            showToast(ok ? 'JSON-отчет скопирован в буфер обмена' : 'Не удалось скопировать JSON', ok ? 'success' : 'warning');
+            showToast(ok ? 'JSON-отчет скопирован' : 'Ошибка копирования', ok ? 'success' : 'warning');
         }
-
         async function reliableCopy(text) {
-            if (navigator.clipboard && window.isSecureContext) {
-                try {
-                    await navigator.clipboard.writeText(text);
-                    return true;
-                } catch (e) {}
-            }
-            try {
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                ta.setAttribute('readonly', '');
-                ta.style.position = 'fixed';
-                ta.style.top = '-9999px';
-                ta.style.left = '-9999px';
-                document.body.appendChild(ta);
-                ta.focus();
-                ta.select();
-                ta.setSelectionRange(0, text.length);
-                const ok = document.execCommand('copy');
-                ta.remove();
-                return ok;
-            } catch (e) {
-                return false;
-            }
+            if (navigator.clipboard && window.isSecureContext) { try { await navigator.clipboard.writeText(text); return true; } catch (e) {} }
+            try { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.top = '-9999px'; document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return ok; } catch (e) { return false; }
         }
-
         function tryRestoreFromShareHash() {
             if (!window.location.hash || !window.location.hash.startsWith('#share=')) return false;
             try {
-                const raw = window.location.hash.slice('#share='.length);
-                const decoded = JSON.parse(base64ToUtf8(raw));
+                const decoded = JSON.parse(base64ToUtf8(window.location.hash.slice('#share='.length)));
                 if (decoded && decoded.c) {
                     state.currentDocId = 'shared_' + Date.now();
                     state.currentDocName = decoded.n || 'Общий_документ.txt';
                     document.getElementById('source-input').value = decoded.c;
                     document.getElementById('current-doc-name').textContent = state.currentDocName;
-                    handleEditorInput();
-                    runAnalysis();
-                    showToast(`Открыт результат по ссылке: «${state.currentDocName}»`, 'success');
-                    return true;
+                    handleEditorInput(); runAnalysis(); return true;
                 }
-            } catch (e) {
-                console.warn('Ошибка чтения #share:', e);
-            }
+            } catch (e) {}
             return false;
         }
-
         function exportLibraryJson() {
             const blob = new Blob([JSON.stringify(state.library, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'veriscan_mediateka.json';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
+            const url = URL.createObjectURL(blob); const a = document.createElement('a');
+            a.href = url; a.download = 'veriscan_mediateka.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
             showToast('Медиатека экспортирована в JSON', 'success');
         }
-
         function importLibraryJson(e) {
-            const file = e.target.files?.[0];
-            if (!file) return;
+            const file = e.target.files?.[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = ev => {
                 try {
                     const data = JSON.parse(ev.target.result);
-                    if (Array.isArray(data)) {
-                        state.library = data;
-                        persistLibrary();
-                        renderLibrary();
-                        closeShareModal();
-                        showToast(`Импортировано файлов: ${data.length}`, 'success');
-                    }
-                } catch (err) {
-                    showToast('Неверный формат JSON-файла Медиатеки', 'warning');
-                }
+                    if (Array.isArray(data)) { state.library = data; persistLibrary(); renderLibrary(); closeShareModal(); showToast(`Импортировано файлов: ${data.length}`, 'success'); }
+                } catch (err) { showToast('Неверный формат JSON', 'warning'); }
             };
-            reader.readAsText(file);
-            e.target.value = '';
+            reader.readAsText(file); e.target.value = '';
         }
 
-        // =========================================================================
-        // 12. МОДАЛКА НАСТРОЕК ИИ
-        // =========================================================================
         function openSettingsModal() {
-            document.querySelectorAll('input[name="ai-mode"]').forEach(r => {
-                r.checked = r.value === state.config.mode;
-            });
+            document.querySelectorAll('input[name="ai-mode"]').forEach(r => { r.checked = r.value === state.config.mode; });
             document.getElementById('cfg-provider').value = state.config.provider;
             document.getElementById('cfg-model').value = state.config.model;
             document.getElementById('cfg-endpoint').value = state.config.endpoint;
@@ -2931,72 +2340,33 @@ print(len(ans))`
             document.getElementById('settings-modal').classList.remove('hidden');
             lucide.createIcons();
         }
-
-        function closeSettingsModal() {
-            document.getElementById('settings-modal').classList.add('hidden');
-        }
-
+        function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
         function onAiModeRadioChange() {
             const selected = document.querySelector('input[name="ai-mode"]:checked')?.value || 'local';
             document.getElementById('custom-api-fields').classList.toggle('hidden', selected !== 'custom');
         }
-
         function applyProviderPreset() {
             const p = document.getElementById('cfg-provider').value;
-            const preset = PROVIDER_PRESETS[p];
-            if (preset && p !== 'custom') {
-                document.getElementById('cfg-endpoint').value = preset.endpoint;
-                document.getElementById('cfg-model').value = preset.model;
+            if (PROVIDER_PRESETS[p] && p !== 'custom') {
+                document.getElementById('cfg-endpoint').value = PROVIDER_PRESETS[p].endpoint;
+                document.getElementById('cfg-model').value = PROVIDER_PRESETS[p].model;
             }
         }
-
-        function toggleKeyVisibility() {
-            const el = document.getElementById('cfg-apikey');
-            el.type = el.type === 'password' ? 'text' : 'password';
-        }
-
-        function resetSystemPrompt() {
-            document.getElementById('cfg-system-prompt').value = SYSTEM_PROMPT;
-            showToast('Системный промпт восстановлен', 'info');
-        }
-
+        function toggleKeyVisibility() { const el = document.getElementById('cfg-apikey'); el.type = el.type === 'password' ? 'text' : 'password'; }
+        function resetSystemPrompt() { document.getElementById('cfg-system-prompt').value = SYSTEM_PROMPT; showToast('Системный промпт восстановлен', 'info'); }
         async function testCustomApiConnection() {
             const endpoint = document.getElementById('cfg-endpoint').value.trim();
             const model = document.getElementById('cfg-model').value.trim();
             const apiKey = document.getElementById('cfg-apikey').value.trim();
             const statusEl = document.getElementById('test-conn-status');
-
-            if (!endpoint || !apiKey) {
-                statusEl.textContent = 'Укажите Endpoint URL и API-ключ.';
-                statusEl.className = 'text-xs text-rose-600';
-                return;
-            }
-
-            statusEl.textContent = 'Проверка соединения...';
-            statusEl.className = 'text-xs text-slate-500';
-
+            if (!endpoint || !apiKey) { statusEl.textContent = 'Укажите Endpoint URL и API-ключ.'; statusEl.className = 'text-xs text-rose-600'; return; }
+            statusEl.textContent = 'Проверка...'; statusEl.className = 'text-xs text-slate-500';
             try {
-                const resp = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: model || 'gpt-4o-mini',
-                        max_tokens: 10,
-                        messages: [{ role: 'user', content: 'Say OK' }]
-                    })
-                });
+                const resp = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, body: JSON.stringify({ model: model || 'gpt-4o-mini', max_tokens: 10, messages: [{ role: 'user', content: 'Say OK' }] }) });
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                statusEl.textContent = '✅ Соединение успешно установлено!';
-                statusEl.className = 'text-xs font-semibold text-emerald-600';
-            } catch (err) {
-                statusEl.textContent = `❌ Ошибка: ${err.message}`;
-                statusEl.className = 'text-xs font-semibold text-rose-600';
-            }
+                statusEl.textContent = '✅ Соединение установлено!'; statusEl.className = 'text-xs font-semibold text-emerald-600';
+            } catch (err) { statusEl.textContent = `❌ Ошибка: ${err.message}`; statusEl.className = 'text-xs font-semibold text-rose-600'; }
         }
-
         function saveSettings() {
             state.config.mode = document.querySelector('input[name="ai-mode"]:checked')?.value || 'local';
             state.config.provider = document.getElementById('cfg-provider').value;
@@ -3005,7 +2375,6 @@ print(len(ans))`
             state.config.apiKey = document.getElementById('cfg-apikey').value.trim();
             state.config.maskPii = document.getElementById('cfg-mask-pii').checked;
             state.config.systemPrompt = document.getElementById('cfg-system-prompt').value.trim() || SYSTEM_PROMPT;
-
             try {
                 localStorage.setItem('veriscan_mode', state.config.mode);
                 localStorage.setItem('veriscan_provider', state.config.provider);
@@ -3015,47 +2384,26 @@ print(len(ans))`
                 localStorage.setItem('veriscan_mask_pii', String(state.config.maskPii));
                 localStorage.setItem('veriscan_sysprompt_v5', state.config.systemPrompt);
             } catch (e) {}
-
-            updateHeaderEngineBadge();
-            closeSettingsModal();
-            showToast('Настройки ИИ сохранены', 'success');
+            updateHeaderEngineBadge(); closeSettingsModal(); showToast('Настройки ИИ сохранены', 'success');
         }
-
         function updateHeaderEngineBadge() {
             const dot = document.getElementById('header-engine-dot');
             const label = document.getElementById('header-engine-label');
-            if (state.config.mode === 'custom' && state.config.apiKey) {
-                dot.className = 'w-2 h-2 rounded-full bg-indigo-500 shrink-0';
-                label.textContent = state.config.model || 'Свой API';
-            } else if (state.config.mode === 'cloud_free') {
-                dot.className = 'w-2 h-2 rounded-full bg-amber-500 shrink-0';
-                label.textContent = 'Cloud Auto';
-            } else {
-                dot.className = 'w-2 h-2 rounded-full bg-emerald-500 shrink-0';
-                label.textContent = 'Core v5 (Офлайн)';
-            }
+            if (state.config.mode === 'custom' && state.config.apiKey) { dot.className = 'w-2 h-2 rounded-full bg-indigo-500 shrink-0'; label.textContent = state.config.model || 'Свой API'; }
+            else if (state.config.mode === 'cloud_free') { dot.className = 'w-2 h-2 rounded-full bg-amber-500 shrink-0'; label.textContent = 'Cloud Auto'; }
+            else { dot.className = 'w-2 h-2 rounded-full bg-emerald-500 shrink-0'; label.textContent = 'Core v5 (Офлайн)'; }
         }
 
-        // =========================================================================
-        // 13. УТИЛИТЫ
-        // =========================================================================
         function formatBytes(bytes) {
             if (!bytes) return '0 B';
             const units = ['B', 'KB', 'MB'];
             const i = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
             return (bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1) + ' ' + units[i];
         }
-
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
-
         function showToast(msg, type = 'info') {
             const container = document.getElementById('toast-container');
             const el = document.createElement('div');
@@ -3069,6 +2417,178 @@ print(len(ans))`
             container.appendChild(el);
             setTimeout(() => el.remove(), 4200);
         }
+
+        // =========================================================================
+        // 14. БЕСПЛАТНЫЕ ОБЛАЧНЫЕ АККАУНТЫ И МЕДИАТЕКА (SUPABASE EMAIL AUTH)
+        // =========================================================================
+        const SUPABASE_URL = 'https://ТВОЙ_ПРОЕКТ.supabase.co';
+        const SUPABASE_ANON_KEY = 'ТВОЙ_ANON_PUBLIC_KEY';
+        const isSupabaseConfigured = !SUPABASE_URL.includes('ТВОЙ_ПРОЕКТ') && window.supabase;
+        const sb = isSupabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+        let currentUser = null;
+
+        async function initAuth() {
+            if (!sb) return;
+            const { data: { session } } = await sb.auth.getSession();
+            currentUser = session?.user || null;
+            updateAuthHeaderUI();
+            if (currentUser) await syncLibraryFromCloud();
+
+            sb.auth.onAuthStateChange(async (event, session) => {
+                currentUser = session?.user || null;
+                updateAuthHeaderUI();
+
+                if (event === 'PASSWORD_RECOVERY') {
+                    openAccountEntry();
+                    showToast('Введите новый пароль в личном кабинете', 'info');
+                }
+                if (currentUser) await syncLibraryFromCloud();
+                else loadLibraryFromStorage();
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initAuth);
+
+        function updateAuthHeaderUI() {
+            const btn = document.getElementById('header-auth-btn');
+            const label = document.getElementById('header-auth-label');
+            if (!btn || !label) return;
+
+            if (currentUser) {
+                const name = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+                label.textContent = name;
+                btn.className = 'flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-[#E2E8F0] shadow-2xs dark:bg-obsidian-card dark:text-zinc-200 dark:border-obsidian-border dark:hover:bg-obsidian-panel transition';
+            } else {
+                label.textContent = 'Войти';
+                btn.className = 'flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-2xs transition';
+            }
+        }
+
+        function openAccountEntry() {
+            if (!sb) {
+                showToast('Укажите SUPABASE_URL и SUPABASE_ANON_KEY в коде index.html', 'warning');
+                return;
+            }
+            if (currentUser) {
+                const name = currentUser.user_metadata?.full_name || 'Пользователь';
+                const role = currentUser.user_metadata?.role || 'Пользователь';
+                document.getElementById('cab-avatar').textContent = name[0].toUpperCase();
+                document.getElementById('cab-name').textContent = name;
+                document.getElementById('cab-meta').textContent = `${currentUser.email} • ${role}`;
+                document.getElementById('cabinet-modal').classList.remove('hidden');
+            } else {
+                switchAuthView('login');
+                document.getElementById('auth-modal').classList.remove('hidden');
+            }
+            lucide.createIcons();
+        }
+
+        function closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); }
+        function closeCabinetModal() { document.getElementById('cabinet-modal').classList.add('hidden'); }
+
+        function switchAuthView(view) {
+            ['login', 'register', 'forgot'].forEach(v => {
+                document.getElementById(`form-${v}`).classList.toggle('hidden', v !== view);
+            });
+            document.getElementById('auth-tabs').classList.toggle('hidden', view === 'forgot');
+            const titles = { login: 'Вход в VeriScan AI', register: 'Регистрация', forgot: 'Восстановление пароля' };
+            document.getElementById('auth-modal-title').textContent = titles[view];
+
+            const activeCls = 'py-1.5 rounded-lg font-semibold bg-white dark:bg-obsidian-card text-slate-900 dark:text-zinc-100 shadow-2xs transition';
+            const idleCls = 'py-1.5 rounded-lg font-semibold text-slate-500 dark:text-zinc-400 transition';
+            document.getElementById('auth-tab-login').className = view === 'login' ? activeCls : idleCls;
+            document.getElementById('auth-tab-register').className = view === 'register' ? activeCls : idleCls;
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const full_name = document.getElementById('reg-name').value.trim();
+            const role = document.getElementById('reg-role').value;
+
+            const { error } = await sb.auth.signUp({
+                email, password,
+                options: {
+                    data: { full_name, role },
+                    emailRedirectTo: 'https://veriscandemo.alwaysdata.net/'
+                }
+            });
+            if (error) return showToast(error.message, 'warning');
+            closeAuthModal();
+            showToast('Письмо с подтверждением отправлено на вашу почту!', 'success');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const { error } = await sb.auth.signInWithPassword({ email, password });
+            if (error) return showToast('Неверный email или пароль (или почта не подтверждена)', 'warning');
+            closeAuthModal();
+            showToast('Вы вошли в личный кабинет', 'success');
+        }
+
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            const email = document.getElementById('forgot-email').value.trim();
+            const { error } = await sb.auth.resetPasswordForEmail(email, {
+                redirectTo: 'https://veriscandemo.alwaysdata.net/'
+            });
+            if (error) return showToast(error.message, 'warning');
+            closeAuthModal();
+            showToast('Ссылка для сброса пароля отправлена на почту!', 'success');
+        }
+
+        async function handleChangePassword(e) {
+            e.preventDefault();
+            const password = document.getElementById('cab-new-pass').value;
+            const { error } = await sb.auth.updateUser({ password });
+            if (error) return showToast(error.message, 'warning');
+            document.getElementById('cab-new-pass').value = '';
+            showToast('Пароль успешно обновлен!', 'success');
+        }
+
+        async function handleLogout() {
+            await sb.auth.signOut();
+            closeCabinetModal();
+            showToast('Вы вышли из аккаунта', 'info');
+        }
+
+        async function syncLibraryFromCloud() {
+            if (!sb || !currentUser) return;
+            const { data, error } = await sb.from('user_documents').select('*').order('created_at', { ascending: false });
+            if (!error && data && data.length > 0) {
+                state.library = data.map(d => ({
+                    id: d.id, name: d.name, ext: d.ext, size: d.size,
+                    time: d.time, lastScore: d.last_score, content: d.content
+                }));
+                renderLibrary();
+            }
+        }
+
+        const _origPersistLibrary = persistLibrary;
+        persistLibrary = function() {
+            _origPersistLibrary();
+            if (!sb || !currentUser) return;
+            const rows = state.library.slice(0, 25).map(item => ({
+                id: item.id, user_id: currentUser.id, name: item.name, ext: item.ext,
+                size: item.size || '', time: item.time || '',
+                last_score: typeof item.lastScore === 'number' ? item.lastScore : null,
+                content: item.content
+            }));
+            sb.from('user_documents').upsert(rows).then(({ error }) => {
+                if (error) console.warn('Cloud sync error:', error);
+            });
+        };
+
+        const _origDeleteLibraryItem = deleteLibraryItem;
+        deleteLibraryItem = function(e, id) {
+            _origDeleteLibraryItem(e, id);
+            if (sb && currentUser) {
+                sb.from('user_documents').delete().eq('id', id).eq('user_id', currentUser.id).then();
+            }
+        };
     </script>
 </body>
 </html>
