@@ -94,6 +94,10 @@
          ВЕРХНЯЯ НАВИГАЦИЯ (MINIMAL SAAS HEADER)
     ===================================================================== -->
     <header class="sticky top-0 z-30 bg-white/90 dark:bg-obsidian-bg/90 backdrop-blur-md border-b border-[#E2E8F0] dark:border-obsidian-border transition-colors">
+        <button onclick="openAccountEntry()" id="header-auth-btn" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-2xs transition" title="Личный кабинет">
+                    <i data-lucide="user" class="w-3.5 h-3.5 shrink-0"></i>
+                    <span id="header-auth-label" class="hidden sm:inline max-w-[120px] truncate">Войти</span>
+                </button>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
             <!-- Логотип -->
             <div class="flex items-center gap-3 min-w-0">
