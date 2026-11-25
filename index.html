@@ -2935,6 +2935,357 @@ print(len(ans))`
                 sb.from('user_documents').delete().eq('id', id).eq('user_id', currentUser.id).then();
             }
         };
+    // =========================================================================
+        // 15. РЕЖИМ «КЛАСС / КОНТРОЛЬНАЯ РАБОТА» (ASSIGNMENTS & SUBMISSIONS)
+        // =========================================================================
+        const classroomState = {
+            teacherRooms: [],
+            activeRoomId: null,
+            activeSubmissions: [],
+            studentRoom: null,
+            studentQuestions: [],
+            studentReport: null,
+            timerInterval: null,
+            secondsLeft: 0
+        };
+
+        // Расширяем открытие Личного кабинета: показываем панель преподавателя и расширяем окно
+        const _origOpenAccountEntry = openAccountEntry;
+        openAccountEntry = async function() {
+            await _origOpenAccountEntry();
+            if (!currentUser) return;
+            const role = currentProfile?.role || currentUser.user_metadata?.role || '';
+            const isTeacher = role === 'Преподаватель';
+            const section = document.getElementById('cab-teacher-section');
+            const modalBox = document.querySelector('#cabinet-modal > div');
+            if (section) section.classList.toggle('hidden', !isTeacher);
+            if (modalBox) {
+                modalBox.classList.toggle('max-w-2xl', isTeacher);
+                modalBox.classList.toggle('max-w-md', !isTeacher);
+            }
+            if (isTeacher) {
+                await loadTeacherRooms();
+            }
+            lucide.createIcons();
+        };
+
+        function generateRoomCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+            return code;
+        }
+
+        async function createAssignmentRoom(e) {
+            e.preventDefault();
+            if (!sb || !currentUser) return showToast('Войдите в аккаунт преподавателя', 'warning');
+
+            const title = document.getElementById('room-create-title').value.trim();
+            const timeLimit = parseInt(document.getElementById('room-create-timer').value, 10) || 3;
+            const btn = document.getElementById('room-create-btn');
+            if (!title) return;
+
+            btn.disabled = true;
+            try {
+                const room_code = generateRoomCode();
+                const { error } = await sb.from('assignments').insert({
+                    teacher_id: currentUser.id,
+                    title,
+                    room_code,
+                    time_limit_minutes: timeLimit
+                });
+                if (error) throw error;
+
+                document.getElementById('room-create-title').value = '';
+                showToast(`Комната создана! Код: ${room_code}`, 'success');
+                await loadTeacherRooms();
+            } catch (err) {
+                showToast(`Ошибка создания комнаты: ${err.message}`, 'warning');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function loadTeacherRooms() {
+            if (!sb || !currentUser) return;
+            const listEl = document.getElementById('teacher-rooms-list');
+            const { data, error } = await sb
+                .from('assignments')
+                .select('*')
+                .eq('teacher_id', currentUser.id)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                listEl.innerHTML = `<div class="text-rose-600 text-[11px]">Ошибка загрузки: ${escapeHtml(error.message)}</div>`;
+                return;
+            }
+
+            classroomState.teacherRooms = data || [];
+            if (!classroomState.teacherRooms.length) {
+                listEl.innerHTML = `<div class="text-[11px] text-slate-400 dark:text-zinc-500 py-2">Комнат пока нет. Создайте первую выше.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = classroomState.teacherRooms.map(r => {
+                const activeCls = classroomState.activeRoomId === r.id
+                    ? 'border-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/10'
+                    : 'border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg';
+                return `
+                    <div class="p-2.5 rounded-xl border ${activeCls} flex flex-wrap items-center justify-between gap-2">
+                        <div class="min-w-0 cursor-pointer flex-1" onclick="loadRoomSubmissions('${r.id}', '${escapeHtml(r.title)}', '${escapeHtml(r.room_code)}')">
+                            <div class="font-semibold text-slate-900 dark:text-zinc-100 truncate">${escapeHtml(r.title)}</div>
+                            <div class="text-[10px] text-slate-500 dark:text-zinc-400 font-mono">Код: <strong class="text-indigo-600 dark:text-indigo-400">${escapeHtml(r.room_code)}</strong> • ${r.time_limit_minutes || 3} мин</div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button type="button" onclick="copyRoomLink('${escapeHtml(r.room_code)}')" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-obsidian-panel hover:bg-slate-200 dark:hover:bg-zinc-800 text-[11px] font-semibold text-slate-700 dark:text-zinc-200 flex items-center gap-1 transition" title="Копировать ссылку ?room=${escapeHtml(r.room_code)}">
+                                <i data-lucide="link" class="w-3 h-3"></i> Ссылка
+                            </button>
+                            <button type="button" onclick="loadRoomSubmissions('${r.id}', '${escapeHtml(r.title)}', '${escapeHtml(r.room_code)}')" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-semibold transition">Работы</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        async function copyRoomLink(code) {
+            const url = `${getBaseSiteUrl()}?room=${encodeURIComponent(code)}`;
+            const ok = await reliableCopy(url);
+            showToast(ok ? `Ссылка скопирована: ?room=${code}` : url, ok ? 'success' : 'info');
+        }
+
+        async function loadRoomSubmissions(roomId, title, code) {
+            if (!sb) return;
+            classroomState.activeRoomId = roomId;
+            const panel = document.getElementById('teacher-submissions-panel');
+            const tbody = document.getElementById('teacher-submissions-tbody');
+            panel.classList.remove('hidden');
+            document.getElementById('teacher-submissions-title').textContent = `Работы: ${title} (${code})`;
+            tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">Загрузка...</td></tr>`;
+
+            const { data, error } = await sb
+                .from('submissions')
+                .select('*')
+                .eq('assignment_id', roomId)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-rose-600">${escapeHtml(error.message)}</td></tr>`;
+                return;
+            }
+
+            classroomState.activeSubmissions = data || [];
+            document.getElementById('teacher-submissions-count').textContent = classroomState.activeSubmissions.length;
+
+            if (!classroomState.activeSubmissions.length) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">Сданных работ пока нет</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = classroomState.activeSubmissions.map((s, idx) => {
+                const ai = Number(s.ai_probability) || 0;
+                const aiCls = ai >= 65 ? 'text-rose-600 dark:text-rose-400' : (ai >= 36 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400');
+                return `
+                    <tr class="hover:bg-slate-50/70 dark:hover:bg-obsidian-panel/50">
+                        <td class="py-2 px-2.5 font-medium text-slate-900 dark:text-zinc-100">${escapeHtml(s.student_name)}</td>
+                        <td class="py-2 px-2 text-slate-600 dark:text-zinc-300">${escapeHtml(s.student_group || '—')}</td>
+                        <td class="py-2 px-2 font-mono font-bold ${aiCls}">${ai}%</td>
+                        <td class="py-2 px-2 font-mono font-semibold text-slate-800 dark:text-zinc-200">${escapeHtml(s.defense_score ?? 0)}/3</td>
+                        <td class="py-2 px-2.5 text-right">
+                            <button type="button" onclick="openSubmissionInEditor(${idx})" class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/15 dark:hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 font-semibold transition">Открыть код</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openSubmissionInEditor(idx) {
+            const sub = classroomState.activeSubmissions[idx];
+            if (!sub) return;
+            state.currentDocId = 'sub_' + sub.id;
+            state.currentDocName = `${sub.student_name} (${sub.student_group || 'Класс'})`;
+            document.getElementById('source-input').value = sub.code_content || '';
+            document.getElementById('current-doc-name').textContent = state.currentDocName;
+            closeCabinetModal();
+            switchInputTab('editor');
+            handleEditorInput();
+            runAnalysis();
+            showToast(`Открыта работа студента: ${sub.student_name}`, 'info');
+        }
+
+        // --- РЕЖИМ СДАЧИ СТУДЕНТОМ ---
+        function openStudentSubmitModal(prefillCode = '') {
+            stopStudentTimer();
+            classroomState.studentRoom = null;
+            classroomState.studentQuestions = [];
+            classroomState.studentReport = null;
+
+            document.getElementById('stu-step-1').classList.remove('hidden');
+            document.getElementById('stu-step-2').classList.add('hidden');
+            document.getElementById('stu-step-3').classList.add('hidden');
+            document.getElementById('stu-timer-badge').classList.add('hidden');
+            document.getElementById('stu-room-info').classList.add('hidden');
+            document.getElementById('stu-modal-title').textContent = 'Сдача работы по коду комнаты';
+            document.getElementById('stu-modal-subtitle').textContent = 'Введите 6-значный код от преподавателя';
+
+            const codeInput = document.getElementById('stu-room-code');
+            codeInput.value = prefillCode ? prefillCode.toUpperCase() : '';
+            document.getElementById('student-submit-modal').classList.remove('hidden');
+            lucide.createIcons();
+
+            if (prefillCode) verifyStudentRoomCode();
+        }
+
+        function closeStudentSubmitModal() {
+            stopStudentTimer();
+            document.getElementById('student-submit-modal').classList.add('hidden');
+        }
+
+        async function verifyStudentRoomCode() {
+            if (!sb) return showToast('Supabase не подключен', 'warning');
+            const code = document.getElementById('stu-room-code').value.trim().toUpperCase();
+            if (code.length < 4) return showToast('Введите код комнаты', 'warning');
+
+            const { data, error } = await sb
+                .from('assignments')
+                .select('*')
+                .eq('room_code', code)
+                .maybeSingle();
+
+            if (error || !data) {
+                classroomState.studentRoom = null;
+                document.getElementById('stu-room-info').classList.add('hidden');
+                return showToast('Комната с таким кодом не найдена', 'warning');
+            }
+
+            classroomState.studentRoom = data;
+            document.getElementById('stu-room-info').classList.remove('hidden');
+            document.getElementById('stu-room-info-text').textContent = `Комната: ${data.title}`;
+            document.getElementById('stu-room-time-text').textContent = `Таймер: ${data.time_limit_minutes || 3} мин`;
+            document.getElementById('stu-modal-title').textContent = data.title;
+            document.getElementById('stu-modal-subtitle').textContent = `Код комнаты: ${data.room_code}`;
+        }
+
+        async function startStudentDefense() {
+            if (!classroomState.studentRoom) {
+                await verifyStudentRoomCode();
+                if (!classroomState.studentRoom) return;
+            }
+            const name = document.getElementById('stu-name').value.trim();
+            const group = document.getElementById('stu-group').value.trim();
+            const code = document.getElementById('stu-code-input').value.trim();
+
+            if (!name) return showToast('Укажите ваше ФИО', 'warning');
+            if (!group) return showToast('Укажите вашу группу или класс', 'warning');
+            if (code.length < 15) return showToast('Вставьте код или текст работы (минимум 15 символов)', 'warning');
+
+            // Локальный анализ и генерация 3 вопросов из существующего движка
+            const report = analyzeLocally(code);
+            const info = detectContentType(code);
+            const questions = generateDefenseQuestions(code, info.isCode, 0).slice(0, 3);
+
+            classroomState.studentReport = report;
+            classroomState.studentQuestions = questions;
+
+            // Рендерим 3 вопроса БЕЗ кнопки «Показать эталонный ответ»
+            document.getElementById('stu-questions-container').innerHTML = questions.map((q, idx) => `
+                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border space-y-2">
+                    <div class="text-[11px] font-mono font-bold text-indigo-700 dark:text-indigo-300">Вопрос #${idx + 1}: ${escapeHtml(q.target)}</div>
+                    <div class="p-2 rounded-lg bg-slate-900 dark:bg-obsidian-bg text-emerald-300 font-mono text-[11px] overflow-x-auto">${escapeHtml(q.snippet)}</div>
+                    <p class="text-xs font-semibold text-slate-900 dark:text-zinc-100">${escapeHtml(q.question)}</p>
+                    <input id="stu-ans-${idx}" type="text" placeholder="Ваш ответ своими словами..." class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg text-xs text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                </div>
+            `).join('');
+
+            document.getElementById('stu-step-1').classList.add('hidden');
+            document.getElementById('stu-step-2').classList.remove('hidden');
+
+            // Запуск таймера
+            classroomState.secondsLeft = (classroomState.studentRoom.time_limit_minutes || 3) * 60;
+            const timerBadge = document.getElementById('stu-timer-badge');
+            timerBadge.classList.remove('hidden');
+            updateStudentTimerBadge();
+
+            classroomState.timerInterval = setInterval(() => {
+                classroomState.secondsLeft -= 1;
+                updateStudentTimerBadge();
+                if (classroomState.secondsLeft <= 0) {
+                    stopStudentTimer();
+                    submitStudentWork(true);
+                }
+            }, 1000);
+        }
+
+        function updateStudentTimerBadge() {
+            const m = Math.floor(Math.max(0, classroomState.secondsLeft) / 60);
+            const s = Math.max(0, classroomState.secondsLeft) % 60;
+            document.getElementById('stu-timer-badge').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function stopStudentTimer() {
+            if (classroomState.timerInterval) {
+                clearInterval(classroomState.timerInterval);
+                classroomState.timerInterval = null;
+            }
+        }
+
+        async function submitStudentWork(isAuto = false) {
+            if (!sb || !classroomState.studentRoom) return;
+            stopStudentTimer();
+
+            const btn = document.getElementById('stu-submit-final-btn');
+            if (btn) btn.disabled = true;
+
+            const student_name = document.getElementById('stu-name').value.trim();
+            const student_group = document.getElementById('stu-group').value.trim();
+            const code_content = document.getElementById('stu-code-input').value.trim();
+
+            let defenseScore = 0;
+            const defenseAnswers = classroomState.studentQuestions.map((q, idx) => {
+                const answer = (document.getElementById(`stu-ans-${idx}`)?.value || '').trim();
+                const lower = answer.toLowerCase();
+                const matched = (q.keywords || []).filter(k => lower.includes(k.toLowerCase()));
+                const redFlag = /(не знаю|хз|чатгпт|chatgpt|скопировал|не помню)/i.test(lower);
+                const passed = !redFlag && answer.length >= 8 && (matched.length >= 1 || answer.length >= 45);
+                if (passed) defenseScore += 1;
+                return { question: q.question, answer, passed };
+            });
+
+            const ai_probability = classroomState.studentReport?.aiProbability ?? 0;
+
+            try {
+                const { error } = await sb.from('submissions').insert({
+                    assignment_id: classroomState.studentRoom.id,
+                    student_name,
+                    student_group,
+                    code_content,
+                    ai_probability,
+                    defense_score: defenseScore,
+                    defense_answers: defenseAnswers
+                });
+                if (error) throw error;
+
+                document.getElementById('stu-step-2').classList.add('hidden');
+                document.getElementById('stu-timer-badge').classList.add('hidden');
+                document.getElementById('stu-step-3').classList.remove('hidden');
+                document.getElementById('stu-result-summary').textContent =
+                    `${isAuto ? 'Время вышло — работа отправлена автоматически. ' : ''}Балл защиты: ${defenseScore} из ${classroomState.studentQuestions.length}. Преподаватель уже видит вашу работу.`;
+                lucide.createIcons();
+            } catch (err) {
+                showToast(`Ошибка отправки работы: ${err.message}`, 'warning');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        // Автооткрытие модалки сдачи при параметре ?room=КОД в URL
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const roomCode = params.get('room');
+            if (roomCode) {
+                setTimeout(() => openStudentSubmitModal(roomCode), 250);
+            }
+        });
     </script>
 </body>
 </html>
