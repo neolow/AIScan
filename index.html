@@ -2939,9 +2939,8 @@ print(len(ans))`
             if (sb && currentUser) {
                 sb.from('user_documents').delete().eq('id', id).eq('user_id', currentUser.id).then();
             }
-        };
-    // =========================================================================
-        // 15. РЕЖИМ «КЛАСС / КОНТРОЛЬНАЯ РАБОТА» (ASSIGNMENTS & SUBMISSIONS)
+        };// =========================================================================
+        // 15. РЕЖИМ «КЛАСС / КОНТРОЛЬНАЯ РАБОТА» + ЖЕСТКИЙ АНТИЧИТ
         // =========================================================================
         const classroomState = {
             teacherRooms: [],
@@ -2951,10 +2950,152 @@ print(len(ans))`
             studentQuestions: [],
             studentReport: null,
             timerInterval: null,
-            secondsLeft: 0
+            secondsLeft: 0,
+            examLocked: false,
+            examFinished: false,
+            examLockStartedAt: 0,
+            blurCheckTimeout: null
         };
 
-        // Расширяем открытие Личного кабинета: показываем панель преподавателя и расширяем окно
+        let studentTelemetry = createEmptyTelemetry();
+        let _examListenersActive = false;
+        let _lastPasteWarnTs = 0;
+
+        function createEmptyTelemetry() {
+            return {
+                pasteBlockedCount: 0,
+                tabSwitches: 0,
+                examFailed: false,
+                failReason: ''
+            };
+        }
+
+        function showPasteBlockedToast() {
+            const now = Date.now();
+            if (now - _lastPasteWarnTs < 1500) return;
+            _lastPasteWarnTs = now;
+            showToast('Вставка текста запрещена! Пишите решение вручную.', 'warning');
+        }
+
+        // Жесткая блокировка вставки: только ручной ввод
+        function lockManualInputOnly(el) {
+            if (!el || el.dataset.manualLockAttached === '1') return;
+            el.dataset.manualLockAttached = '1';
+            el.dataset.lastValidValue = el.value || '';
+
+            const blockEvent = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                studentTelemetry.pasteBlockedCount += 1;
+                showPasteBlockedToast();
+            };
+
+            // 1. Блокируем стандартную вставку и перетаскивание
+            el.addEventListener('paste', blockEvent);
+            el.addEventListener('drop', blockEvent);
+            el.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'none';
+            });
+
+            // 2. Блокируем правую кнопку мыши (контекстное меню -> Вставить)
+            el.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showPasteBlockedToast();
+            });
+
+            // 3. Блокируем горячие клавиши Ctrl+V / Cmd+V (включая русскую раскладку) и Shift+Insert
+            el.addEventListener('keydown', (e) => {
+                const isPasteKey = ((e.ctrlKey || e.metaKey) && (e.code === 'KeyV' || e.key.toLowerCase() === 'v'))
+                    || (e.shiftKey && e.key === 'Insert');
+                if (isPasteKey) {
+                    blockEvent(e);
+                }
+            });
+
+            // 4. Блокируем системную/мобильную вставку из буфера на уровне beforeinput
+            el.addEventListener('beforeinput', (e) => {
+                const blockedTypes = ['insertFromPaste', 'insertFromDrop', 'insertFromYank', 'insertFromPasteAsQuotation'];
+                if (blockedTypes.includes(e.inputType)) {
+                    blockEvent(e);
+                }
+            });
+
+            // 5. Страховка от расширений и программной вставки (скачок больше 4 символов за 1 ввод)
+            el.addEventListener('input', () => {
+                const prev = el.dataset.lastValidValue || '';
+                const delta = el.value.length - prev.length;
+                if (delta > 4) {
+                    el.value = prev;
+                    studentTelemetry.pasteBlockedCount += 1;
+                    showPasteBlockedToast();
+                    return;
+                }
+                el.dataset.lastValidValue = el.value;
+            });
+        }
+
+        // --- АВТОПРОВАЛ ПРИ ПЕРЕХОДЕ НА ДРУГУЮ ВКЛАДКУ / ОКНО / СТРАНИЦУ ---
+        function _onExamVisibilityChange() {
+            if (document.hidden && classroomState.examLocked && !classroomState.examFinished) {
+                failStudentExam('Переход на другую вкладку браузера');
+            }
+        }
+
+        function _onExamWindowBlur() {
+            if (!classroomState.examLocked || classroomState.examFinished) return;
+            if (Date.now() - classroomState.examLockStartedAt < 600) return;
+
+            clearTimeout(classroomState.blurCheckTimeout);
+            classroomState.blurCheckTimeout = setTimeout(() => {
+                if (!document.hasFocus() && classroomState.examLocked && !classroomState.examFinished) {
+                    failStudentExam('Переключение на другое окно / приложение');
+                }
+            }, 120);
+        }
+
+        function _onExamPageHide() {
+            if (classroomState.examLocked && !classroomState.examFinished) {
+                failStudentExam('Выход со страницы экзамена');
+            }
+        }
+
+        function armExamAntiLeave() {
+            disarmExamAntiLeave();
+            classroomState.examLocked = true;
+            classroomState.examFinished = false;
+            classroomState.examLockStartedAt = Date.now();
+
+            document.addEventListener('visibilitychange', _onExamVisibilityChange);
+            window.addEventListener('blur', _onExamWindowBlur);
+            window.addEventListener('pagehide', _onExamPageHide);
+            _examListenersActive = true;
+
+            const banner = document.getElementById('stu-anticheat-banner');
+            if (banner) banner.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function disarmExamAntiLeave() {
+            classroomState.examLocked = false;
+            clearTimeout(classroomState.blurCheckTimeout);
+            if (!_examListenersActive) return;
+
+            document.removeEventListener('visibilitychange', _onExamVisibilityChange);
+            window.removeEventListener('blur', _onExamWindowBlur);
+            window.removeEventListener('pagehide', _onExamPageHide);
+            _examListenersActive = false;
+        }
+
+        function failStudentExam(reason) {
+            if (classroomState.examFinished || !classroomState.studentRoom) return;
+            studentTelemetry.tabSwitches += 1;
+            studentTelemetry.examFailed = true;
+            studentTelemetry.failReason = reason;
+            submitStudentWork(true, { failed: true, failReason: reason });
+        }
+
+        // Расширяем открытие Личного кабинета: показываем панель преподавателя
         const _origOpenAccountEntry = openAccountEntry;
         openAccountEntry = async function() {
             await _origOpenAccountEntry();
@@ -3066,7 +3207,7 @@ print(len(ans))`
             const tbody = document.getElementById('teacher-submissions-tbody');
             panel.classList.remove('hidden');
             document.getElementById('teacher-submissions-title').textContent = `Работы: ${title} (${code})`;
-            tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">Загрузка...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400">Загрузка...</td></tr>`;
 
             const { data, error } = await sb
                 .from('submissions')
@@ -3075,7 +3216,7 @@ print(len(ans))`
                 .order('created_at', { ascending: false });
 
             if (error) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-rose-600">${escapeHtml(error.message)}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-rose-600">${escapeHtml(error.message)}</td></tr>`;
                 return;
             }
 
@@ -3083,19 +3224,38 @@ print(len(ans))`
             document.getElementById('teacher-submissions-count').textContent = classroomState.activeSubmissions.length;
 
             if (!classroomState.activeSubmissions.length) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">Сданных работ пока нет</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400">Сданных работ пока нет</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = classroomState.activeSubmissions.map((s, idx) => {
                 const ai = Number(s.ai_probability) || 0;
                 const aiCls = ai >= 65 ? 'text-rose-600 dark:text-rose-400' : (ai >= 36 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400');
+
+                const failRecord = Array.isArray(s.defense_answers)
+                    ? s.defense_answers.find(a => a && (a.failed || a.question === '__EXAM_FAILED__'))
+                    : null;
+                const isFailed = Boolean(s.telemetry?.examFailed || failRecord);
+                const failReason = s.telemetry?.failReason || failRecord?.answer || 'Выход со вкладки';
+                const pasteTries = Number(s.telemetry?.pasteBlockedCount || 0);
+
+                const rowCls = isFailed
+                    ? 'bg-rose-50/70 dark:bg-rose-500/10 hover:bg-rose-50 dark:hover:bg-rose-500/15'
+                    : 'hover:bg-slate-50/70 dark:hover:bg-obsidian-panel/50';
+
+                const statusHtml = isFailed
+                    ? `<span class="inline-flex items-center px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 text-[10px] font-bold">ПРОВАЛЕН</span>
+                       <div class="text-[10px] text-rose-600 dark:text-rose-400 mt-0.5 leading-tight">${escapeHtml(failReason)}</div>`
+                    : `<span class="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 text-[10px] font-bold">Сдано</span>
+                       ${pasteTries > 0 ? `<div class="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">Попыток вставки: ${pasteTries}</div>` : ''}`;
+
                 return `
-                    <tr class="hover:bg-slate-50/70 dark:hover:bg-obsidian-panel/50">
+                    <tr class="${rowCls}">
                         <td class="py-2 px-2.5 font-medium text-slate-900 dark:text-zinc-100">${escapeHtml(s.student_name)}</td>
                         <td class="py-2 px-2 text-slate-600 dark:text-zinc-300">${escapeHtml(s.student_group || '—')}</td>
                         <td class="py-2 px-2 font-mono font-bold ${aiCls}">${ai}%</td>
-                        <td class="py-2 px-2 font-mono font-semibold text-slate-800 dark:text-zinc-200">${escapeHtml(s.defense_score ?? 0)}/3</td>
+                        <td class="py-2 px-2 font-mono font-semibold ${isFailed ? 'text-rose-600 dark:text-rose-400' : 'text-slate-800 dark:text-zinc-200'}">${isFailed ? '0/3' : `${escapeHtml(s.defense_score ?? 0)}/3`}</td>
+                        <td class="py-2 px-2">${statusHtml}</td>
                         <td class="py-2 px-2.5 text-right">
                             <button type="button" onclick="openSubmissionInEditor(${idx})" class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/15 dark:hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 font-semibold transition">Открыть код</button>
                         </td>
@@ -3114,22 +3274,35 @@ print(len(ans))`
             closeCabinetModal();
             switchInputTab('editor');
             handleEditorInput();
-            runAnalysis();
+            if ((sub.code_content || '').trim().length >= 12) {
+                runAnalysis();
+            }
             showToast(`Открыта работа студента: ${sub.student_name}`, 'info');
         }
 
         // --- РЕЖИМ СДАЧИ СТУДЕНТОМ ---
         function openStudentSubmitModal(prefillCode = '') {
             stopStudentTimer();
+            disarmExamAntiLeave();
+            studentTelemetry = createEmptyTelemetry();
             classroomState.studentRoom = null;
             classroomState.studentQuestions = [];
             classroomState.studentReport = null;
+            classroomState.examFinished = false;
+
+            const codeEl = document.getElementById('stu-code-input');
+            if (codeEl) {
+                codeEl.value = '';
+                codeEl.dataset.lastValidValue = '';
+                lockManualInputOnly(codeEl);
+            }
 
             document.getElementById('stu-step-1').classList.remove('hidden');
             document.getElementById('stu-step-2').classList.add('hidden');
             document.getElementById('stu-step-3').classList.add('hidden');
             document.getElementById('stu-timer-badge').classList.add('hidden');
             document.getElementById('stu-room-info').classList.add('hidden');
+            document.getElementById('stu-anticheat-banner')?.classList.add('hidden');
             document.getElementById('stu-modal-title').textContent = 'Сдача работы по коду комнаты';
             document.getElementById('stu-modal-subtitle').textContent = 'Введите 6-значный код от преподавателя';
 
@@ -3143,6 +3316,7 @@ print(len(ans))`
 
         function closeStudentSubmitModal() {
             stopStudentTimer();
+            disarmExamAntiLeave();
             document.getElementById('student-submit-modal').classList.add('hidden');
         }
 
@@ -3159,7 +3333,9 @@ print(len(ans))`
 
             if (error || !data) {
                 classroomState.studentRoom = null;
+                disarmExamAntiLeave();
                 document.getElementById('stu-room-info').classList.add('hidden');
+                document.getElementById('stu-anticheat-banner')?.classList.add('hidden');
                 return showToast('Комната с таким кодом не найдена', 'warning');
             }
 
@@ -3169,9 +3345,13 @@ print(len(ans))`
             document.getElementById('stu-room-time-text').textContent = `Таймер: ${data.time_limit_minutes || 3} мин`;
             document.getElementById('stu-modal-title').textContent = data.title;
             document.getElementById('stu-modal-subtitle').textContent = `Код комнаты: ${data.room_code}`;
+
+            // Активируем защиту от ухода со вкладки сразу после входа в комнату
+            armExamAntiLeave();
         }
 
         async function startStudentDefense() {
+            if (classroomState.examFinished) return;
             if (!classroomState.studentRoom) {
                 await verifyStudentRoomCode();
                 if (!classroomState.studentRoom) return;
@@ -3182,9 +3362,8 @@ print(len(ans))`
 
             if (!name) return showToast('Укажите ваше ФИО', 'warning');
             if (!group) return showToast('Укажите вашу группу или класс', 'warning');
-            if (code.length < 15) return showToast('Вставьте код или текст работы (минимум 15 символов)', 'warning');
+            if (code.length < 15) return showToast('Напишите код или текст работы (минимум 15 символов)', 'warning');
 
-            // Локальный анализ и генерация 3 вопросов из существующего движка
             const report = analyzeLocally(code);
             const info = detectContentType(code);
             const questions = generateDefenseQuestions(code, info.isCode, 0).slice(0, 3);
@@ -3192,20 +3371,23 @@ print(len(ans))`
             classroomState.studentReport = report;
             classroomState.studentQuestions = questions;
 
-            // Рендерим 3 вопроса БЕЗ кнопки «Показать эталонный ответ»
             document.getElementById('stu-questions-container').innerHTML = questions.map((q, idx) => `
                 <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border space-y-2">
                     <div class="text-[11px] font-mono font-bold text-indigo-700 dark:text-indigo-300">Вопрос #${idx + 1}: ${escapeHtml(q.target)}</div>
                     <div class="p-2 rounded-lg bg-slate-900 dark:bg-obsidian-bg text-emerald-300 font-mono text-[11px] overflow-x-auto">${escapeHtml(q.snippet)}</div>
                     <p class="text-xs font-semibold text-slate-900 dark:text-zinc-100">${escapeHtml(q.question)}</p>
-                    <input id="stu-ans-${idx}" type="text" placeholder="Ваш ответ своими словами..." class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg text-xs text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                    <input id="stu-ans-${idx}" type="text" autocomplete="off" placeholder="Ваш ответ своими словами (только вручную)..." class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg text-xs text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
                 </div>
             `).join('');
+
+            // Блокируем вставку и в полях ответов на вопросы защиты
+            questions.forEach((_, idx) => {
+                lockManualInputOnly(document.getElementById(`stu-ans-${idx}`));
+            });
 
             document.getElementById('stu-step-1').classList.add('hidden');
             document.getElementById('stu-step-2').classList.remove('hidden');
 
-            // Запуск таймера
             classroomState.secondsLeft = (classroomState.studentRoom.time_limit_minutes || 3) * 60;
             const timerBadge = document.getElementById('stu-timer-badge');
             timerBadge.classList.remove('hidden');
@@ -3234,186 +3416,130 @@ print(len(ans))`
             }
         }
 
-        async function submitStudentWork(isAuto = false) {
+        async function submitStudentWork(isAuto = false, failInfo = null) {
             if (!sb || !classroomState.studentRoom) return;
+            if (!failInfo && classroomState.examFinished) return;
+
+            classroomState.examFinished = true;
             stopStudentTimer();
+            disarmExamAntiLeave();
+
+            const isFailed = Boolean(failInfo?.failed);
+            const failReason = failInfo?.failReason || '';
 
             const btn = document.getElementById('stu-submit-final-btn');
             if (btn) btn.disabled = true;
 
-            const student_name = document.getElementById('stu-name').value.trim();
-            const student_group = document.getElementById('stu-group').value.trim();
-            const code_content = document.getElementById('stu-code-input').value.trim();
+            const rawName = document.getElementById('stu-name').value.trim();
+            const rawGroup = document.getElementById('stu-group').value.trim();
+            const rawCode = document.getElementById('stu-code-input').value.trim();
+
+            const student_name = rawName || (isFailed ? 'Без ФИО (покинул вкладку)' : 'Студент');
+            const student_group = rawGroup || '—';
+            const code_content = rawCode || (isFailed ? '(экзамен провален до ввода кода)' : '');
 
             let defenseScore = 0;
-            const defenseAnswers = classroomState.studentQuestions.map((q, idx) => {
-                const answer = (document.getElementById(`stu-ans-${idx}`)?.value || '').trim();
-                const lower = answer.toLowerCase();
-                const matched = (q.keywords || []).filter(k => lower.includes(k.toLowerCase()));
-                const redFlag = /(не знаю|хз|чатгпт|chatgpt|скопировал|не помню)/i.test(lower);
-                const passed = !redFlag && answer.length >= 8 && (matched.length >= 1 || answer.length >= 45);
-                if (passed) defenseScore += 1;
-                return { question: q.question, answer, passed };
-            });
+            let defenseAnswers = [];
 
-            const ai_probability = classroomState.studentReport?.aiProbability ?? 0;
+            if (isFailed) {
+                defenseScore = 0;
+                defenseAnswers = [{
+                    question: '__EXAM_FAILED__',
+                    answer: failReason || 'Переход на другую вкладку',
+                    passed: false,
+                    failed: true
+                }];
+            } else {
+                defenseAnswers = classroomState.studentQuestions.map((q, idx) => {
+                    const answer = (document.getElementById(`stu-ans-${idx}`)?.value || '').trim();
+                    const lower = answer.toLowerCase();
+                    const matched = (q.keywords || []).filter(k => lower.includes(k.toLowerCase()));
+                    const redFlag = /(не знаю|хз|чатгпт|chatgpt|скопировал|не помню)/i.test(lower);
+                    const passed = !redFlag && answer.length >= 8 && (matched.length >= 1 || answer.length >= 45);
+                    if (passed) defenseScore += 1;
+                    return { question: q.question, answer, passed };
+                });
+            }
+
+            let ai_probability = classroomState.studentReport?.aiProbability ?? 0;
+            if (isFailed && rawCode.length >= 12) {
+                ai_probability = analyzeLocally(rawCode).aiProbability;
+            }
+
+            const telemetryPayload = {
+                examFailed: isFailed,
+                failReason,
+                tabSwitches: studentTelemetry.tabSwitches,
+                pasteBlockedCount: studentTelemetry.pasteBlockedCount,
+                submittedAt: new Date().toISOString()
+            };
+
+            const basePayload = {
+                assignment_id: classroomState.studentRoom.id,
+                student_name,
+                student_group,
+                code_content,
+                ai_probability,
+                defense_score: defenseScore,
+                defense_answers: defenseAnswers
+            };
+
+            // Показываем экран результата сразу (особенно важно при автопровале)
+            document.getElementById('stu-step-1').classList.add('hidden');
+            document.getElementById('stu-step-2').classList.add('hidden');
+            document.getElementById('stu-timer-badge').classList.add('hidden');
+            document.getElementById('stu-step-3').classList.remove('hidden');
+
+            const iconBox = document.getElementById('stu-result-icon');
+            const titleEl = document.getElementById('stu-result-title');
+            const summaryEl = document.getElementById('stu-result-summary');
+
+            if (isFailed) {
+                iconBox.className = 'w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto';
+                iconBox.innerHTML = '<i data-lucide="alert-octagon" class="w-6 h-6"></i>';
+                titleEl.className = 'text-base font-bold text-rose-600 dark:text-rose-400';
+                titleEl.textContent = 'Экзамен автоматически провален!';
+                summaryEl.textContent = `Причина: ${failReason}. Отметка «ПРОВАЛЕН» автоматически отправлена преподавателю.`;
+                showToast(`Экзамен провален: ${failReason}`, 'warning');
+            } else {
+                iconBox.className = 'w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto';
+                iconBox.innerHTML = '<i data-lucide="check-check" class="w-6 h-6"></i>';
+                titleEl.className = 'text-base font-bold text-slate-900 dark:text-zinc-50';
+                titleEl.textContent = 'Работа успешно отправлена!';
+                summaryEl.textContent = `${isAuto ? 'Время вышло — работа отправлена автоматически. ' : ''}Балл защиты: ${defenseScore} из ${classroomState.studentQuestions.length}. Преподаватель уже видит вашу работу.`;
+            }
+            lucide.createIcons();
 
             try {
-                const { error } = await sb.from('submissions').insert({
-                    assignment_id: classroomState.studentRoom.id,
-                    student_name,
-                    student_group,
-                    code_content,
-                    ai_probability,
-                    defense_score: defenseScore,
-                    defense_answers: defenseAnswers
+                let { error } = await sb.from('submissions').insert({
+                    ...basePayload,
+                    telemetry: telemetryPayload
                 });
-                if (error) throw error;
 
-                document.getElementById('stu-step-2').classList.add('hidden');
-                document.getElementById('stu-timer-badge').classList.add('hidden');
-                document.getElementById('stu-step-3').classList.remove('hidden');
-                document.getElementById('stu-result-summary').textContent =
-                    `${isAuto ? 'Время вышло — работа отправлена автоматически. ' : ''}Балл защиты: ${defenseScore} из ${classroomState.studentQuestions.length}. Преподаватель уже видит вашу работу.`;
-                lucide.createIcons();
+                // Если колонка telemetry еще не добавлена в Supabase — сохраняем без нее,
+                // статус провала все равно сохранится в defense_answers и отобразится у учителя
+                if (error && /telemetry/i.test(error.message || '')) {
+                    const fallback = await sb.from('submissions').insert(basePayload);
+                    error = fallback.error;
+                }
+                if (error) throw error;
             } catch (err) {
-                showToast(`Ошибка отправки работы: ${err.message}`, 'warning');
+                showToast(`Ошибка отправки в базу: ${err.message}`, 'warning');
             } finally {
                 if (btn) btn.disabled = false;
             }
         }
 
-        // Автооткрытие модалки сдачи при параметре ?room=КОД в URL
+        // Автооткрытие модалки сдачи при параметре ?room=КОД в URL и навешивание защиты на поле ввода
         window.addEventListener('DOMContentLoaded', () => {
+            lockManualInputOnly(document.getElementById('stu-code-input'));
+
             const params = new URLSearchParams(window.location.search);
             const roomCode = params.get('room');
             if (roomCode) {
                 setTimeout(() => openStudentSubmitModal(roomCode), 250);
             }
         });
-        // =========================================================================
-// АНТИЧИТ-ТЕЛЕМЕТРИЯ СТУДЕНТА (КЛАСС / КОНТРОЛЬНАЯ РАБОТА)
-// =========================================================================
-let studentTelemetry = createEmptyTelemetry();
-let _telemetryListenersActive = false;
-
-function createEmptyTelemetry(isTimerActiveFn = null) {
-    return {
-        pasteCount: 0,
-        pastedChars: 0,
-        defensePastes: 0,
-        tabSwitches: 0,
-        awaySeconds: 0,
-        // Служебные поля (не отправляются в БД)
-        _awayMs: 0,
-        _awayStartTs: null,
-        _isAway: false,
-        _lastLeaveTs: 0,
-        _isTimerActive: isTimerActiveFn
-    };
-}
-
-function _recordTabLeave() {
-    const now = Date.now();
-    // Защита от двойного срабатывания blur + visibilitychange (debounce 500 мс)
-    if (studentTelemetry._isAway || (now - studentTelemetry._lastLeaveTs) < 500) return;
-
-    studentTelemetry._isAway = true;
-    studentTelemetry._lastLeaveTs = now;
-    studentTelemetry._awayStartTs = now;
-    studentTelemetry.tabSwitches += 1;
-}
-
-function _recordTabReturn() {
-    if (!studentTelemetry._isAway || document.hidden) return;
-
-    const now = Date.now();
-    if (studentTelemetry._awayStartTs !== null) {
-        studentTelemetry._awayMs += Math.max(0, now - studentTelemetry._awayStartTs);
-        studentTelemetry._awayStartTs = null;
-    }
-    studentTelemetry._isAway = false;
-    studentTelemetry.awaySeconds = Math.round(studentTelemetry._awayMs / 1000);
-
-    if (typeof studentTelemetry._isTimerActive === 'function' && studentTelemetry._isTimerActive()) {
-        showToast(`Зафиксирован уход со вкладки (всего: ${studentTelemetry.tabSwitches})`, 'warning');
-    }
-}
-
-function _onTelemetryVisibilityChange() {
-    if (document.hidden) {
-        _recordTabLeave();
-    } else {
-        _recordTabReturn();
-    }
-}
-
-function _onTelemetryBlur() {
-    _recordTabLeave();
-}
-
-function _onTelemetryFocus() {
-    _recordTabReturn();
-}
-
-// Вызывать при открытии модалки сдачи работы
-function startStudentTelemetry(isTimerActiveFn) {
-    stopStudentTelemetry();
-    studentTelemetry = createEmptyTelemetry(isTimerActiveFn);
-
-    document.addEventListener('visibilitychange', _onTelemetryVisibilityChange);
-    window.addEventListener('blur', _onTelemetryBlur);
-    window.addEventListener('focus', _onTelemetryFocus);
-    _telemetryListenersActive = true;
-}
-
-// Вызывать при закрытии модалки и после отправки работы
-function stopStudentTelemetry() {
-    if (!_telemetryListenersActive) return;
-
-    document.removeEventListener('visibilitychange', _onTelemetryVisibilityChange);
-    window.removeEventListener('blur', _onTelemetryBlur);
-    window.removeEventListener('focus', _onTelemetryFocus);
-    _telemetryListenersActive = false;
-}
-
-// Обработчик paste для поля ввода кода
-function handleStudentCodePaste(e) {
-    const pastedText = (e.clipboardData || window.clipboardData)?.getData('text') || '';
-    studentTelemetry.pasteCount += 1;
-    studentTelemetry.pastedChars += pastedText.length;
-}
-
-// Обработчик paste для 3 полей ответов «Допроса автора»
-function handleStudentDefensePaste() {
-    studentTelemetry.defensePastes += 1;
-}
-
-// Сборка итогового объекта для колонки telemetry в Supabase
-function buildStudentTelemetryPayload(code) {
-    // Если автоотправка сработала, пока студент был на другой вкладке — дописываем время
-    if (studentTelemetry._isAway && studentTelemetry._awayStartTs !== null) {
-        studentTelemetry._awayMs += Math.max(0, Date.now() - studentTelemetry._awayStartTs);
-        studentTelemetry._awayStartTs = null;
-        studentTelemetry._isAway = false;
-    }
-
-    const safeCode = typeof code === 'string' ? code : '';
-    const pastedPercent = Math.min(
-        100,
-        Math.round((studentTelemetry.pastedChars / Math.max(1, safeCode.length)) * 100)
-    );
-    const awaySeconds = Math.round(studentTelemetry._awayMs / 1000);
-    studentTelemetry.awaySeconds = awaySeconds;
-
-    return {
-        pasteCount: studentTelemetry.pasteCount,
-        pastedPercent,
-        tabSwitches: studentTelemetry.tabSwitches,
-        awaySeconds,
-        defensePastes: studentTelemetry.defensePastes
-    };
-}
     </script>
 </body>
 </html>
