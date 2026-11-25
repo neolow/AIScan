@@ -3286,6 +3286,129 @@ print(len(ans))`
                 setTimeout(() => openStudentSubmitModal(roomCode), 250);
             }
         });
+        // =========================================================================
+// АНТИЧИТ-ТЕЛЕМЕТРИЯ СТУДЕНТА (КЛАСС / КОНТРОЛЬНАЯ РАБОТА)
+// =========================================================================
+let studentTelemetry = createEmptyTelemetry();
+let _telemetryListenersActive = false;
+
+function createEmptyTelemetry(isTimerActiveFn = null) {
+    return {
+        pasteCount: 0,
+        pastedChars: 0,
+        defensePastes: 0,
+        tabSwitches: 0,
+        awaySeconds: 0,
+        // Служебные поля (не отправляются в БД)
+        _awayMs: 0,
+        _awayStartTs: null,
+        _isAway: false,
+        _lastLeaveTs: 0,
+        _isTimerActive: isTimerActiveFn
+    };
+}
+
+function _recordTabLeave() {
+    const now = Date.now();
+    // Защита от двойного срабатывания blur + visibilitychange (debounce 500 мс)
+    if (studentTelemetry._isAway || (now - studentTelemetry._lastLeaveTs) < 500) return;
+
+    studentTelemetry._isAway = true;
+    studentTelemetry._lastLeaveTs = now;
+    studentTelemetry._awayStartTs = now;
+    studentTelemetry.tabSwitches += 1;
+}
+
+function _recordTabReturn() {
+    if (!studentTelemetry._isAway || document.hidden) return;
+
+    const now = Date.now();
+    if (studentTelemetry._awayStartTs !== null) {
+        studentTelemetry._awayMs += Math.max(0, now - studentTelemetry._awayStartTs);
+        studentTelemetry._awayStartTs = null;
+    }
+    studentTelemetry._isAway = false;
+    studentTelemetry.awaySeconds = Math.round(studentTelemetry._awayMs / 1000);
+
+    if (typeof studentTelemetry._isTimerActive === 'function' && studentTelemetry._isTimerActive()) {
+        showToast(`Зафиксирован уход со вкладки (всего: ${studentTelemetry.tabSwitches})`, 'warning');
+    }
+}
+
+function _onTelemetryVisibilityChange() {
+    if (document.hidden) {
+        _recordTabLeave();
+    } else {
+        _recordTabReturn();
+    }
+}
+
+function _onTelemetryBlur() {
+    _recordTabLeave();
+}
+
+function _onTelemetryFocus() {
+    _recordTabReturn();
+}
+
+// Вызывать при открытии модалки сдачи работы
+function startStudentTelemetry(isTimerActiveFn) {
+    stopStudentTelemetry();
+    studentTelemetry = createEmptyTelemetry(isTimerActiveFn);
+
+    document.addEventListener('visibilitychange', _onTelemetryVisibilityChange);
+    window.addEventListener('blur', _onTelemetryBlur);
+    window.addEventListener('focus', _onTelemetryFocus);
+    _telemetryListenersActive = true;
+}
+
+// Вызывать при закрытии модалки и после отправки работы
+function stopStudentTelemetry() {
+    if (!_telemetryListenersActive) return;
+
+    document.removeEventListener('visibilitychange', _onTelemetryVisibilityChange);
+    window.removeEventListener('blur', _onTelemetryBlur);
+    window.removeEventListener('focus', _onTelemetryFocus);
+    _telemetryListenersActive = false;
+}
+
+// Обработчик paste для поля ввода кода
+function handleStudentCodePaste(e) {
+    const pastedText = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+    studentTelemetry.pasteCount += 1;
+    studentTelemetry.pastedChars += pastedText.length;
+}
+
+// Обработчик paste для 3 полей ответов «Допроса автора»
+function handleStudentDefensePaste() {
+    studentTelemetry.defensePastes += 1;
+}
+
+// Сборка итогового объекта для колонки telemetry в Supabase
+function buildStudentTelemetryPayload(code) {
+    // Если автоотправка сработала, пока студент был на другой вкладке — дописываем время
+    if (studentTelemetry._isAway && studentTelemetry._awayStartTs !== null) {
+        studentTelemetry._awayMs += Math.max(0, Date.now() - studentTelemetry._awayStartTs);
+        studentTelemetry._awayStartTs = null;
+        studentTelemetry._isAway = false;
+    }
+
+    const safeCode = typeof code === 'string' ? code : '';
+    const pastedPercent = Math.min(
+        100,
+        Math.round((studentTelemetry.pastedChars / Math.max(1, safeCode.length)) * 100)
+    );
+    const awaySeconds = Math.round(studentTelemetry._awayMs / 1000);
+    studentTelemetry.awaySeconds = awaySeconds;
+
+    return {
+        pasteCount: studentTelemetry.pasteCount,
+        pastedPercent,
+        tabSwitches: studentTelemetry.tabSwitches,
+        awaySeconds,
+        defensePastes: studentTelemetry.defensePastes
+    };
+}
     </script>
 </body>
 </html>
