@@ -110,7 +110,7 @@
                 </div>
             </div>
 
-            <!-- Действия в шапке: Поделиться, Настройки ИИ, Тема и Личный кабинет -->
+            <!-- Действия в шапке: Поделиться, Настройки ИИ, Тема, Баланс кредитов и Личный кабинет -->
             <div class="flex items-center gap-2">
                 <button onclick="openShareModal()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-[#E2E8F0] shadow-2xs dark:bg-obsidian-card dark:text-zinc-200 dark:border-obsidian-border dark:hover:bg-obsidian-panel transition" title="Поделиться по AirDrop, ссылкой или QR">
                     <i data-lucide="share" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0"></i>
@@ -126,6 +126,11 @@
                 <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 bg-white hover:bg-slate-50 border border-[#E2E8F0] shadow-2xs dark:bg-obsidian-card dark:text-zinc-300 dark:border-obsidian-border dark:hover:bg-obsidian-panel transition" title="Переключить светлую/темную тему" aria-label="Переключить тему">
                     <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
                     <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-amber-400"></i>
+                </button>
+
+                <!-- Бейдж баланса кредитов -->
+                <button onclick="openAccountEntry()" id="header-credits-badge" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 dark:bg-amber-500/15 dark:hover:bg-amber-500/25 dark:text-amber-300 dark:border-amber-500/30 transition" title="Войдите, чтобы получить +10 бесплатных кредитов">
+                    <span id="header-credits-text" class="font-mono">Гость (0 кред.)</span>
                 </button>
 
                 <button onclick="openAccountEntry()" id="header-auth-btn" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-2xs transition" title="Личный кабинет">
@@ -278,7 +283,7 @@
                         </div>
                         <h3 class="text-sm sm:text-base font-semibold text-slate-900 dark:text-zinc-100 mb-1">Распознавание текста и кода с фото или скриншота</h3>
                         <p class="text-xs text-slate-500 dark:text-zinc-400 max-w-md mx-auto mb-5">
-                            Работает через встроенный <strong>Tesseract.js (Русский + Английский)</strong> или через <strong>Vision API</strong> при подключенном ключе (с сохранением отступов кода).
+                            Работает через встроенный <strong>Tesseract.js (бесплатно)</strong> или через <strong>Vision API (2 кред.)</strong> при подключенном ключе (с сохранением отступов кода).
                         </p>
                         <div class="flex flex-wrap items-center justify-center gap-2.5">
                             <button onclick="document.getElementById('ocr-gallery-input').click()" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
@@ -584,7 +589,7 @@
                         <div class="space-y-0.5">
                             <div class="font-semibold text-slate-900 dark:text-zinc-100 flex flex-wrap items-center gap-2">
                                 Встроенный движок (VeriScan Core v5 — мгновенно и офлайн)
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-500/30">Рекомендуется</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-500/30">0 кред.</span>
                             </div>
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Точный оффлайн-анализ информатических паттернов (C++, Python, Pascal, JS, HTML), операторных «слитков» и предлогов без отправки кода в сеть.</p>
                         </div>
@@ -594,15 +599,18 @@
                         <div class="space-y-0.5">
                             <div class="font-semibold text-slate-900 dark:text-zinc-100 flex flex-wrap items-center gap-2">
                                 Встроенный облачный ИИ (Cloud Auto с авторезервом)
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-500/30">Без ключа</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-500/30">⚡ 1 кред.</span>
                             </div>
-                            <p class="text-xs text-slate-500 dark:text-zinc-400">Облачный анализ со строгим техническим промптом и автоматическим переключением на Core v5 при таймауте или недоступности сети.</p>
+                            <p class="text-xs text-slate-500 dark:text-zinc-400">Облачный анализ со строгим техническим промптом и автоматическим переключением на бесплатный Core v5 при нехватке кредитов или таймауте.</p>
                         </div>
                     </label>
                     <label class="flex items-start gap-3 p-3.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border cursor-pointer hover:bg-slate-50 dark:hover:bg-obsidian-panel transition">
                         <input type="radio" name="ai-mode" value="custom" onchange="onAiModeRadioChange()" class="mt-1 accent-indigo-600">
                         <div class="space-y-0.5">
-                            <div class="font-semibold text-slate-900 dark:text-zinc-100">Свой API-ключ (OpenAI / OpenRouter / Gemini / Groq / Custom URL)</div>
+                            <div class="font-semibold text-slate-900 dark:text-zinc-100 flex flex-wrap items-center gap-2">
+                                Свой API-ключ (OpenAI / OpenRouter / Gemini / Groq / Custom URL)
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-500/30">0 кред.</span>
+                            </div>
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Подключите любую OpenAI-совместимую модель (включая Vision для фото кода). Ключ хранится только в вашем браузере.</p>
                         </div>
                     </label>
@@ -769,6 +777,11 @@
             </div>
 
             <div class="p-6 space-y-4 text-xs">
+                <div class="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                    <i data-lucide="zap" class="w-4 h-4 shrink-0"></i>
+                    <span>При регистрации начисляем <strong>+10 бесплатных кредитов</strong> для Cloud Auto и Vision OCR.</span>
+                </div>
+
                 <div id="auth-tabs" class="grid grid-cols-2 p-1 rounded-xl bg-slate-100 dark:bg-obsidian-bg border border-[#E2E8F0] dark:border-obsidian-border">
                     <button id="auth-tab-login" onclick="switchAuthView('login')" class="py-1.5 rounded-lg font-semibold bg-white dark:bg-obsidian-card text-slate-900 dark:text-zinc-100 shadow-2xs transition">Вход</button>
                     <button id="auth-tab-register" onclick="switchAuthView('register')" class="py-1.5 rounded-lg font-semibold text-slate-500 dark:text-zinc-400 transition">Регистрация</button>
@@ -832,7 +845,7 @@
 
     <!-- МОДАЛКА 4: ЛИЧНЫЙ КАБИНЕТ -->
     <div id="cabinet-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 dark:bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-obsidian-card rounded-2xl border border-[#E2E8F0] dark:border-obsidian-border max-w-md w-full shadow-2xl overflow-hidden">
+        <div class="bg-white dark:bg-obsidian-card rounded-2xl border border-[#E2E8F0] dark:border-obsidian-border max-w-md w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
             <div class="px-6 py-4 border-b border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/70 dark:bg-obsidian-panel/70 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div id="cab-avatar" class="w-10 h-10 rounded-xl bg-indigo-600 text-white font-bold text-sm flex items-center justify-center">U</div>
@@ -846,10 +859,51 @@
                 </button>
             </div>
 
-            <div class="p-6 space-y-4 text-xs">
+            <div class="p-6 overflow-y-auto space-y-4 text-xs">
                 <div class="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-500/10 border border-emerald-200/80 dark:border-emerald-500/30 flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
                     <i data-lucide="cloud" class="w-4 h-4 shrink-0"></i>
                     <span>Облачная синхронизация Медиатеки активна</span>
+                </div>
+
+                <!-- Секция: Баланс и промокоды -->
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border space-y-3.5">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-800 dark:text-zinc-100 flex items-center gap-1.5">
+                            <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i>
+                            Баланс и промокоды
+                        </span>
+                        <span class="text-[10px] text-slate-400 dark:text-zinc-500">Cloud: 1 кред. • OCR: 2 кред.</span>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl bg-white dark:bg-obsidian-bg border border-[#E2E8F0] dark:border-obsidian-border flex items-center justify-between">
+                        <div>
+                            <div class="text-[11px] text-slate-500 dark:text-zinc-400">Доступно кредитов</div>
+                            <div id="cab-credits-count" class="text-2xl font-extrabold font-mono text-slate-900 dark:text-zinc-50">0</div>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                            <i data-lucide="coins" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+
+                    <form onsubmit="handleRedeemPromo(event)" class="space-y-2">
+                        <label class="block text-[11px] font-semibold text-slate-600 dark:text-zinc-300">Промокод или реферальный код</label>
+                        <div class="flex items-center gap-2">
+                            <input id="cab-promo-input" type="text" required placeholder="WELCOME20 или VRS-XXXX" class="flex-1 px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg font-mono uppercase text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                            <button type="submit" id="cab-promo-btn" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shrink-0 transition">Активировать</button>
+                        </div>
+                    </form>
+
+                    <div class="pt-2.5 border-t border-slate-200/70 dark:border-obsidian-border space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-semibold text-slate-600 dark:text-zinc-300">Ваш реферальный код (+10 кред. обоим)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div id="cab-ref-code" class="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-obsidian-bg border border-dashed border-indigo-300 dark:border-indigo-500/40 font-mono font-bold text-indigo-700 dark:text-indigo-300 tracking-wider">VRS-....</div>
+                            <button type="button" onclick="copyReferralCode()" class="px-3 py-2 rounded-xl bg-white dark:bg-obsidian-card hover:bg-slate-100 dark:hover:bg-zinc-800 border border-[#E2E8F0] dark:border-obsidian-border text-slate-700 dark:text-zinc-200 font-semibold flex items-center gap-1.5 shrink-0 transition">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Копировать
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <form onsubmit="handleChangePassword(event)" class="p-4 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border space-y-2.5">
@@ -1398,12 +1452,28 @@ print(len(ans))`
             try {
                 let extracted = '';
                 if (state.config.mode === 'custom' && state.config.apiKey && state.config.endpoint) {
-                    try {
-                        statusLbl.textContent = 'Распознавание кода через Vision API...';
-                        pctLbl.textContent = '45%';
-                        bar.style.width = '45%';
-                        extracted = await extractTextWithVisionAPI(file);
-                    } catch (vErr) { console.warn('Vision API недоступен:', vErr); }
+                    let canUseVision = false;
+                    if (sb && currentUser) {
+                        const spendRes = await spendUserCredits(2, 'vision_ocr');
+                        if (spendRes.success) {
+                            canUseVision = true;
+                        } else {
+                            showToast(`Недостаточно кредитов для Vision OCR (нужно 2 кред.). Используем бесплатный локальный Tesseract.js.`, 'warning');
+                        }
+                    } else {
+                        showToast('Vision OCR стоит 2 кредита. Войдите в аккаунт (+10 кред.), пока используем бесплатный Tesseract.js.', 'warning');
+                    }
+
+                    if (canUseVision) {
+                        try {
+                            statusLbl.textContent = 'Распознавание кода через Vision API (-2 кред.)...';
+                            pctLbl.textContent = '45%';
+                            bar.style.width = '45%';
+                            extracted = await extractTextWithVisionAPI(file);
+                        } catch (vErr) {
+                            console.warn('Vision API недоступен:', vErr);
+                        }
+                    }
                 }
                 if (!extracted && window.Tesseract) {
                     const res = await window.Tesseract.recognize(file, 'rus+eng', {
@@ -1997,17 +2067,35 @@ print(len(ans))`
             bar.style.width = '30%';
 
             let report = null, engineLabel = 'VeriScan Core v5 (Офлайн)', usedCloud = false, piiMaskedCount = 0;
-            const mode = state.config.mode;
-            if (mode === 'cloud_free' || (mode === 'custom' && state.config.apiKey && state.config.endpoint)) {
+            let effectiveMode = state.config.mode;
+
+            // Биллинг кредитов:
+            // - local (VeriScan Core v5): 0 кредитов
+            // - custom (свой API-ключ): 0 кредитов
+            // - cloud_free (Cloud Auto): 1 кредит через rpc('spend_credits')
+            if (effectiveMode === 'cloud_free') {
+                if (!sb || !currentUser) {
+                    showToast('Облачный ИИ стоит 1 кредит. Войдите в аккаунт (+10 кред.), пока используем бесплатный Core v5.', 'warning');
+                    effectiveMode = 'local';
+                } else {
+                    const spendRes = await spendUserCredits(1, 'cloud_analysis');
+                    if (!spendRes.success) {
+                        showToast(`${spendRes.error || 'Недостаточно кредитов'} для Cloud Auto (нужен 1 кред.). Переключаемся на бесплатный Core v5.`, 'warning');
+                        effectiveMode = 'local';
+                    }
+                }
+            }
+
+            if (effectiveMode === 'cloud_free' || (effectiveMode === 'custom' && state.config.apiKey && state.config.endpoint)) {
                 try {
                     let payloadText = rawText;
                     if (state.config.maskPii) { const res = maskSensitiveData(rawText); payloadText = res.text; piiMaskedCount = res.maskedCount; }
-                    document.getElementById('loading-title').textContent = mode === 'cloud_free' ? 'Подключение к облачному ИИ (Cloud Auto)...' : `Запрос к вашему API (${state.config.model})...`;
+                    document.getElementById('loading-title').textContent = effectiveMode === 'cloud_free' ? 'Подключение к облачному ИИ (Cloud Auto)...' : `Запрос к вашему API (${state.config.model})...`;
                     bar.style.width = '65%';
-                    const llmJson = await fetchCloudAnalysis(payloadText, mode);
+                    const llmJson = await fetchCloudAnalysis(payloadText, effectiveMode);
                     report = reconcileExternalReport(llmJson, rawText);
                     usedCloud = true;
-                    engineLabel = mode === 'cloud_free' ? 'Cloud Auto ИИ' : `API: ${state.config.model}`;
+                    engineLabel = effectiveMode === 'cloud_free' ? 'Cloud Auto ИИ (-1 кред.)' : `API: ${state.config.model}`;
                 } catch (err) {
                     showToast(`Облачный API недоступен (${err.message}). Анализ выполнен локальным движком VeriScan Core v5.`, 'warning');
                     report = analyzeLocally(rawText);
@@ -2419,7 +2507,7 @@ print(len(ans))`
         }
 
         // =========================================================================
-        // 14. БЕСПЛАТНЫЕ ОБЛАЧНЫЕ АККАУНТЫ И МЕДИАТЕКА (SUPABASE EMAIL AUTH)
+        // 14. ОБЛАЧНЫЕ АККАУНТЫ, КРЕДИТЫ, ПРОМОКОДЫ И МЕДИАТЕКА (SUPABASE)
         // =========================================================================
         const SUPABASE_URL = 'https://qientxhhgaumdckzsxlq.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_MwVeEsKaad2UO5y1ScksrQ_HURDqPJe';
@@ -2427,13 +2515,22 @@ print(len(ans))`
         const sb = isSupabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
         let currentUser = null;
+        let currentProfile = null;
 
         async function initAuth() {
-            if (!sb) return;
+            if (!sb) {
+                updateCreditsUI();
+                return;
+            }
             const { data: { session } } = await sb.auth.getSession();
             currentUser = session?.user || null;
             updateAuthHeaderUI();
-            if (currentUser) await syncLibraryFromCloud();
+            if (currentUser) {
+                await Promise.all([loadUserProfile(), syncLibraryFromCloud()]);
+            } else {
+                currentProfile = null;
+                updateCreditsUI();
+            }
 
             sb.auth.onAuthStateChange(async (event, session) => {
                 currentUser = session?.user || null;
@@ -2443,11 +2540,74 @@ print(len(ans))`
                     openAccountEntry();
                     showToast('Введите новый пароль в личном кабинете', 'info');
                 }
-                if (currentUser) await syncLibraryFromCloud();
-                else loadLibraryFromStorage();
+                if (currentUser) {
+                    await Promise.all([loadUserProfile(), syncLibraryFromCloud()]);
+                } else {
+                    currentProfile = null;
+                    updateCreditsUI();
+                    loadLibraryFromStorage();
+                }
             });
         }
         window.addEventListener('DOMContentLoaded', initAuth);
+
+        async function loadUserProfile() {
+            if (!sb || !currentUser) return null;
+            const { data, error } = await sb
+                .from('user_profiles')
+                .select('user_id, full_name, role, credits, referral_code, referred_by')
+                .eq('user_id', currentUser.id)
+                .maybeSingle();
+
+            if (!error && data) {
+                currentProfile = data;
+            } else if (error) {
+                console.warn('Profile load error:', error.message);
+            }
+            updateCreditsUI();
+            return currentProfile;
+        }
+
+        async function spendUserCredits(amount, reason) {
+            if (!sb || !currentUser) {
+                return { success: false, error: 'Требуется авторизация' };
+            }
+            const { data, error } = await sb.rpc('spend_credits', { amount, reason });
+            if (error) {
+                console.warn('spend_credits RPC error:', error.message);
+                return { success: false, error: error.message };
+            }
+            if (data && typeof data.credits === 'number') {
+                if (!currentProfile) currentProfile = {};
+                currentProfile.credits = data.credits;
+                updateCreditsUI();
+            }
+            return data || { success: false, error: 'Ошибка списания кредитов' };
+        }
+
+        function updateCreditsUI() {
+            const badge = document.getElementById('header-credits-badge');
+            const badgeText = document.getElementById('header-credits-text');
+            const cabCount = document.getElementById('cab-credits-count');
+            const cabRef = document.getElementById('cab-ref-code');
+
+            if (currentUser) {
+                const credits = typeof currentProfile?.credits === 'number' ? currentProfile.credits : 0;
+                if (badgeText) badgeText.textContent = `⚡ ${credits} кред.`;
+                if (badge) {
+                    badge.title = 'Ваш баланс кредитов. Нажмите, чтобы открыть кабинет и промокоды.';
+                    badge.className = 'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 dark:bg-amber-500/15 dark:hover:bg-amber-500/25 dark:text-amber-300 dark:border-amber-500/30 transition';
+                }
+                if (cabCount) cabCount.textContent = credits;
+                if (cabRef) cabRef.textContent = currentProfile?.referral_code || 'VRS-....';
+            } else {
+                if (badgeText) badgeText.textContent = 'Гость (0 кред.)';
+                if (badge) {
+                    badge.title = 'Войдите в аккаунт, чтобы получить +10 бесплатных кредитов';
+                    badge.className = 'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200/80 text-slate-600 border border-[#E2E8F0] dark:bg-obsidian-card dark:hover:bg-obsidian-panel dark:text-zinc-400 dark:border-obsidian-border transition';
+                }
+            }
+        }
 
         function updateAuthHeaderUI() {
             const btn = document.getElementById('header-auth-btn');
@@ -2455,7 +2615,7 @@ print(len(ans))`
             if (!btn || !label) return;
 
             if (currentUser) {
-                const name = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+                const name = currentProfile?.full_name || currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
                 label.textContent = name;
                 btn.className = 'flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-[#E2E8F0] shadow-2xs dark:bg-obsidian-card dark:text-zinc-200 dark:border-obsidian-border dark:hover:bg-obsidian-panel transition';
             } else {
@@ -2464,17 +2624,19 @@ print(len(ans))`
             }
         }
 
-        function openAccountEntry() {
+        async function openAccountEntry() {
             if (!sb) {
                 showToast('Укажите SUPABASE_URL и SUPABASE_ANON_KEY в коде index.html', 'warning');
                 return;
             }
             if (currentUser) {
-                const name = currentUser.user_metadata?.full_name || 'Пользователь';
-                const role = currentUser.user_metadata?.role || 'Пользователь';
+                await loadUserProfile();
+                const name = currentProfile?.full_name || currentUser.user_metadata?.full_name || 'Пользователь';
+                const role = currentProfile?.role || currentUser.user_metadata?.role || 'Пользователь';
                 document.getElementById('cab-avatar').textContent = name[0].toUpperCase();
                 document.getElementById('cab-name').textContent = name;
                 document.getElementById('cab-meta').textContent = `${currentUser.email} • ${role}`;
+                updateCreditsUI();
                 document.getElementById('cabinet-modal').classList.remove('hidden');
             } else {
                 switchAuthView('login');
@@ -2516,7 +2678,7 @@ print(len(ans))`
             });
             if (error) return showToast(error.message, 'warning');
             closeAuthModal();
-            showToast('Письмо с подтверждением отправлено на вашу почту!', 'success');
+            showToast('Письмо с подтверждением отправлено на вашу почту! После входа начислится +10 кредитов.', 'success');
         }
 
         async function handleLogin(e) {
@@ -2549,8 +2711,50 @@ print(len(ans))`
             showToast('Пароль успешно обновлен!', 'success');
         }
 
+        async function handleRedeemPromo(e) {
+            e.preventDefault();
+            if (!sb || !currentUser) return showToast('Войдите в аккаунт', 'warning');
+
+            const input = document.getElementById('cab-promo-input');
+            const btn = document.getElementById('cab-promo-btn');
+            const code = input.value.trim().toUpperCase();
+            if (!code) return;
+
+            btn.disabled = true;
+            btn.textContent = '...';
+            try {
+                const { data, error } = await sb.rpc('redeem_promo_code', { input_code: code });
+                if (error) {
+                    showToast(error.message, 'warning');
+                    return;
+                }
+                if (!data?.success) {
+                    showToast(data?.error || 'Не удалось активировать код', 'warning');
+                    return;
+                }
+
+                input.value = '';
+                await loadUserProfile();
+                const role = currentProfile?.role || currentUser.user_metadata?.role || 'Пользователь';
+                document.getElementById('cab-meta').textContent = `${currentUser.email} • ${role}`;
+                showToast(data.message || 'Код успешно активирован!', 'success');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Активировать';
+            }
+        }
+
+        async function copyReferralCode() {
+            const code = currentProfile?.referral_code;
+            if (!code) return showToast('Реферальный код еще загружается', 'warning');
+            const ok = await reliableCopy(code);
+            showToast(ok ? `Реферальный код ${code} скопирован!` : 'Скопируйте код вручную', ok ? 'success' : 'warning');
+        }
+
         async function handleLogout() {
             await sb.auth.signOut();
+            currentProfile = null;
+            updateCreditsUI();
             closeCabinetModal();
             showToast('Вы вышли из аккаунта', 'info');
         }
@@ -2577,7 +2781,7 @@ print(len(ans))`
                 last_score: typeof item.lastScore === 'number' ? item.lastScore : null,
                 content: item.content
             }));
-            sb.from('user_documents').upsert(rows).then(({ error }) => {
+            sb.from('user_documents').upsert(rows, { onConflict: 'id,user_id' }).then(({ error }) => {
                 if (error) console.warn('Cloud sync error:', error);
             });
         };
