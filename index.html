@@ -2612,8 +2612,7 @@ print(len(ans))`
             };
             reader.readAsText(file); e.target.value = '';
         }
-
-        function openSettingsModal() {
+function openSettingsModal() {
             document.querySelectorAll('input[name="ai-mode"]').forEach(r => { r.checked = r.value === state.config.mode; });
             document.getElementById('cfg-provider').value = state.config.provider;
             document.getElementById('cfg-model').value = state.config.model;
@@ -2652,6 +2651,25 @@ print(len(ans))`
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                 statusEl.textContent = '✅ Соединение установлено!'; statusEl.className = 'text-xs font-semibold text-emerald-600';
             } catch (err) { statusEl.textContent = `❌ Ошибка: ${err.message}`; statusEl.className = 'text-xs font-semibold text-rose-600'; }
+        }
+        function saveSettings() {
+            state.config.mode = document.querySelector('input[name="ai-mode"]:checked')?.value || 'local';
+            state.config.provider = document.getElementById('cfg-provider').value;
+            state.config.model = document.getElementById('cfg-model').value.trim();
+            state.config.endpoint = document.getElementById('cfg-endpoint').value.trim();
+            state.config.apiKey = document.getElementById('cfg-apikey').value.trim();
+            state.config.maskPii = document.getElementById('cfg-mask-pii').checked;
+            state.config.systemPrompt = document.getElementById('cfg-system-prompt').value.trim() || SYSTEM_PROMPT;
+            try {
+                localStorage.setItem('veriscan_mode', state.config.mode);
+                localStorage.setItem('veriscan_provider', state.config.provider);
+                localStorage.setItem('veriscan_model', state.config.model);
+                localStorage.setItem('veriscan_endpoint', state.config.endpoint);
+                localStorage.setItem('veriscan_apikey', state.config.apiKey);
+                localStorage.setItem('veriscan_mask_pii', String(state.config.maskPii));
+                localStorage.setItem('veriscan_sysprompt_v5', state.config.systemPrompt);
+            } catch (e) {}
+            updateHeaderEngineBadge(); closeSettingsModal(); showToast('Настройки ИИ сохранены', 'success');
         }
         function saveSettings() {
             state.config.mode = document.querySelector('input[name="ai-mode"]:checked')?.value || 'local';
