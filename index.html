@@ -2115,7 +2115,7 @@ print(len(ans))`
             return { aiProbability: Math.max(1, Math.min(99, Math.round(weightedScoreSum / totalChars))), distribution: { ai: fixedAi, mixed: mixedPct, human: humanPct } };
         }
 
-        function reconcileExternalReport(llmData, originalText) {
+  function reconcileExternalReport(llmData, originalText) {
             const local = analyzeLocally(originalText);
             const merged = { ...local, ...llmData };
             if (Array.isArray(llmData.segments) && llmData.segments.length > 0) {
@@ -2123,11 +2123,22 @@ print(len(ans))`
                     const sc = typeof s.score === 'number' ? s.score : (s.status === 'ai' ? 86 : (s.status === 'human' ? 16 : 50));
                     return { text: s.text || '', score: Math.max(1, Math.min(99, Math.round(sc))), status: classifyScore(sc), reason: s.reason || 'Оценка облачной модели' };
                 }).filter(s => s.text.trim().length > 0);
-            } else merged.segments = local.segments;
+            } else {
+                merged.segments = local.segments;
+            }
 
             const stats = computeWeightedStats(merged.segments);
-            merged.aiProbability = stats.aiProbability;
+            const rawCloudScore = Number(llmData.aiProbability);
+            merged.aiProbability = Number.isFinite(rawCloudScore)
+                ? Math.max(1, Math.min(99, Math.round(rawCloudScore)))
+                : stats.aiProbability;
             merged.distribution = stats.distribution;
+
+            if (!merged.verdictTitle) {
+                merged.verdictTitle = merged.aiProbability >= 65
+                    ? 'Высокая вероятность ИИ'
+                    : (merged.aiProbability <= 35 ? 'Написано человеком' : 'Смешанное авторство');
+            }
             if (!Array.isArray(merged.xaiFactors) || merged.xaiFactors.length < 4) merged.xaiFactors = local.xaiFactors;
             if (!merged.formatting || !Array.isArray(merged.formatting.metrics)) merged.formatting = local.formatting;
             if (!merged.commentForensics) merged.commentForensics = local.commentForensics;
