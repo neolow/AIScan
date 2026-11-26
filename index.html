@@ -2306,7 +2306,7 @@ print(len(ans))`
                     if (!session?.access_token) throw new Error('Войдите в аккаунт для Cloud Auto');
 
                     const baseSbUrl = SUPABASE_URL.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
-                    const resp = await fetch(`${baseSbUrl}/functions/v1/cloud-analyze`, {
+                    const resp = await fetch(`${baseSbUrl}/functions/v1/smooth-service`, {
                         method: 'POST',
                         signal: controller.signal,
                         headers: {
