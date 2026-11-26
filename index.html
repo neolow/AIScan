@@ -2612,24 +2612,78 @@ print(len(ans))`
             };
             reader.readAsText(file); e.target.value = '';
         }
-function openSettingsModal() {
+let isAdminPromptUnlocked = false;
+        const ADMIN_PROMPT_KEY_B64 = 'a3Jhc2F2YURAMTIz'; // krasavaD@123
+
+        function toggleAdminPromptGate() {
+            if (isAdminPromptUnlocked) {
+                lockSystemPrompt();
+                return;
+            }
+            const gate = document.getElementById('admin-prompt-gate');
+            gate.classList.toggle('hidden');
+            if (!gate.classList.contains('hidden')) {
+                document.getElementById('admin-prompt-pass').focus();
+            }
+        }
+
+        function unlockSystemPrompt() {
+            const input = document.getElementById('admin-prompt-pass');
+            const entered = input.value;
+            let expected = '';
+            try { expected = atob(ADMIN_PROMPT_KEY_B64); } catch (e) {}
+
+            if (entered !== expected) {
+                input.value = '';
+                showToast('Неверный админский код', 'warning');
+                return;
+            }
+
+            isAdminPromptUnlocked = true;
+            input.value = '';
+            document.getElementById('admin-prompt-gate').classList.add('hidden');
+            document.getElementById('admin-prompt-box').classList.remove('hidden');
+            document.getElementById('admin-prompt-toggle-btn').textContent = 'Скрыть промпт';
+            document.getElementById('cfg-system-prompt').value = state.config.systemPrompt;
+            showToast('Доступ к системному промпту открыт', 'success');
+        }
+
+        function lockSystemPrompt() {
+            isAdminPromptUnlocked = false;
+            const ta = document.getElementById('cfg-system-prompt');
+            if (ta) ta.value = '';
+            document.getElementById('admin-prompt-box')?.classList.add('hidden');
+            document.getElementById('admin-prompt-gate')?.classList.add('hidden');
+            const passInput = document.getElementById('admin-prompt-pass');
+            if (passInput) passInput.value = '';
+            const btn = document.getElementById('admin-prompt-toggle-btn');
+            if (btn) btn.textContent = 'Открыть (код админа)';
+        }
+
+        function openSettingsModal() {
             document.querySelectorAll('input[name="ai-mode"]').forEach(r => { r.checked = r.value === state.config.mode; });
             document.getElementById('cfg-provider').value = state.config.provider;
             document.getElementById('cfg-model').value = state.config.model;
             document.getElementById('cfg-endpoint').value = state.config.endpoint;
             document.getElementById('cfg-apikey').value = state.config.apiKey;
             document.getElementById('cfg-mask-pii').checked = state.config.maskPii;
-            document.getElementById('cfg-system-prompt').value = state.config.systemPrompt;
             document.getElementById('test-conn-status').textContent = '';
+            lockSystemPrompt();
             onAiModeRadioChange();
             document.getElementById('settings-modal').classList.remove('hidden');
             lucide.createIcons();
         }
-        function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
+
+        function closeSettingsModal() {
+            lockSystemPrompt();
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
         function onAiModeRadioChange() {
             const selected = document.querySelector('input[name="ai-mode"]:checked')?.value || 'local';
             document.getElementById('custom-api-fields').classList.toggle('hidden', selected !== 'custom');
         }
+
         function applyProviderPreset() {
             const p = document.getElementById('cfg-provider').value;
             if (PROVIDER_PRESETS[p] && p !== 'custom') {
@@ -2637,8 +2691,18 @@ function openSettingsModal() {
                 document.getElementById('cfg-model').value = PROVIDER_PRESETS[p].model;
             }
         }
-        function toggleKeyVisibility() { const el = document.getElementById('cfg-apikey'); el.type = el.type === 'password' ? 'text' : 'password'; }
-        function resetSystemPrompt() { document.getElementById('cfg-system-prompt').value = SYSTEM_PROMPT; showToast('Системный промпт восстановлен', 'info'); }
+
+        function toggleKeyVisibility() {
+            const el = document.getElementById('cfg-apikey');
+            el.type = el.type === 'password' ? 'text' : 'password';
+        }
+
+        function resetSystemPrompt() {
+            if (!isAdminPromptUnlocked) return showToast('Требуется код администратора', 'warning');
+            document.getElementById('cfg-system-prompt').value = SYSTEM_PROMPT;
+            showToast('Системный промпт восстановлен', 'info');
+        }
+
         async function testCustomApiConnection() {
             const endpoint = document.getElementById('cfg-endpoint').value.trim();
             const model = document.getElementById('cfg-model').value.trim();
@@ -2652,6 +2716,7 @@ function openSettingsModal() {
                 statusEl.textContent = '✅ Соединение установлено!'; statusEl.className = 'text-xs font-semibold text-emerald-600';
             } catch (err) { statusEl.textContent = `❌ Ошибка: ${err.message}`; statusEl.className = 'text-xs font-semibold text-rose-600'; }
         }
+
         function saveSettings() {
             state.config.mode = document.querySelector('input[name="ai-mode"]:checked')?.value || 'local';
             state.config.provider = document.getElementById('cfg-provider').value;
@@ -2659,7 +2724,11 @@ function openSettingsModal() {
             state.config.endpoint = document.getElementById('cfg-endpoint').value.trim();
             state.config.apiKey = document.getElementById('cfg-apikey').value.trim();
             state.config.maskPii = document.getElementById('cfg-mask-pii').checked;
-            state.config.systemPrompt = document.getElementById('cfg-system-prompt').value.trim() || SYSTEM_PROMPT;
+
+            if (isAdminPromptUnlocked) {
+                state.config.systemPrompt = document.getElementById('cfg-system-prompt').value.trim() || SYSTEM_PROMPT;
+            }
+
             try {
                 localStorage.setItem('veriscan_mode', state.config.mode);
                 localStorage.setItem('veriscan_provider', state.config.provider);
@@ -2667,8 +2736,14 @@ function openSettingsModal() {
                 localStorage.setItem('veriscan_endpoint', state.config.endpoint);
                 localStorage.setItem('veriscan_apikey', state.config.apiKey);
                 localStorage.setItem('veriscan_mask_pii', String(state.config.maskPii));
-                localStorage.setItem('veriscan_sysprompt_v5', state.config.systemPrompt);
+                if (isAdminPromptUnlocked) {
+                    localStorage.setItem('veriscan_sysprompt_v6', state.config.systemPrompt);
+                }
             } catch (e) {}
+            updateHeaderEngineBadge();
+            closeSettingsModal();
+            showToast('Настройки ИИ сохранены', 'success');
+        }
             updateHeaderEngineBadge(); closeSettingsModal(); showToast('Настройки ИИ сохранены', 'success');
         }
         function saveSettings() {
