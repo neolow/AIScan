@@ -3684,6 +3684,294 @@ let isAdminPromptUnlocked = false;
                 setTimeout(() => openStudentSubmitModal(roomCode), 250);
             }
         });
+        // === ПАТЧ: АДМИН-ДОСТУП К ПРОМПТУ + ФИКС ОБЛАЧНОГО ИИ ===
+        window._veriscanAdminUnlocked = false;
+        window._VERISCAN_PROMPT_V6 = `Ты — ведущий криминалист по стилометрии текста и программного кода (VeriScan AI v5.0).
+Твоя задача — строго, пошагово и без галлюцинаций оценить вероятность генерации документа ИИ (ChatGPT, Claude, Gemini, DeepSeek, Copilot) и вернуть СТРОГО валидный JSON.
+
+### ШАГ 1: ОПРЕДЕЛЕНИЕ ТИПА И БАЗОВОЙ ОЦЕНКИ (Base)
+1. Определи contentType: "Программный код (C++)" | "Программный код (Python)" | "Программный код (JS/HTML/Java/Pascal)" | "Текст".
+2. Задай базовую оценку Base = 55 (нейтрально-подозрительный старт, не занижай оценку просто за краткость или аккуратность).
+3. ЗАПРЕЩЕНО штрафовать программный код за синтаксис (<, >, "", ., ,, ;, #include <...>, vector<int>, cin >>, cout <<).
+
+### ШАГ 2: УЛИКИ ИИ (Суммируй сработавшие флаги)
+- STERILE_NAMING_AND_TYPING (+18% — ТОЛЬКО КОД): Длинные академические имена переменных (current_max_sum, visited_distances), строгие аннотации типов (Type Hints), Docstring/JSDoc, 100% стерильные пробелы вокруг каждого оператора.
+- SURGICAL_OBFUSCATION (+16% — ТОЛЬКО КОД): Искусственное удаление комментариев или переименование переменных поверх идеально вылизанной ИИ-структуры.
+- DEFENSIVE_PARANOIA (+14% — ТОЛЬКО КОД): Избыточные проверки пустых входов, try/except и граничных случаев, нетипичные для короткого учебного/олимпиадного решения.
+- ABOVE_LEVEL_IDIOMS (+14% — ТОЛЬКО КОД): Избыточно сложные или «учебниковые» паттерны, пошаговые комментарии к очевидным строкам (# Инициализируем..., // Проверяем...).
+- STRUCTURAL_SYMMETRY (+20% — ТОЛЬКО ТЕКСТ): Шаблонная симметрия абзацев («Во-первых… Во-вторых… Таким образом…»), канцелярские клише LLM («в современном мире», «важно отметить», «ключевую роль», «для того чтобы»), монотонный ритм предложений.
+
+### ШАГ 3: ЧЕЛОВЕЧЕСКИЕ ВЫЧЕТЫ (Применять только при наличии неоспоримых улик)
+Не снижай оценку просто за «чистоту» или «краткость». Вычитай баллы только за реальные следы работы человека:
+- ORGANIC_CODE_QUIRKS (-12% — ТОЛЬКО КОД): Олимпиадные или живые привычки — компактные операторы без пробелов (cin>>n;, i++), смешанный стиль именования, магические константы (999999999), вложенные if вместо min/max, закомментированный дебаг.
+- EMPIRICAL_OR_DOMAIN_FRICTION (-12% — ТОЛЬКО ТЕКСТ): Конкретные некруглые цифры, метрики и названия инструментов (например, N = 14 820, 4,3%, ROC-AUC 0,68 -> 0,81, Grad-CAM, p < 0,01), описание реальных неудачных экспериментов, ошибок и ограничений выборки.
+- RHYTHMIC_BURSTINESS (-10% — ТОЛЬКО ТЕКСТ): Резкий контраст между длинными сложными предложениями и короткими рублеными акцентами (например, «Это сработало.», «Проблема уперлась в шум.»), инверсии и живая авторская интонация.
+
+### ШАГ 4: РАСЧЕТ ИТОГА И СИНХРОНИЗАЦИЯ xaiFactors
+1. aiProbability = clamp(5, 99, Base + Sum(Улики ИИ) - Sum(Человеческие вычеты)). (Предохранитель: если Base = 55 и нет человеческих вычетов, aiProbability НЕ МОЖЕТ быть ниже 55).
+2. Синхронизация 4 шкал xaiFactors (0-100): оценки факторов не должны противоречить aiProbability:
+- Синтаксис и операторные «слитки»: 80–98 (если пробелы 100% стерильны / идеальная пунктуация), 10–25 (если есть слитки cin>>n, a[i]+=x или авторские шероховатости).
+- Именование переменных и типизация: 80–98 (если сработал STERILE_NAMING_AND_TYPING или SURGICAL_OBFUSCATION), 5–20 (если олимпиадные n, m, dp, ans или транслит).
+- Комментарии и речевые связки: 80–98 (если есть учебные комментарии, докстринги или штампы LLM), 5–20 (если комментариев нет, есть // fix, # print или живая речь).
+- Структура алгоритма / Ритм текста: 80–98 (если сработали DEFENSIVE_PARANOIA, ABOVE_LEVEL_IDIOMS или STRUCTURAL_SYMMETRY), 10–25 (если прямолинейный цикл или рваный авторский ритм).
+
+### ФОРМАТ ВЫВОДА: СТРОГО ВАЛИДНЫЙ JSON БЕЗ MARKDOWN-ОБЕРТКИ
+Всегда экранируй кавычки внутри строк как \\". Верни только чистый JSON-объект (без \`\`\`json и любого текста до или после):
+{
+  "aiProbability": 0-100,
+  "contentType": "Программный код (C++)" | "Программный код (Python)" | "Текст",
+  "verdictTitle": "Высокая вероятность ИИ" | "Смешанное авторство" | "Написано человеком",
+  "verdictSummary": "Формула расчета (База + Улики - Вычеты = Итог%) и конкретное техническое обоснование со ссылками на токены и строки",
+  "xaiFactors": [
+    { "label": "Синтаксис и операторные «слитки»", "score": 0-100 },
+    { "label": "Именование переменных и типизация", "score": 0-100 },
+    { "label": "Комментарии и речевые связки", "score": 0-100 },
+    { "label": "Структура алгоритма / Ритм текста", "score": 0-100 }
+  ],
+  "formatting": {
+    "sterilityScore": 0-100,
+    "summary": "Технический вывод по пробелам, отступам, синтаксису и типографике",
+    "metrics": [
+      { "label": "Название метрики", "value": "Значение", "status": "ai"|"mixed"|"human", "detail": "Конкретное пояснение" }
+    ]
+  },
+  "commentForensics": {
+    "placement": "Где и как расположены комментарии (или штампы/связки для текста)",
+    "prepositions": ["найденные предлоги/союзы или маркеры"],
+    "verbsAndPatterns": ["найденные шаблоны ИИ или живые заметки"]
+  },
+  "lexicalMarkers": [
+    { "text": "конкретный токен/конструкция", "kind": "ai"|"human", "category": "Флаг или маркер" }
+  ],
+  "reverseQA": [
+    { "prompt": "Вероятный промпт пользователя", "excerpt": "Короткий фрагмент", "confidence": "92%" }
+  ],
+  "defenseQuestions": [
+    {
+      "target": "Функция / цикл / абзац (строка N)",
+      "snippet": "Короткая цитата строки",
+      "question": "Конкретный вопрос-ловушка автору",
+      "expectedAnswer": "Эталонный ответ",
+      "keywords": ["ключ1", "ключ2", "ключ3"]
+    }
+  ],
+  "segments": [
+    { "text": "Фрагмент", "score": 0-100, "status": "ai"|"mixed"|"human", "reason": "Конкретная причина" }
+  ]
+}`;
+
+        // Сразу применяем новый промпт (сбрасывая старый кэш v5)
+        state.config.systemPrompt = localStorage.getItem('veriscan_sysprompt_v6') || window._VERISCAN_PROMPT_V6;
+
+        // 1. Логика админ-пароля (krasavaD@123)
+        window.toggleAdminPromptGate = function() {
+            if (window._veriscanAdminUnlocked) {
+                window.lockSystemPrompt();
+                return;
+            }
+            const gate = document.getElementById('admin-prompt-gate');
+            if (!gate) return;
+            gate.classList.toggle('hidden');
+            if (!gate.classList.contains('hidden')) {
+                document.getElementById('admin-prompt-pass')?.focus();
+            }
+        };
+
+        window.unlockSystemPrompt = function() {
+            const input = document.getElementById('admin-prompt-pass');
+            if (!input) return;
+            const entered = input.value;
+            let expected = '';
+            try { expected = atob('a3Jhc2F2YURAMTIz'); } catch (e) {}
+
+            if (entered !== expected) {
+                input.value = '';
+                showToast('Неверный админский код', 'warning');
+                return;
+            }
+
+            window._veriscanAdminUnlocked = true;
+            input.value = '';
+            document.getElementById('admin-prompt-gate')?.classList.add('hidden');
+            document.getElementById('admin-prompt-box')?.classList.remove('hidden');
+            const btn = document.getElementById('admin-prompt-toggle-btn');
+            if (btn) btn.textContent = 'Скрыть промпт';
+            const ta = document.getElementById('cfg-system-prompt');
+            if (ta) ta.value = state.config.systemPrompt;
+            showToast('Доступ к системному промпту открыт', 'success');
+        };
+
+        window.lockSystemPrompt = function() {
+            window._veriscanAdminUnlocked = false;
+            const ta = document.getElementById('cfg-system-prompt');
+            if (ta) ta.value = '';
+            document.getElementById('admin-prompt-box')?.classList.add('hidden');
+            document.getElementById('admin-prompt-gate')?.classList.add('hidden');
+            const passInput = document.getElementById('admin-prompt-pass');
+            if (passInput) passInput.value = '';
+            const btn = document.getElementById('admin-prompt-toggle-btn');
+            if (btn) btn.textContent = 'Открыть (код админа)';
+        };
+
+        openSettingsModal = function() {
+            document.querySelectorAll('input[name="ai-mode"]').forEach(r => { r.checked = r.value === state.config.mode; });
+            document.getElementById('cfg-provider').value = state.config.provider;
+            document.getElementById('cfg-model').value = state.config.model;
+            document.getElementById('cfg-endpoint').value = state.config.endpoint;
+            document.getElementById('cfg-apikey').value = state.config.apiKey;
+            document.getElementById('cfg-mask-pii').checked = state.config.maskPii;
+            document.getElementById('test-conn-status').textContent = '';
+            window.lockSystemPrompt();
+            onAiModeRadioChange();
+            document.getElementById('settings-modal').classList.remove('hidden');
+            lucide.createIcons();
+        };
+
+        closeSettingsModal = function() {
+            window.lockSystemPrompt();
+            document.getElementById('settings-modal').classList.add('hidden');
+        };
+
+        resetSystemPrompt = function() {
+            if (!window._veriscanAdminUnlocked) return showToast('Требуется код администратора', 'warning');
+            const ta = document.getElementById('cfg-system-prompt');
+            if (ta) ta.value = window._VERISCAN_PROMPT_V6;
+            showToast('Системный промпт восстановлен', 'info');
+        };
+
+        saveSettings = function() {
+            state.config.mode = document.querySelector('input[name="ai-mode"]:checked')?.value || 'local';
+            state.config.provider = document.getElementById('cfg-provider').value;
+            state.config.model = document.getElementById('cfg-model').value.trim();
+            state.config.endpoint = document.getElementById('cfg-endpoint').value.trim();
+            state.config.apiKey = document.getElementById('cfg-apikey').value.trim();
+            state.config.maskPii = document.getElementById('cfg-mask-pii').checked;
+
+            if (window._veriscanAdminUnlocked) {
+                state.config.systemPrompt = document.getElementById('cfg-system-prompt').value.trim() || window._VERISCAN_PROMPT_V6;
+            }
+
+            try {
+                localStorage.setItem('veriscan_mode', state.config.mode);
+                localStorage.setItem('veriscan_provider', state.config.provider);
+                localStorage.setItem('veriscan_model', state.config.model);
+                localStorage.setItem('veriscan_endpoint', state.config.endpoint);
+                localStorage.setItem('veriscan_apikey', state.config.apiKey);
+                localStorage.setItem('veriscan_mask_pii', String(state.config.maskPii));
+                if (window._veriscanAdminUnlocked) {
+                    localStorage.setItem('veriscan_sysprompt_v6', state.config.systemPrompt);
+                }
+            } catch (e) {}
+            updateHeaderEngineBadge();
+            closeSettingsModal();
+            showToast('Настройки ИИ сохранены', 'success');
+        };
+
+        // 2. Устойчивый парсер JSON (спасает даже при обрыве массива / ошибке Expected ']')
+        window.extractValidJsonObject = function(rawStr) {
+            const cleaned = String(rawStr || '')
+                .replace(/^```(?:json)?\s*/i, '')
+                .replace(/\s*```$/i, '')
+                .trim();
+
+            try { return JSON.parse(cleaned); } catch (_) {}
+
+            const start = cleaned.indexOf('{');
+            const end = cleaned.lastIndexOf('}');
+            if (start !== -1 && end > start) {
+                const candidate = cleaned.slice(start, end + 1);
+                try { return JSON.parse(candidate); } catch (_) {}
+                try { return JSON.parse(candidate.replace(/,\s*([}\]])/g, '$1')); } catch (_) {}
+            }
+
+            // Аварийное извлечение ключевых полей, если модель обрезала хвост JSON
+            const probMatch = cleaned.match(/"aiProbability"\s*:\s*(\d+)/);
+            if (probMatch) {
+                const salvaged = { aiProbability: Number(probMatch[1]) };
+                const typeMatch = cleaned.match(/"contentType"\s*:\s*"([^"]+)"/);
+                const titleMatch = cleaned.match(/"verdictTitle"\s*:\s*"([^"]+)"/);
+                const sumMatch = cleaned.match(/"verdictSummary"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+                const xaiMatch = cleaned.match(/"xaiFactors"\s*:\s*(\[[\s\S]*?\])/);
+                if (typeMatch) salvaged.contentType = typeMatch[1];
+                if (titleMatch) salvaged.verdictTitle = titleMatch[1];
+                if (sumMatch) salvaged.verdictSummary = sumMatch[1].replace(/\\"/g, '"').replace(/\\n/g, ' ');
+                if (xaiMatch) {
+                    try { salvaged.xaiFactors = JSON.parse(xaiMatch[1].replace(/,\s*([}\]])/g, '$1')); } catch (_) {}
+                }
+                return salvaged;
+            }
+            throw new Error('Модель вернула поврежденный JSON');
+        };
+
+        // 3. Сохраняем оценку облачного ИИ без перезатирания
+        reconcileExternalReport = function(llmData, originalText) {
+            const local = analyzeLocally(originalText);
+            const merged = { ...local, ...llmData };
+            if (Array.isArray(llmData.segments) && llmData.segments.length > 0) {
+                merged.segments = llmData.segments.map(s => {
+                    const sc = typeof s.score === 'number' ? s.score : (s.status === 'ai' ? 86 : (s.status === 'human' ? 16 : 50));
+                    return { text: s.text || '', score: Math.max(1, Math.min(99, Math.round(sc))), status: classifyScore(sc), reason: s.reason || 'Оценка облачной модели' };
+                }).filter(s => s.text.trim().length > 0);
+            } else {
+                merged.segments = local.segments;
+            }
+
+            const stats = computeWeightedStats(merged.segments);
+            const rawCloudScore = Number(llmData.aiProbability);
+            merged.aiProbability = Number.isFinite(rawCloudScore)
+                ? Math.max(1, Math.min(99, Math.round(rawCloudScore)))
+                : stats.aiProbability;
+            merged.distribution = stats.distribution;
+
+            if (!merged.verdictTitle) {
+                merged.verdictTitle = merged.aiProbability >= 65
+                    ? 'Высокая вероятность ИИ'
+                    : (merged.aiProbability <= 35 ? 'Написано человеком' : 'Смешанное авторство');
+            }
+            if (!Array.isArray(merged.xaiFactors) || merged.xaiFactors.length < 4) merged.xaiFactors = local.xaiFactors;
+            if (!merged.formatting || !Array.isArray(merged.formatting.metrics)) merged.formatting = local.formatting;
+            if (!merged.commentForensics) merged.commentForensics = local.commentForensics;
+            if (!Array.isArray(merged.lexicalMarkers)) merged.lexicalMarkers = local.lexicalMarkers;
+            if (!Array.isArray(merged.reverseQA) || !merged.reverseQA.length) merged.reverseQA = local.reverseQA;
+            if (!Array.isArray(merged.defenseQuestions) || !merged.defenseQuestions.length) merged.defenseQuestions = local.defenseQuestions;
+            return merged;
+        };
+
+        // 4. Исправленный облачный запрос + списание кредита только при успехе
+        fetchCloudAnalysis = async function(textToSend, mode) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+            const doRequest = async (useJsonFormat) => {
+                const isFree = mode === 'cloud_free';
+                const endpoint = isFree ? 'https://text.pollinations.ai/openai' : state.config.endpoint.trim();
+                const headers = { 'Content-Type': 'application/json' };
+                if (!isFree && state.config.apiKey) {
+                    headers['Authorization'] = `Bearer ${state.config.apiKey.trim()}`;
+                }
+
+                const payload = {
+                    model: isFree ? 'openai' : (state.config.model.trim() || 'gpt-4o-mini'),
+                    temperature: 0.1,
+                    max_tokens: 4000,
+                    messages: [
+                        { role: 'system', content: state.config.systemPrompt || window._VERISCAN_PROMPT_V6 },
+                        { role: 'user', content: `Проанализируй документ и верни СТРОГО валидный компактный JSON (максимум 4 сегмента и 3 вопроса защиты, экранируй все кавычки внутри строк как \\"):\n\n${textToSend.slice(0, 6000)}` }
+                    ]
+                };
+
+                if (useJsonFormat) {
+                    payload.response_format = { type: 'json_object' };
+                    if (isFree) payload.jsonMode = true;
+                }
+
+                return fetch(endpoint, { method: 'POST', headers, signal: controller.signal, body: JSON.stringify(payload) });
+            };
+
+            try {
+                let resp = await doRequest(true);
+                if (resp.status === 400) resp = await doRequest(false);
+                if
     </script>
 </body>
 </html>
