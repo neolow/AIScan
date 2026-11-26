@@ -2232,14 +2232,25 @@ print(len(ans))`
             let report = null, engineLabel = 'VeriScan Core v5 (Офлайн)', usedCloud = false, piiMaskedCount = 0;
             let effectiveMode = state.config.mode;
 
-            // Проверяем баланс ДО запроса (списываем только после успешного ответа)
+            // Проверяем сессию и баланс ДО запроса (списываем только после успешного ответа)
             if (effectiveMode === 'cloud_free') {
+                if (sb && !currentUser) {
+                    try {
+                        const { data: { session } } = await sb.auth.getSession();
+                        currentUser = session?.user || null;
+                    } catch (_) {}
+                }
                 if (!sb || !currentUser) {
                     showToast('Облачный ИИ стоит 1 кредит. Войдите в аккаунт (+10 кред.), пока используем бесплатный Core v5.', 'warning');
                     effectiveMode = 'local';
-                } else if ((currentProfile?.credits ?? 0) < 1) {
-                    showToast('Недостаточно кредитов для Cloud Auto (нужен 1 кред.). Переключаемся на бесплатный Core v5.', 'warning');
-                    effectiveMode = 'local';
+                } else {
+                    if (!currentProfile || typeof currentProfile.credits !== 'number') {
+                        await loadUserProfile();
+                    }
+                    if (currentProfile && typeof currentProfile.credits === 'number' && currentProfile.credits < 1) {
+                        showToast('Недостаточно кредитов для Cloud Auto (нужен 1 кред.). Переключаемся на бесплатный Core v5.', 'warning');
+                        effectiveMode = 'local';
+                    }
                 }
             }
 
@@ -2255,7 +2266,10 @@ print(len(ans))`
                     usedCloud = true;
 
                     if (effectiveMode === 'cloud_free') {
-                        await spendUserCredits(1, 'cloud_analysis');
+                        const spendRes = await spendUserCredits(1, 'cloud_analysis');
+                        if (!spendRes?.success) {
+                            throw new Error(spendRes?.error || 'Недостаточно кредитов');
+                        }
                     }
                     engineLabel = effectiveMode === 'cloud_free' ? 'Cloud Auto ИИ (-1 кред.)' : `API: ${state.config.model}`;
                 } catch (err) {
@@ -2825,9 +2839,22 @@ ${textToSend.slice(0, 6000)}` }
 
         async function loadUserProfile() {
             if (!sb || !currentUser) return null;
+
+            // 1. Сначала пробуем надежный RPC get_my_profile (обходит ошибки прав SELECT и сам создает профиль)
+            try {
+                const { data: rpcData, error: rpcErr } = await sb.rpc('get_my_profile');
+                if (!rpcErr && rpcData && typeof rpcData.credits === 'number') {
+                    currentProfile = rpcData;
+                    updateCreditsUI();
+                    updateAuthHeaderUI();
+                    return currentProfile;
+                }
+            } catch (_) {}
+
+            // 2. Резерв: прямой SELECT * из user_profiles
             const { data, error } = await sb
                 .from('user_profiles')
-                .select('user_id, full_name, role, credits, referral_code, referred_by')
+                .select('*')
                 .eq('user_id', currentUser.id)
                 .maybeSingle();
 
@@ -2837,6 +2864,7 @@ ${textToSend.slice(0, 6000)}` }
                 console.warn('Profile load error:', error.message);
             }
             updateCreditsUI();
+            updateAuthHeaderUI();
             return currentProfile;
         }
 
@@ -3006,8 +3034,12 @@ ${textToSend.slice(0, 6000)}` }
                 }
 
                 input.value = '';
+                if (!currentProfile) currentProfile = { user_id: currentUser.id };
+                if (typeof data.credits === 'number') currentProfile.credits = data.credits;
+                if (data.role) currentProfile.role = data.role;
+                updateCreditsUI();
                 await loadUserProfile();
-                const role = currentProfile?.role || currentUser.user_metadata?.role || 'Пользователь';
+                const role = currentProfile?.role || data.role || currentUser.user_metadata?.role || 'Пользователь';
                 document.getElementById('cab-meta').textContent = `${currentUser.email} • ${role}`;
                 showToast(data.message || 'Код успешно активирован!', 'success');
             } finally {
@@ -3668,4 +3700,3 @@ ${textToSend.slice(0, 6000)}` }
     </script>
 </body>
 </html>
-Securing web application code
