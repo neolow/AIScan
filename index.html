@@ -96,7 +96,7 @@
     <!-- =====================================================================
          ВЕРХНЯЯ НАВИГАЦИЯ (MINIMAL SAAS HEADER)
     ===================================================================== -->
-    <header class="sticky top-0 z-30 bg-white/90 dark:bg-obsidian-bg/90 backdrop-blur-md border-b border-[#E2E8F0] dark:border-obsidian-border transition-colors">
+    <header id="main-header" class="sticky top-0 z-30 bg-white/90 dark:bg-obsidian-bg/90 backdrop-blur-md border-b border-[#E2E8F0] dark:border-obsidian-border transition-colors">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
             <!-- Логотип -->
             <div class="flex items-center gap-3 min-w-0">
@@ -151,7 +151,7 @@
     <!-- =====================================================================
          ОСНОВНАЯ РАБОЧАЯ ОБЛАСТЬ
     ===================================================================== -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
+    <main id="analyzer-main" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
 
         <!-- Заголовок рабочей зоны -->
         <section class="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -560,7 +560,7 @@
     </main>
 
     <!-- Подвал -->
-    <footer class="mt-12 border-t border-[#E2E8F0] dark:border-obsidian-border bg-white/80 dark:bg-obsidian-card/50 py-6">
+    <footer id="main-footer" class="mt-12 border-t border-[#E2E8F0] dark:border-obsidian-border bg-white/80 dark:bg-obsidian-card/50 py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-zinc-400">
             <div class="flex items-center gap-2">
                 <span class="font-bold text-slate-800 dark:text-zinc-200">VeriScan AI v5.0</span>
@@ -622,7 +622,7 @@
                                 Свой API-ключ (OpenAI / OpenRouter / Gemini / Groq / Custom URL)
                                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-500/30">0 кред.</span>
                             </div>
-                            <p class="text-xs text-slate-500 dark:text-zinc-400">Подключите любую OpenAI-совместимую модель (включая Vision для фото кода). Ключ хранится только в вашем браузере.</p>
+                            <p class="text-xs text-slate-500 dark:text-zinc-400">Подключите любую OpenAI-совместимую модель. Анализ проксируется через Edge Function (ключ не сохраняется в БД, 0 кред.); Vision OCR — напрямую.</p>
                         </div>
                     </label>
                 </div>
@@ -1045,116 +1045,148 @@
         </div>
     </div>
 
-    <!-- МОДАЛКА 5: СДАЧА РАБОТЫ СТУДЕНТОМ ПО КОДУ КОМНАТЫ -->
-    <div id="student-submit-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 dark:bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-obsidian-card rounded-2xl border border-[#E2E8F0] dark:border-obsidian-border max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-            <div class="px-6 py-4 border-b border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/70 dark:bg-obsidian-panel/70 flex items-center justify-between gap-3">
+    <!-- РЕЖИМ 5: ЧИСТЫЙ СФОКУСИРОВАННЫЙ ЭКРАН ЭКЗАМЕНА СТУДЕНТА (БЕЗ АНАЛИЗАТОРА И ПРЕСЕТОВ) -->
+    <section id="student-exam-view" class="hidden min-h-screen flex-1 flex flex-col bg-[#F8FAFC] dark:bg-obsidian-bg">
+        <!-- Минимальная шапка экзамена -->
+        <div class="sticky top-0 z-30 bg-white/95 dark:bg-obsidian-card/95 backdrop-blur-md border-b border-[#E2E8F0] dark:border-obsidian-border">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                        <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+                    <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-sm shrink-0">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
                     </div>
                     <div class="min-w-0">
-                        <h3 id="stu-modal-title" class="font-bold text-sm text-slate-900 dark:text-zinc-50 truncate">Сдача работы по коду комнаты</h3>
-                        <p id="stu-modal-subtitle" class="text-[11px] text-slate-500 dark:text-zinc-400 truncate">Введите 6-значный код от преподавателя</p>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-sm sm:text-base tracking-tight text-slate-900 dark:text-zinc-50 truncate">VeriScan AI</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30 shrink-0">Экзамен</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-zinc-400 hidden sm:block truncate">Защищенная среда сдачи работы с серверной проверкой</p>
                     </div>
                 </div>
+
                 <div class="flex items-center gap-2 shrink-0">
-                    <span id="stu-timer-badge" class="hidden px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 font-mono text-xs font-bold">03:00</span>
-                    <button onclick="closeStudentSubmitModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200">
-                        <i data-lucide="x" class="w-5 h-5"></i>
+                    <span id="stu-timer-badge" class="hidden px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 font-mono text-xs font-bold">03:00</span>
+
+                    <button type="button" onclick="toggleTheme()" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 bg-white hover:bg-slate-50 border border-[#E2E8F0] dark:bg-obsidian-panel dark:text-zinc-300 dark:border-obsidian-border transition" title="Переключить тему" aria-label="Переключить тему">
+                        <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
+                        <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-amber-400"></i>
                     </button>
-                </div>
-            </div>
 
-            <div class="p-6 overflow-y-auto space-y-4 text-xs">
-                <!-- ШАГ 1: Код комнаты (сначала только он), затем задание, ФИО, группа и поле решения -->
-                <div id="stu-step-1" class="space-y-3.5">
-                    <div class="flex items-end gap-2">
-                        <div class="flex-1">
-                            <label for="stu-room-code" class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Код комнаты (6 символов)</label>
-                            <input id="stu-room-code" type="text" maxlength="10" onkeydown="if(event.key==='Enter'){event.preventDefault();verifyStudentRoomCode();}" placeholder="Например: K7M92P" class="w-full px-3 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg font-mono uppercase tracking-wider text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
-                        </div>
-                        <button type="button" onclick="verifyStudentRoomCode()" id="stu-check-room-btn" class="px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-zinc-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-zinc-900 font-semibold shrink-0 transition">Проверить код</button>
-                    </div>
-
-                    <div id="stu-room-info" class="hidden p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-200 flex items-center justify-between gap-2">
-                        <span id="stu-room-info-text" class="font-semibold">Комната найдена</span>
-                        <span id="stu-room-time-text" class="font-mono text-[11px]">3 мин</span>
-                    </div>
-
-                    <div id="stu-anticheat-banner" class="hidden p-3 rounded-xl bg-rose-50/80 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-800 dark:text-rose-200 text-[11px] flex items-start gap-2">
-                        <i data-lucide="shield-alert" class="w-4 h-4 shrink-0 mt-0.5"></i>
-                        <span><strong>Режим экзамена активен:</strong> вставка текста полностью отключена — только ручной набор. Переход на другую вкладку, страницу или окно <strong>автоматически провалит экзамен</strong> и отправит отметку преподавателю.</span>
-                    </div>
-
-                    <!-- Блок открывается ТОЛЬКО после успешной проверки кода комнаты -->
-                    <div id="stu-work-area" class="hidden space-y-3.5">
-                        <!-- Карточка задания от преподавателя (показывается, если есть текст или фото задания) -->
-                        <div id="stu-task-card" class="hidden p-3.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 space-y-2.5">
-                            <div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
-                                <i data-lucide="book-open" class="w-3.5 h-3.5 shrink-0"></i>
-                                <span>Задание от преподавателя</span>
-                            </div>
-                            <div id="stu-task-text" class="hidden text-xs text-slate-800 dark:text-zinc-100 leading-relaxed whitespace-pre-wrap break-words max-h-48 overflow-y-auto pr-1"></div>
-                            <div id="stu-task-image-wrap" class="hidden space-y-1.5">
-                                <img id="stu-task-image" src="" alt="Фото задания от преподавателя" onclick="openTaskImageLightbox(this.src)" class="w-full max-h-64 object-contain rounded-xl border border-indigo-200/80 dark:border-indigo-500/30 bg-white dark:bg-obsidian-bg cursor-zoom-in">
-                                <div class="text-[10px] text-indigo-600/80 dark:text-indigo-300/80 flex items-center gap-1">
-                                    <i data-lucide="zoom-in" class="w-3 h-3 shrink-0"></i>
-                                    <span>Нажмите на фото, чтобы открыть крупнее (вкладка не закроется)</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label for="stu-name" class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">ФИО студента</label>
-                                <input id="stu-name" type="text" placeholder="Иванов Иван" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
-                            </div>
-                            <div>
-                                <label for="stu-group" class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Группа / Класс</label>
-                                <input id="stu-group" type="text" placeholder="ИС-21 или 10А" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="flex items-center justify-between gap-2 mb-1">
-                                <label for="stu-code-input" class="font-semibold text-slate-700 dark:text-zinc-300">Ваш код или текст работы</label>
-                                <span class="text-[10px] font-semibold text-rose-600 dark:text-rose-400">Только ручной ввод (вставка заблокирована)</span>
-                            </div>
-                            <textarea id="stu-code-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Пишите решение вручную (Ctrl+V, правая кнопка и перетаскивание отключены)..." class="w-full h-44 p-3 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg font-mono text-xs text-slate-800 dark:text-zinc-100 outline-none focus:border-indigo-500 resize-y"></textarea>
-                        </div>
-
-                        <button type="button" onclick="startStudentDefense()" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm flex items-center justify-center gap-2 transition">
-                            <i data-lucide="play" class="w-4 h-4"></i>
-                            <span>Перейти к защите (3 вопроса на время)</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- ШАГ 2: Защита (3 вопроса без эталонного ответа + таймер) -->
-                <div id="stu-step-2" class="hidden space-y-4">
-                    <div class="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-200 text-[11px]">
-                        Ответьте своими словами (только вручную) на 3 вопроса до окончания таймера. Уход со вкладки автоматически провалит экзамен.
-                    </div>
-                    <div id="stu-questions-container" class="space-y-3"></div>
-                    <button type="button" onclick="submitStudentWork(false)" id="stu-submit-final-btn" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm flex items-center justify-center gap-2 transition">
-                        <i data-lucide="check-circle" class="w-4 h-4"></i>
-                        <span>Отправить работу преподавателю</span>
+                    <button type="button" onclick="exitStudentFocusMode()" id="stu-switch-teacher-btn" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-[#E2E8F0] shadow-2xs dark:bg-obsidian-panel dark:text-zinc-200 dark:border-obsidian-border dark:hover:bg-zinc-800 transition">
+                        <i data-lucide="arrow-left" class="w-3.5 h-3.5 shrink-0"></i>
+                        <span class="hidden sm:inline">Перейти в режим преподавателя / анализатора</span>
+                        <span class="sm:hidden">Анализатор</span>
                     </button>
-                </div>
-
-                <!-- ШАГ 3: Итог сдачи / Провал экзамена -->
-                <div id="stu-step-3" class="hidden py-6 text-center space-y-3">
-                    <div id="stu-result-icon" class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
-                        <i data-lucide="check-check" class="w-6 h-6"></i>
-                    </div>
-                    <h4 id="stu-result-title" class="text-base font-bold text-slate-900 dark:text-zinc-50">Работа успешно отправлена!</h4>
-                    <p id="stu-result-summary" class="text-xs text-slate-600 dark:text-zinc-300"></p>
-                    <button type="button" onclick="closeStudentSubmitModal()" class="px-5 py-2 rounded-xl bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-semibold transition">Закрыть</button>
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- Центральная карточка экзамена -->
+        <div class="flex-1 flex items-start sm:items-center justify-center p-4 sm:p-6">
+            <div class="bg-white dark:bg-obsidian-card rounded-2xl border border-[#E2E8F0] dark:border-obsidian-border max-w-2xl w-full shadow-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/70 dark:bg-obsidian-panel/70 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                            <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <h1 id="stu-modal-title" class="font-bold text-sm sm:text-base text-slate-900 dark:text-zinc-50 truncate">Сдача работы по коду комнаты</h1>
+                            <p id="stu-modal-subtitle" class="text-[11px] text-slate-500 dark:text-zinc-400 truncate">Введите 6-значный код от преподавателя</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 space-y-4 text-xs">
+                    <!-- ШАГ 1: Код комнаты -> Задание, ФИО, группа и поле решения -->
+                    <div id="stu-step-1" class="space-y-4">
+                        <div class="flex items-end gap-2">
+                            <div class="flex-1">
+                                <label for="stu-room-code" class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Код комнаты (6 символов)</label>
+                                <input id="stu-room-code" type="text" maxlength="10" onkeydown="if(event.key==='Enter'){event.preventDefault();verifyStudentRoomCode();}" placeholder="Например: K7M92P" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg font-mono uppercase tracking-wider text-sm text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                            </div>
+                            <button type="button" onclick="verifyStudentRoomCode()" id="stu-check-room-btn" class="px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-zinc-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-zinc-900 font-semibold shrink-0 transition">Проверить код</button>
+                        </div>
+
+                        <div id="stu-room-info" class="hidden p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-200 flex items-center justify-between gap-2">
+                            <span id="stu-room-info-text" class="font-semibold">Комната найдена</span>
+                            <span id="stu-room-time-text" class="font-mono text-[11px]">3 мин</span>
+                        </div>
+
+                        <div id="stu-anticheat-banner" class="hidden p-3 rounded-xl bg-rose-50/80 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-800 dark:text-rose-200 text-[11px] flex items-start gap-2">
+                            <i data-lucide="shield-alert" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                            <span><strong>Режим экзамена активен:</strong> вставка текста и DevTools заблокированы — только ручной набор. Переход на другую вкладку, страницу или окно <strong>автоматически провалит экзамен</strong> и отправит отметку преподавателю.</span>
+                        </div>
+
+                        <!-- Блок открывается ТОЛЬКО после успешной проверки кода комнаты через RPC -->
+                        <div id="stu-work-area" class="hidden space-y-4">
+                            <div id="stu-task-card" class="hidden p-3.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 space-y-2.5">
+                                <div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+                                    <i data-lucide="book-open" class="w-3.5 h-3.5 shrink-0"></i>
+                                    <span>Задание от преподавателя</span>
+                                </div>
+                                <div id="stu-task-text" class="hidden text-xs text-slate-800 dark:text-zinc-100 leading-relaxed whitespace-pre-wrap break-words max-h-56 overflow-y-auto pr-1"></div>
+                                <div id="stu-task-image-wrap" class="hidden space-y-1.5">
+                                    <img id="stu-task-image" src="" alt="Фото задания от преподавателя" onclick="openTaskImageLightbox(this.src)" class="w-full max-h-72 object-contain rounded-xl border border-indigo-200/80 dark:border-indigo-500/30 bg-white dark:bg-obsidian-bg cursor-zoom-in">
+                                    <div class="text-[10px] text-indigo-600/80 dark:text-indigo-300/80 flex items-center gap-1">
+                                        <i data-lucide="zoom-in" class="w-3 h-3 shrink-0"></i>
+                                        <span>Нажмите на фото, чтобы открыть крупнее (вкладка не закроется)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label for="stu-name" class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">ФИО студента</label>
+                                    <input id="stu-name" type="text" placeholder="Иванов Иван" class="w-full px-3 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                                </div>
+                                <div>
+                                    <label for="stu-group" class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Группа / Класс</label>
+                                    <input id="stu-group" type="text" placeholder="ИС-21 или 10А" class="w-full px-3 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <label for="stu-code-input" class="font-semibold text-slate-700 dark:text-zinc-300">Ваш код или текст работы</label>
+                                    <span class="text-[10px] font-semibold text-rose-600 dark:text-rose-400">Только ручной ввод (вставка заблокирована)</span>
+                                </div>
+                                <textarea id="stu-code-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Пишите решение вручную (Ctrl+V, правая кнопка и перетаскивание отключены)..." class="w-full h-56 p-3.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg font-mono text-xs sm:text-[13px] text-slate-800 dark:text-zinc-100 outline-none focus:border-indigo-500 resize-y"></textarea>
+                            </div>
+
+                            <button type="button" id="stu-start-defense-btn" onclick="startStudentDefense()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm flex items-center justify-center gap-2 transition">
+                                <i data-lucide="play" class="w-4 h-4"></i>
+                                <span>Перейти к защите (3 вопроса на время)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ШАГ 2: Защита (3 вопроса с сервера БЕЗ эталонов + таймер) -->
+                    <div id="stu-step-2" class="hidden space-y-4">
+                        <div class="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-200 text-[11px]">
+                            Ответьте своими словами (только вручную) на 3 вопроса до окончания таймера. Ответы проверяются на сервере; уход со вкладки автоматически провалит экзамен.
+                        </div>
+                        <div id="stu-questions-container" class="space-y-3"></div>
+                        <button type="button" onclick="submitStudentWork(false)" id="stu-submit-final-btn" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm flex items-center justify-center gap-2 transition">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i>
+                            <span>Отправить работу преподавателю</span>
+                        </button>
+                    </div>
+
+                    <!-- ШАГ 3: Итог сдачи / Провал экзамена -->
+                    <div id="stu-step-3" class="hidden py-6 text-center space-y-4">
+                        <div id="stu-result-icon" class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                            <i data-lucide="check-check" class="w-6 h-6"></i>
+                        </div>
+                        <h2 id="stu-result-title" class="text-base font-bold text-slate-900 dark:text-zinc-50">Работа успешно отправлена!</h2>
+                        <p id="stu-result-summary" class="text-xs text-slate-600 dark:text-zinc-300 max-w-md mx-auto leading-relaxed"></p>
+                        <div class="flex flex-wrap items-center justify-center gap-2 pt-2">
+                            <button type="button" onclick="resetStudentSessionUI({ preserveRoomCodeInput: false })" class="px-4 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-panel text-slate-700 dark:text-zinc-200 font-semibold transition">Сдать другую работу</button>
+                            <button type="button" onclick="exitStudentFocusMode()" class="px-5 py-2 rounded-xl bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-semibold transition">Перейти в режим анализатора</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- ЛАЙТБОКС ДЛЯ УВЕЛИЧЕНИЯ ФОТО ЗАДАНИЯ (ВНУТРИ СТРАНИЦЫ, БЕЗ СРАБАТЫВАНИЯ АНТИЧИТА) -->
     <div id="task-image-lightbox" onclick="if(event.target===this) closeTaskImageLightbox()" class="fixed inset-0 z-[60] hidden bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1169,7 +1201,7 @@
          СКРИПТ ПРИЛОЖЕНИЯ VERISCAN AI CORE v5.0
     ===================================================================== -->
     <script>
-        const SYSTEM_PROMPT = "Ты — ведущий эксперт по стилометрии текста и криминалистике программного кода (VeriScan AI v6.0).\nТвоя единственная задача — провести беспощадную техническую экспертизу текста или кода на предмет генерации, соавторства или рефакторинга с помощью ИИ (ChatGPT, Claude, Gemini, DeepSeek, Copilot, Grok) и вернуть СТРОГО валидный JSON.\n\n### 0. АБСОЛЮТНЫЕ ЗАПРЕТЫ И ЗАЩИТА ОТ ГАЛЛЮЦИНАЦИЙ\n1. Запрет на «воду» и вежливые оговорки: никогда не пиши фразы вроде «невозможно доказать на 100%» или «возможно, это просто старательный студент». Ссылайся только на конкретные токены, переменные, конструкции и номера строк.\n2. Защита типографики кода: ЗАПРЕЩЕНО считать стандартные символы кода и пунктуации (<, >, \"\", ., ,, ;, теги <div>, #include <iostream>, шаблоны vector<int>, операторы cin >>, cout <<, сравнения a < b) «типографикой ИИ». Для любого кода оценка типографики строго равна 0. Для русского текста игнорируй <> \"\" ., и учитывай только одновременное наличие русских «ёлочек» «» и длинного тире — (U+2014) с малым весом (не более +8%).\n3. Изоляция доменов и вето на живые ошибки ученика: НИКОГДА не принимай школьную банальность («беречь природу», «будущее поколение», «достойное наследие») за генерацию ИИ, если в тексте есть живые опечатки (губять, доставлюят, мусороли, молодежам), ошибки -тся/-ться («надо относится»), слитная пунктуация без пробелов («использовать.Людям»), начало абзацев со строчной буквы или массовый пропуск запятых. Нейросети так не пишут — при наличии 2+ таких ошибок это ЧЕЛОВЕК (Base = 15%, итог строго <= 20%). НИКОГДА не применяй текстовые вычеты (EMPIRICAL_OR_DOMAIN_FRICTION, RHYTHMIC_BURSTINESS) к программному коду, и НИКОГДА не применяй кодовые вычеты (ORGANIC_CODE_QUIRKS) к тексту.\n4. Пороги сегментов и вердикта: score >= 65 -> \"ai\" (\"Высокая вероятность ИИ\"), 36 <= score <= 64 -> \"mixed\" (\"Смешанное авторство\"), score <= 35 -> \"human\" (\"Написано человеком\").\n\n---\n\n### ШАГ 1: ТРЕХУРОВНЕВАЯ КАЛИБРОВКА БАЗЫ (Выбери строго ОДИН базовый уровень)\n- Base = 55% (Стерильный / Шаблонный): идеально ровные отступы и пробелы вокруг всех операторов без единого сбоя, симметричные абзацы или блоки, учебный синтаксис, полное отсутствие опечаток и следов черновика. (База по умолчанию для чистого кода длиннее 12 строк без олимпиадных/человеческих признаков).\n- Base = 35% (Компетентный / Асимметричный): грамотный научный текст, короткое тривиальное решение (до 12 строк) или рабочий код с естественной асимметрией, инженерными компромиссами, нестандартными переходами или локальными костылями.\n- Base = 15% (Живой черновик / Олимпиадный стиль):\n  - Для кода: #include <bits/stdc++.h>, using namespace std;, scanf/printf, map(int, input().split()), readln/writeln, компактные операторные «слитки» без пробелов (for(int i=0;i<n;i++), cin>>n>>m;, a[i]+=x), короткие математические имена (n, m, k, t, a, b, x, y, i, j, l, r, mid, ans, res, cnt, cur, tmp, dp, adj, used), транслит (massiv, otvet, summa), закомментированный дебаг (// cout <<, # print) или наивные проверки (if (ok == true)).\n  - Для текста: опечатки, авторская пунктуация, неровный стиль, резкие перепады длины фраз.\n\n---\n\n### ШАГ 2: УЛИКИ ИИ (Суммируй сработавшие флаги)\n\nА. Для ПРОГРАММНОГО КОДА:\n1. STERILE_NAMING_AND_TYPING (+16%): длинные академические имена переменных/функций на английском (current_max_sum, adjacency_list, findFirstOccurrence) без единого сокращения (res, cnt, tmp, arr), ИЛИ невостребованные статические аннотации типов (def solve(n: int, arr: list[int]) -> int:, Optional[...], std::size_t, const auto& в простых задачах).\n2. SURGICAL_OBFUSCATION (+14%): явная маскировка ИИ-кода студентом — однобуквенные переменные (a, b, f, d, x) в паре со стерильными паттернами LLM (from typing import List, sys.stdin.read().split(), static_cast, !(std::cin >> x), оптимизации i += 6, битовые маски или идеальные PEP8/Clang пробелы без единого олимпиадного сокращения).\n3. DEFENSIVE_PARANOIA (+12%): избыточные проверки граничных случаев, не требуемые в задаче (if not isinstance(...), !(std::cin >> x), .empty(), try/except/catch, raise TypeError).\n4. ABOVE_LEVEL_IDIOMS (+12%): продвинутые/учебные конструкции (const &, static_cast, auto, nullptr, std::gcd, enumerate/zip, генераторы, тернарный ? :) в базовой или учебной задаче при наличии стерильного оформления.\n5. LLM_ARCHITECTURAL_FINGERPRINTS (+8%): избыточное дробление простой задачи на вспомогательные функции, тотальный отказ от using namespace std; (везде std::) в школьной задаче, докстринги \"\"\"...\"\"\" или пошаговые комментарии к очевидным строкам (# Инициализируем массив).\n6. ZERO_ENTROPY_FLOW (+6%): линейный, стерильный поток управления без мертвого кода, отладочных следов и с 100% одинаковыми отступами.\n\nБ. Для ТЕКСТА / ЭССЕ / НАУЧНЫХ РАБОТ:\n1. LLM_CONNECTIVE_LEXICON (+14%): частотные штампы и канцелярит LLM («в современном мире», «в эпоху стремительной цифровизации», «играет ключевую/важную роль», «необходимо отметить», «резюмируя вышесказанное», «многогранный», «спектр», «комплексный подход», «данный подход» или англ. delve, crucial, moreover, tapestry, testament).\n2. ILLUSTRATIVE_GENERICNESS (+12%): псевдонаучная «вода» — текст звучит солидно, но оперирует общими фразами («исследования показывают», «повышает эффективность») без реальных объемов выборок, метрик, инструментов и методологических сбоев.\n3. STRUCTURAL_SYMMETRY (+12%): зеркально равные по объему абзацы, шаблонный каркас «Во-первых... Во-вторых... В-третьих...» или списки строго по схеме «Жирный заголовок: пояснение».\n4. LOW_PERPLEXITY_SMOOTHNESS (+8%): стерильно гладкий, предсказуемый текст без эмоциональных акцентов, разговорной лексики или острых авторских оценок.\n5. ZERO_DRAFTING_ARTIFACTS (+6%): полное отсутствие шероховатостей, авторских знаков препинания и швов редактирования (+ до 8% при одновременном сочетании «ёлочек» и тире — в русском тексте).\n\n---\n\n### ШАГ 3: ЧЕЛОВЕЧЕСКИЕ ВЫЧЕТЫ (Применять только при наличии неоспоримых улик)\nНе снижай оценку просто за «чистоту» или «краткость». Вычитай баллы только за реальные следы работы человека:\n- ORGANIC_CODE_QUIRKS (-12% — ТОЛЬКО КОД): олимпиадные или живые привычки — компактные операторы без пробелов (cin>>n;, i++), смешанный стиль именования, магические константы (999999999), вложенные if вместо min/max, закомментированный дебаг.\n- EMPIRICAL_OR_DOMAIN_FRICTION (-12% — ТОЛЬКО ТЕКСТ): конкретные некруглые цифры, метрики и названия инструментов (например, N = 14 820, 4,3%, ROC-AUC 0,68 -> 0,81, Grad-CAM, p < 0,01), описание реальных неудачных экспериментов, ошибок и ограничений выборки.\n- RHYTHMIC_BURSTINESS (-10% — ТОЛЬКО ТЕКСТ): резкий контраст между длинными сложными предложениями и короткими рублеными акцентами (например, «Это сработало.», «Проблема уперлась в шум.»), инверсии и живая авторская интонация.\n\n---\n\n### ШАГ 4: РАСЧЕТ ИТОГА И СИНХРОНИЗАЦИЯ xaiFactors\n1. aiProbability = clamp(5, 99, Base + Sum(Улики ИИ) - Sum(Человеческие вычеты)). (Предохранитель: если Base = 55 и нет человеческих вычетов, aiProbability НЕ МОЖЕТ быть ниже 55).\n2. Синхронизация 4 шкал xaiFactors (0-100): оценки факторов не должны противоречить aiProbability:\n  - Синтаксис и операторные «слитки»: 80–98 (если пробелы 100% стерильны / идеальная пунктуация), 10–25 (если есть слитки cin>>n, a[i]+=x или авторские шероховатости).\n  - Именование переменных и типизация: 80–98 (если сработал STERILE_NAMING_AND_TYPING или SURGICAL_OBFUSCATION), 5–20 (если олимпиадные n, m, dp, ans или транслит).\n  - Комментарии и речевые связки: 80–98 (если есть учебные комментарии, докстринги или штампы LLM), 5–20 (если комментариев нет, есть // fix, # print или живая речь).\n  - Структура алгоритма / Ритм текста: 80–98 (если сработали DEFENSIVE_PARANOIA, ABOVE_LEVEL_IDIOMS или STRUCTURAL_SYMMETRY), 10–25 (если прямолинейный цикл или рваный авторский ритм).\n\n---\n\n### ФОРМАТ ВЫВОДА: СТРОГО ВАЛИДНЫЙ JSON БЕЗ MARKDOWN-ОБЕРТКИ\nВсегда корректно экранируй кавычки внутри строк JSON. Возвращай не более 4 сегментов и 3 вопросов защиты, чтобы JSON не обрывался. Верни только чистый JSON-объект без markdown-обертки и любого текста до или после:\n{\n  \"aiProbability\": 0-100,\n  \"contentType\": \"Программный код (C++)\" | \"Программный код (Python)\" | \"Текст\",\n  \"verdictTitle\": \"Высокая вероятность ИИ\" | \"Смешанное авторство\" | \"Написано человеком\",\n  \"verdictSummary\": \"Формула расчета (База + Улики - Вычеты = Итог%) и конкретное техническое обоснование со ссылками на токены и строки\",\n  \"xaiFactors\": [\n    { \"label\": \"Синтаксис и операторные «слитки»\", \"score\": 0-100 },\n    { \"label\": \"Именование переменных и типизация\", \"score\": 0-100 },\n    { \"label\": \"Комментарии и речевые связки\", \"score\": 0-100 },\n    { \"label\": \"Структура алгоритма / Ритм текста\", \"score\": 0-100 }\n  ],\n  \"formatting\": {\n    \"sterilityScore\": 0-100,\n    \"summary\": \"Технический вывод по пробелам, отступам, синтаксису и типографике\",\n    \"metrics\": [\n      { \"label\": \"Название метрики\", \"value\": \"Значение\", \"status\": \"ai\"|\"mixed\"|\"human\", \"detail\": \"Конкретное пояснение со ссылкой на код/текст\" }\n    ]\n  },\n  \"commentForensics\": {\n    \"placement\": \"Где и как расположены комментарии (или штампы/связки для текста)\",\n    \"prepositions\": [\"найденные предлоги/союзы или маркеры\"],\n    \"verbsAndPatterns\": [\"найденные шаблоны ИИ или живые заметки\"]\n  },\n  \"lexicalMarkers\": [\n    { \"text\": \"конкретный токен/конструкция/фраза\", \"kind\": \"ai\"|\"human\", \"category\": \"Название сработавшего флага или маркер человека\" }\n  ],\n  \"reverseQA\": [\n    { \"prompt\": \"Вероятный промпт пользователя, которым это сгенерировали (или 'Не применимо — ручная работа')\", \"excerpt\": \"Фрагмент из документа\", \"confidence\": \"92%\" }\n  ],\n  \"defenseQuestions\": [\n    {\n      \"target\": \"Функция / цикл / абзац (строка N)\",\n      \"snippet\": \"Точная цитата строки из документа\",\n      \"question\": \"Конкретный вопрос-ловушка автору по работе этой конструкции или логике вывода\",\n      \"expectedAnswer\": \"Эталонный технический ответ настоящего автора\",\n      \"keywords\": [\"ключ1\", \"ключ2\", \"ключ3\"]\n    }\n  ],\n  \"segments\": [\n    { \"text\": \"Точный фрагмент\", \"score\": 0-100, \"status\": \"ai\"|\"mixed\"|\"human\", \"reason\": \"Конкретная причина со ссылкой на токены и флаги\" }\n  ]\n}";
+        // SYSTEM_PROMPT и весовые коэффициенты перенесены строго на сервер (Supabase Edge Function smooth-service).
 
         const PRESETS = {
             cpp_human: {
@@ -1351,6 +1383,11 @@ print(len(ans))`
             setupClipboardPasteOCR();
             updateHeaderEngineBadge();
 
+            const initRoomCode = new URLSearchParams(window.location.search).get('room');
+            if (initRoomCode) {
+                openStudentSubmitModal(initRoomCode);
+                return;
+            }
             if (tryRestoreFromShareHash()) {
                 return;
             }
@@ -1653,7 +1690,7 @@ print(len(ans))`
                 if (!items) return;
 
                 // Не перехватываем вставку фото в OCR во время экзамена студента
-                const studentModalOpen = !document.getElementById('student-submit-modal')?.classList.contains('hidden');
+                const studentModalOpen = !document.getElementById('student-exam-view')?.classList.contains('hidden');
                 if (studentModalOpen) return;
 
                 // Если открыт кабинет преподавателя — прикрепляем вставленный скриншот к заданию комнаты
@@ -2880,40 +2917,41 @@ print(len(ans))`
                     return extracted;
                 }
 
-                // Режим «Свой API-ключ» (0 кред.) — прямой запрос к выбранному пользователем провайдеру
-                const doCustomRequest = async (useStrictOpts) => {
-                    const headers = { 'Content-Type': 'application/json' };
-                    if (state.config.apiKey) {
-                        headers['Authorization'] = `Bearer ${state.config.apiKey.trim()}`;
-                    }
+                // Режим «Свой API-ключ» (0 кред.) — легкий stateless-прокси через Edge Function
+                // Сервер подставляет защищенный SYSTEM_PROMPT; ключ пользователя не сохраняется в БД.
+                const baseSbUrl = SUPABASE_URL.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+                let authBearer = '';
+                if (sb) {
+                    try {
+                        const { data: { session } } = await sb.auth.getSession();
+                        authBearer = session?.access_token || '';
+                    } catch (_) {}
+                }
 
-                    const payload = {
-                        model: state.config.model.trim() || 'gpt-4o-mini',
-                        temperature: 0,
-                        max_tokens: 2200,
-                        messages: [
-                            { role: 'system', content: SYSTEM_PROMPT },
-                            { role: 'user', content: 'Проанализируй документ и верни СТРОГО валидный компактный JSON (максимум 4 сегмента и 3 вопроса защиты, корректно экранируй все кавычки внутри строк).\n\n' + textToSend.slice(0, 6000) }
-                        ]
-                    };
-
-                    if (useStrictOpts) {
-                        payload.response_format = { type: 'json_object' };
-                        payload.seed = 42;
-                    }
-                    return fetch(state.config.endpoint.trim(), {
-                        method: 'POST',
-                        headers,
-                        signal: controller.signal,
-                        body: JSON.stringify(payload)
-                    });
+                const byokHeaders = {
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_ANON_KEY
                 };
+                if (authBearer) {
+                    byokHeaders['Authorization'] = `Bearer ${authBearer}`;
+                }
 
-                let resp = await doCustomRequest(true);
-                if (resp.status === 400) resp = await doCustomRequest(false);
+                const resp = await fetch(`${baseSbUrl}/functions/v1/smooth-service`, {
+                    method: 'POST',
+                    signal: controller.signal,
+                    headers: byokHeaders,
+                    body: JSON.stringify({
+                        action: 'custom_byok',
+                        text: textToSend.slice(0, 6000),
+                        customEndpoint: state.config.endpoint.trim(),
+                        customModel: state.config.model.trim() || 'gpt-4o-mini',
+                        customApiKey: state.config.apiKey.trim()
+                    })
+                });
+
                 if (!resp.ok) {
                     const errBody = await resp.text().catch(() => '');
-                    throw new Error(`HTTP ${resp.status}${errBody ? ': ' + errBody.slice(0, 80) : ''}`);
+                    throw new Error(`HTTP ${resp.status}${errBody ? ': ' + errBody.slice(0, 110) : ''}`);
                 }
 
                 const rawText = await resp.text();
@@ -3787,36 +3825,54 @@ print(len(ans))`
                 if (error) console.warn('Cloud delete error:', error);
             });
         };// =========================================================================
-        // 15. РЕЖИМ «КЛАСС / КОНТРОЛЬНАЯ РАБОТА» + ЖЕСТКИЙ АНТИЧИТ
+        // 15. РЕЖИМ «КЛАСС / КОНТРОЛЬНАЯ РАБОТА», STORAGE, СЕРВЕРНАЯ ЗАЩИТА И АНТИЧИТ
         // =========================================================================
+        const ASSIGNMENT_IMAGES_BUCKET = 'assignment-images';
+        const MAX_TASK_IMAGE_BYTES = 2 * 1024 * 1024; // 2 МБ
+
         const classroomState = {
             teacherRooms: [],
             activeRoomId: null,
             activeRoomMeta: null,
             activeSubmissions: [],
-            draftTaskImage: null,
+            draftTaskImageBlob: null,
+            draftTaskPreviewUrl: null,
             studentRoom: null,
+            examSessionId: null,
             studentQuestions: [],
-            studentReport: null,
             timerInterval: null,
             secondsLeft: 0,
             examLocked: false,
             examFinished: false,
             examLockStartedAt: 0,
-            blurCheckTimeout: null
+            blurCheckTimeout: null,
+            inStudentMode: false
         };
 
         let studentTelemetry = createEmptyTelemetry();
         let _examListenersActive = false;
         let _lastPasteWarnTs = 0;
+        let _lastDevtoolsWarnTs = 0;
 
         function createEmptyTelemetry() {
             return {
                 pasteBlockedCount: 0,
                 tabSwitches: 0,
+                devtoolsAttempts: 0,
                 examFailed: false,
                 failReason: ''
             };
+        }
+
+        function getSmoothServiceUrl() {
+            const baseSbUrl = SUPABASE_URL.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+            return `${baseSbUrl}/functions/v1/smooth-service`;
+        }
+
+        function isSafeImageSrc(src) {
+            if (typeof src !== 'string') return false;
+            const s = src.trim();
+            return s.startsWith('https://') || s.startsWith('http://') || s.startsWith('data:image/') || s.startsWith('blob:');
         }
 
         function showPasteBlockedToast() {
@@ -3824,6 +3880,13 @@ print(len(ans))`
             if (now - _lastPasteWarnTs < 1500) return;
             _lastPasteWarnTs = now;
             showToast('Вставка текста запрещена! Пишите решение вручную.', 'warning');
+        }
+
+        function showDevtoolsBlockedToast() {
+            const now = Date.now();
+            if (now - _lastDevtoolsWarnTs < 2000) return;
+            _lastDevtoolsWarnTs = now;
+            showToast('Инструменты разработчика заблокированы во время экзамена. Попытка зафиксирована.', 'warning');
         }
 
         // Жесткая блокировка вставки: только ручной ввод
@@ -3839,7 +3902,6 @@ print(len(ans))`
                 showPasteBlockedToast();
             };
 
-            // 1. Блокируем стандартную вставку и перетаскивание
             el.addEventListener('paste', blockEvent);
             el.addEventListener('drop', blockEvent);
             el.addEventListener('dragover', (e) => {
@@ -3847,13 +3909,11 @@ print(len(ans))`
                 e.dataTransfer.dropEffect = 'none';
             });
 
-            // 2. Блокируем правую кнопку мыши (контекстное меню -> Вставить)
             el.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 showPasteBlockedToast();
             });
 
-            // 3. Блокируем горячие клавиши Ctrl+V / Cmd+V (включая русскую раскладку) и Shift+Insert
             el.addEventListener('keydown', (e) => {
                 const isPasteKey = ((e.ctrlKey || e.metaKey) && (e.code === 'KeyV' || e.key.toLowerCase() === 'v'))
                     || (e.shiftKey && e.key === 'Insert');
@@ -3862,7 +3922,6 @@ print(len(ans))`
                 }
             });
 
-            // 4. Блокируем системную/мобильную вставку из буфера на уровне beforeinput
             el.addEventListener('beforeinput', (e) => {
                 const blockedTypes = ['insertFromPaste', 'insertFromDrop', 'insertFromYank', 'insertFromPasteAsQuotation'];
                 if (blockedTypes.includes(e.inputType)) {
@@ -3870,7 +3929,6 @@ print(len(ans))`
                 }
             });
 
-            // 5. Страховка от расширений и программной вставки (скачок больше 4 символов за 1 ввод)
             el.addEventListener('input', () => {
                 const prev = el.dataset.lastValidValue || '';
                 const delta = el.value.length - prev.length;
@@ -3884,7 +3942,29 @@ print(len(ans))`
             });
         }
 
-        // --- АВТОПРОВАЛ ПРИ ПЕРЕХОДЕ НА ДРУГУЮ ВКЛАДКУ / ОКНО / СТРАНИЦУ ---
+        // --- БАЗОВАЯ ЗАЩИТА ОТ DEVTOOLS И АВТОПРОВАЛ ПРИ УХОДЕ СО ВКЛАДКИ ---
+        function _onExamKeyDownGuard(e) {
+            if (!classroomState.examLocked || classroomState.examFinished) return;
+
+            const isF12 = e.key === 'F12' || e.code === 'F12';
+            const isWinLinuxDevtools = e.ctrlKey && e.shiftKey && ['KeyI', 'KeyJ', 'KeyC'].includes(e.code);
+            const isMacDevtools = e.metaKey && e.altKey && ['KeyI', 'KeyJ', 'KeyC'].includes(e.code);
+            const isViewSource = (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.code === 'KeyU';
+
+            if (isF12 || isWinLinuxDevtools || isMacDevtools || isViewSource) {
+                e.preventDefault();
+                e.stopPropagation();
+                studentTelemetry.devtoolsAttempts += 1;
+                showDevtoolsBlockedToast();
+            }
+        }
+
+        function _onExamContextMenuGuard(e) {
+            if (!classroomState.examLocked || classroomState.examFinished) return;
+            e.preventDefault();
+            showDevtoolsBlockedToast();
+        }
+
         function _onExamVisibilityChange() {
             if (document.hidden && classroomState.examLocked && !classroomState.examFinished) {
                 failStudentExam('Переход на другую вкладку браузера');
@@ -3918,6 +3998,8 @@ print(len(ans))`
             document.addEventListener('visibilitychange', _onExamVisibilityChange);
             window.addEventListener('blur', _onExamWindowBlur);
             window.addEventListener('pagehide', _onExamPageHide);
+            window.addEventListener('keydown', _onExamKeyDownGuard, true);
+            document.getElementById('student-exam-view')?.addEventListener('contextmenu', _onExamContextMenuGuard);
             _examListenersActive = true;
 
             const banner = document.getElementById('stu-anticheat-banner');
@@ -3933,6 +4015,8 @@ print(len(ans))`
             document.removeEventListener('visibilitychange', _onExamVisibilityChange);
             window.removeEventListener('blur', _onExamWindowBlur);
             window.removeEventListener('pagehide', _onExamPageHide);
+            window.removeEventListener('keydown', _onExamKeyDownGuard, true);
+            document.getElementById('student-exam-view')?.removeEventListener('contextmenu', _onExamContextMenuGuard);
             _examListenersActive = false;
         }
 
@@ -3967,12 +4051,14 @@ print(len(ans))`
         function generateRoomCode() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
             let code = '';
-            for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+            const rnd = new Uint8Array(6);
+            crypto.getRandomValues(rnd);
+            for (let i = 0; i < 6; i++) code += chars[rnd[i] % chars.length];
             return code;
         }
 
         function openTaskImageLightbox(src) {
-            if (!src) return;
+            if (!isSafeImageSrc(src)) return;
             const modal = document.getElementById('task-image-lightbox');
             const img = document.getElementById('task-image-lightbox-img');
             if (!modal || !img) return;
@@ -3991,9 +4077,53 @@ print(len(ans))`
         function openTeacherRoomPhoto(e, idx) {
             if (e) e.stopPropagation();
             const room = classroomState.teacherRooms[idx];
-            if (room?.task_image_url) {
+            if (room?.task_image_url && isSafeImageSrc(room.task_image_url)) {
                 openTaskImageLightbox(room.task_image_url);
             }
+        }
+
+        function compressImageToBlob(file, maxSide = 1280, quality = 0.80) {
+            return new Promise((resolve, reject) => {
+                const objectUrl = URL.createObjectURL(file);
+                const img = new Image();
+
+                img.onload = () => {
+                    try {
+                        let { width, height } = img;
+                        if (width > maxSide || height > maxSide) {
+                            const scale = maxSide / Math.max(width, height);
+                            width = Math.max(1, Math.round(width * scale));
+                            height = Math.max(1, Math.round(height * scale));
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        if (!ctx) throw new Error('Canvas 2D контекст недоступен');
+
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, width, height);
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob(blob => {
+                            URL.revokeObjectURL(objectUrl);
+                            if (!blob) return reject(new Error('Не удалось сжать изображение'));
+                            resolve(blob);
+                        }, 'image/jpeg', quality);
+                    } catch (e) {
+                        URL.revokeObjectURL(objectUrl);
+                        reject(e);
+                    }
+                };
+
+                img.onerror = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    reject(new Error('Не удалось декодировать изображение'));
+                };
+
+                img.src = objectUrl;
+            });
         }
 
         async function attachRoomTaskPhotoFile(file) {
@@ -4002,21 +4132,31 @@ print(len(ans))`
                 return showToast('Выберите изображение (PNG, JPG, WEBP)', 'warning');
             }
             try {
-                // Сжимаем фото до 1280px (JPEG 0.78), чтобы оно быстро загружалось и не перегружало БД
-                const dataUrl = await compressImageToDataUrl(file, 1280, 0.78);
-                classroomState.draftTaskImage = dataUrl;
+                let blob = await compressImageToBlob(file, 1280, 0.80);
+                if (blob.size > MAX_TASK_IMAGE_BYTES) {
+                    blob = await compressImageToBlob(file, 1024, 0.62);
+                }
+                if (blob.size > MAX_TASK_IMAGE_BYTES) {
+                    return showToast('Изображение превышает лимит 2 МБ даже после сжатия', 'warning');
+                }
+
+                if (classroomState.draftTaskPreviewUrl) {
+                    URL.revokeObjectURL(classroomState.draftTaskPreviewUrl);
+                }
+                const previewUrl = URL.createObjectURL(blob);
+                classroomState.draftTaskImageBlob = blob;
+                classroomState.draftTaskPreviewUrl = previewUrl;
 
                 const wrap = document.getElementById('room-create-photo-preview-wrap');
                 const img = document.getElementById('room-create-photo-preview');
                 const info = document.getElementById('room-create-photo-info');
-                if (img) img.src = dataUrl;
+                if (img) img.src = previewUrl;
                 if (info) {
-                    const approxKb = Math.max(1, Math.round((dataUrl.length * 0.75) / 1024));
-                    info.textContent = `${file.name || 'Скриншот'} • ~${approxKb} KB`;
+                    info.textContent = `${file.name || 'Скриншот'} • ${formatBytes(blob.size)} (Storage)`;
                 }
                 if (wrap) wrap.classList.remove('hidden');
                 lucide.createIcons();
-                showToast('Фото задания прикреплено', 'success');
+                showToast('Фото задания подготовлено к загрузке в Storage', 'success');
             } catch (err) {
                 showToast(`Не удалось обработать фото: ${err.message}`, 'warning');
             }
@@ -4029,13 +4169,48 @@ print(len(ans))`
         }
 
         function clearRoomTaskPhoto() {
-            classroomState.draftTaskImage = null;
+            if (classroomState.draftTaskPreviewUrl) {
+                URL.revokeObjectURL(classroomState.draftTaskPreviewUrl);
+            }
+            classroomState.draftTaskImageBlob = null;
+            classroomState.draftTaskPreviewUrl = null;
             const input = document.getElementById('room-create-photo');
             const wrap = document.getElementById('room-create-photo-preview-wrap');
             const img = document.getElementById('room-create-photo-preview');
             if (input) input.value = '';
             if (img) img.src = '';
             if (wrap) wrap.classList.add('hidden');
+        }
+
+        async function uploadRoomTaskPhotoToStorage(blob) {
+            if (!sb || !currentUser || !blob) return { url: null, path: null };
+            const fileId = typeof crypto.randomUUID === 'function'
+                ? crypto.randomUUID()
+                : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+            const storagePath = `${currentUser.id}/${fileId}.jpg`;
+
+            const { error: uploadErr } = await sb.storage
+                .from(ASSIGNMENT_IMAGES_BUCKET)
+                .upload(storagePath, blob, {
+                    contentType: 'image/jpeg',
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (uploadErr) {
+                throw new Error(`Ошибка загрузки фото в Storage: ${uploadErr.message}`);
+            }
+
+            const { data: pubData } = sb.storage
+                .from(ASSIGNMENT_IMAGES_BUCKET)
+                .getPublicUrl(storagePath);
+
+            if (!pubData?.publicUrl) {
+                await sb.storage.from(ASSIGNMENT_IMAGES_BUCKET).remove([storagePath]).catch(() => {});
+                throw new Error('Не удалось получить URL загруженного изображения');
+            }
+
+            return { url: pubData.publicUrl, path: storagePath };
         }
 
         async function createAssignmentRoom(e) {
@@ -4046,29 +4221,34 @@ print(len(ans))`
             const taskEl = document.getElementById('room-create-task');
             const title = titleEl.value.trim();
             const taskDescription = (taskEl?.value || '').trim();
-            const taskImageUrl = classroomState.draftTaskImage || null;
             const timeLimit = parseInt(document.getElementById('room-create-timer').value, 10) || 3;
             const btn = document.getElementById('room-create-btn');
             if (!title) return;
 
             btn.disabled = true;
+            let uploadedPath = null;
             try {
+                let taskImageUrl = null;
+                if (classroomState.draftTaskImageBlob) {
+                    const uploaded = await uploadRoomTaskPhotoToStorage(classroomState.draftTaskImageBlob);
+                    taskImageUrl = uploaded.url;
+                    uploadedPath = uploaded.path;
+                }
+
                 const room_code = generateRoomCode();
                 const payload = {
                     teacher_id: currentUser.id,
                     title,
                     room_code,
                     time_limit_minutes: timeLimit,
-                    task_description: taskDescription || null
+                    task_description: taskDescription || null,
+                    task_image_url: taskImageUrl
                 };
-                if (taskImageUrl) {
-                    payload.task_image_url = taskImageUrl;
-                }
 
                 const { error } = await sb.from('assignments').insert(payload);
                 if (error) {
-                    if (/task_image_url/i.test(error.message || '')) {
-                        throw new Error('Выполните SQL-миграцию: добавьте колонку task_image_url TEXT в таблицу assignments');
+                    if (uploadedPath) {
+                        await sb.storage.from(ASSIGNMENT_IMAGES_BUCKET).remove([uploadedPath]).catch(() => {});
                     }
                     throw error;
                 }
@@ -4111,7 +4291,7 @@ print(len(ans))`
                     : 'border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg';
                 const rawTask = (r.task_description || '').trim();
                 const taskPreview = rawTask.length > 140 ? rawTask.slice(0, 140) + '…' : rawTask;
-                const hasTaskImage = Boolean((r.task_image_url || '').trim());
+                const hasTaskImage = isSafeImageSrc(r.task_image_url || '');
                 return `
                     <div class="p-2.5 rounded-xl border ${activeCls} flex flex-wrap items-start justify-between gap-2">
                         <div class="min-w-0 cursor-pointer flex-1" onclick="loadRoomSubmissions('${r.id}', '${escapeHtml(r.title)}', '${escapeHtml(r.room_code)}')">
@@ -4177,16 +4357,23 @@ print(len(ans))`
                 const isFailed = Boolean(s.telemetry?.examFailed || failRecord);
                 const failReason = s.telemetry?.failReason || failRecord?.answer || 'Выход со вкладки';
                 const pasteTries = Number(s.telemetry?.pasteBlockedCount || 0);
+                const devtoolsTries = Number(s.telemetry?.devtoolsAttempts || 0);
+                const codeTampered = Boolean(s.telemetry?.codeTampered);
 
                 const rowCls = isFailed
                     ? 'bg-rose-50/70 dark:bg-rose-500/10 hover:bg-rose-50 dark:hover:bg-rose-500/15'
                     : 'hover:bg-slate-50/70 dark:hover:bg-obsidian-panel/50';
 
+                const warnings = [];
+                if (pasteTries > 0) warnings.push(`Вставка: ${pasteTries}`);
+                if (devtoolsTries > 0) warnings.push(`DevTools: ${devtoolsTries}`);
+                if (codeTampered) warnings.push('Подмена кода');
+
                 const statusHtml = isFailed
                     ? `<span class="inline-flex items-center px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 text-[10px] font-bold">ПРОВАЛЕН</span>
                        <div class="text-[10px] text-rose-600 dark:text-rose-400 mt-0.5 leading-tight">${escapeHtml(failReason)}</div>`
                     : `<span class="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 text-[10px] font-bold">Сдано</span>
-                       ${pasteTries > 0 ? `<div class="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">Попыток вставки: ${pasteTries}</div>` : ''}`;
+                       ${warnings.length ? `<div class="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">${escapeHtml(warnings.join(' • '))}</div>` : ''}`;
 
                 return `
                     <tr class="${rowCls}">
@@ -4235,10 +4422,14 @@ print(len(ans))`
             const isFailed = Boolean(s.telemetry?.examFailed || failRecord);
             const failReason = s.telemetry?.failReason || failRecord?.answer || (isFailed ? 'Выход со вкладки' : '');
             const pasteTries = Number(s.telemetry?.pasteBlockedCount || 0);
+            const devtoolsTries = Number(s.telemetry?.devtoolsAttempts || 0);
 
             const antiCheatParts = [];
             if (isFailed && failReason) antiCheatParts.push(failReason);
             if (pasteTries > 0) antiCheatParts.push(`Попыток вставки: ${pasteTries}`);
+            if (devtoolsTries > 0) antiCheatParts.push(`Попыток DevTools: ${devtoolsTries}`);
+            if (s.telemetry?.codeTampered) antiCheatParts.push('Попытка подмены кода');
+            if (s.telemetry?.lateSubmission) antiCheatParts.push('Отправка после таймера');
 
             const qaList = Array.isArray(s.defense_answers)
                 ? s.defense_answers
@@ -4251,7 +4442,6 @@ print(len(ans))`
                 ? new Date(s.created_at).toLocaleString('ru-RU')
                 : (s.telemetry?.submittedAt ? new Date(s.telemetry.submittedAt).toLocaleString('ru-RU') : '—');
 
-            // В Excel одна ячейка вмещает до 32 767 символов
             const rawCode = String(s.code_content || '');
             const safeCode = rawCode.length > 32000 ? rawCode.slice(0, 32000) + '\n... [обрезано до лимита ячейки Excel]' : rawCode;
 
@@ -4323,22 +4513,11 @@ print(len(ans))`
             const wb = window.XLSX.utils.book_new();
             const wsSolutions = window.XLSX.utils.json_to_sheet(rows);
             wsSolutions['!cols'] = [
-                { wch: 5 },  // №
-                { wch: 24 }, // Комната
-                { wch: 13 }, // Код комнаты
-                { wch: 26 }, // ФИО
-                { wch: 15 }, // Группа
-                { wch: 18 }, // Вероятность ИИ
-                { wch: 10 }, // Защита
-                { wch: 12 }, // Статус
-                { wch: 30 }, // Античит
-                { wch: 45 }, // Ответы на защиту
-                { wch: 65 }, // Код / Текст решения
-                { wch: 20 }  // Дата
+                { wch: 5 }, { wch: 24 }, { wch: 13 }, { wch: 26 }, { wch: 15 },
+                { wch: 18 }, { wch: 10 }, { wch: 12 }, { wch: 30 }, { wch: 45 },
+                { wch: 65 }, { wch: 20 }
             ];
-            if (wsSolutions['!ref']) {
-                wsSolutions['!autofilter'] = { ref: wsSolutions['!ref'] };
-            }
+            if (wsSolutions['!ref']) wsSolutions['!autofilter'] = { ref: wsSolutions['!ref'] };
 
             const wsSummary = window.XLSX.utils.json_to_sheet(summaryRows);
             wsSummary['!cols'] = [{ wch: 28 }, { wch: 36 }];
@@ -4416,18 +4595,14 @@ print(len(ans))`
                     { wch: 18 }, { wch: 10 }, { wch: 12 }, { wch: 30 }, { wch: 45 },
                     { wch: 65 }, { wch: 20 }
                 ];
-                if (wsAll['!ref']) {
-                    wsAll['!autofilter'] = { ref: wsAll['!ref'] };
-                }
+                if (wsAll['!ref']) wsAll['!autofilter'] = { ref: wsAll['!ref'] };
 
                 const wsRooms = window.XLSX.utils.json_to_sheet(roomsSummary);
                 wsRooms['!cols'] = [
                     { wch: 5 }, { wch: 26 }, { wch: 12 }, { wch: 13 },
                     { wch: 45 }, { wch: 13 }, { wch: 20 }, { wch: 15 }
                 ];
-                if (wsRooms['!ref']) {
-                    wsRooms['!autofilter'] = { ref: wsRooms['!ref'] };
-                }
+                if (wsRooms['!ref']) wsRooms['!autofilter'] = { ref: wsRooms['!ref'] };
 
                 window.XLSX.utils.book_append_sheet(wb, wsAll, 'Все решения');
                 window.XLSX.utils.book_append_sheet(wb, wsRooms, 'Комнаты');
@@ -4440,15 +4615,15 @@ print(len(ans))`
             }
         }
 
-        // --- РЕЖИМ СДАЧИ СТУДЕНТОМ ---
+        // --- РЕЖИМ СДАЧИ СТУДЕНТОМ (ЧИСТЫЙ UX-ПОТОК + СЕРВЕРНАЯ ПРОВЕРКА) ---
         function resetStudentSessionUI({ preserveRoomCodeInput = false } = {}) {
             stopStudentTimer();
             disarmExamAntiLeave();
 
             studentTelemetry = createEmptyTelemetry();
             classroomState.studentRoom = null;
+            classroomState.examSessionId = null;
             classroomState.studentQuestions = [];
-            classroomState.studentReport = null;
             classroomState.secondsLeft = 0;
             classroomState.examFinished = false;
 
@@ -4487,8 +4662,17 @@ print(len(ans))`
             const summaryEl = document.getElementById('stu-result-summary');
             if (summaryEl) summaryEl.textContent = '';
 
+            const startBtn = document.getElementById('stu-start-defense-btn');
+            if (startBtn) {
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i><span>Перейти к защите (3 вопроса на время)</span>';
+            }
+
             const submitFinalBtn = document.getElementById('stu-submit-final-btn');
-            if (submitFinalBtn) submitFinalBtn.disabled = false;
+            if (submitFinalBtn) {
+                submitFinalBtn.disabled = false;
+                submitFinalBtn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i><span>Отправить работу преподавателю</span>';
+            }
 
             document.getElementById('stu-step-1')?.classList.remove('hidden');
             document.getElementById('stu-step-2')?.classList.add('hidden');
@@ -4503,9 +4687,21 @@ print(len(ans))`
             const subtitleEl = document.getElementById('stu-modal-subtitle');
             if (titleEl) titleEl.textContent = 'Сдача работы по коду комнаты';
             if (subtitleEl) subtitleEl.textContent = 'Введите 6-значный код от преподавателя';
+            lucide.createIcons();
         }
 
-        function openStudentSubmitModal(prefillCode = '') {
+        function enterStudentFocusMode(prefillCode = '') {
+            classroomState.inStudentMode = true;
+            closeSettingsModal();
+            closeShareModal();
+            closeAuthModal();
+            closeCabinetModal();
+
+            document.getElementById('main-header')?.classList.add('hidden');
+            document.getElementById('analyzer-main')?.classList.add('hidden');
+            document.getElementById('main-footer')?.classList.add('hidden');
+            document.getElementById('student-exam-view')?.classList.remove('hidden');
+
             resetStudentSessionUI({ preserveRoomCodeInput: false });
 
             const codeInput = document.getElementById('stu-room-code');
@@ -4513,7 +4709,7 @@ print(len(ans))`
                 codeInput.value = prefillCode ? prefillCode.toUpperCase() : '';
             }
 
-            document.getElementById('student-submit-modal').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'instant' });
             lucide.createIcons();
 
             if (prefillCode) {
@@ -4523,11 +4719,46 @@ print(len(ans))`
             }
         }
 
-        function closeStudentSubmitModal() {
+        function exitStudentFocusMode() {
+            if (classroomState.examLocked && !classroomState.examFinished) {
+                const confirmed = confirm('Экзамен сейчас активен! Выход в режим анализатора прервет сдачу работы. Продолжить?');
+                if (!confirmed) return;
+            }
+
+            classroomState.inStudentMode = false;
             resetStudentSessionUI({ preserveRoomCodeInput: false });
-            document.getElementById('student-submit-modal').classList.add('hidden');
+
+            document.getElementById('student-exam-view')?.classList.add('hidden');
+            document.getElementById('main-header')?.classList.remove('hidden');
+            document.getElementById('analyzer-main')?.classList.remove('hidden');
+            document.getElementById('main-footer')?.classList.remove('hidden');
+
+            // Очищаем ?room= из адресной строки без перезагрузки страницы
+            try {
+                const url = new URL(window.location.href);
+                if (url.searchParams.has('room')) {
+                    url.searchParams.delete('room');
+                    history.replaceState(null, '', url.pathname + url.search + url.hash);
+                }
+            } catch (_) {}
+
+            // Если страница открывалась сразу с ?room=КОД и редактор пуст — загружаем пресет
+            const srcInput = document.getElementById('source-input');
+            if (srcInput && !srcInput.value.trim()) {
+                loadPreset('cpp_human', true);
+            }
+            lucide.createIcons();
         }
 
+        function openStudentSubmitModal(prefillCode = '') {
+            enterStudentFocusMode(prefillCode);
+        }
+
+        function closeStudentSubmitModal() {
+            exitStudentFocusMode();
+        }
+
+        // Поиск комнаты СТРОГО через безопасную RPC-функцию get_room_by_code (RLS запрещает SELECT * FROM assignments)
         async function verifyStudentRoomCode() {
             if (!sb) return showToast('Supabase не подключен', 'warning');
 
@@ -4536,7 +4767,6 @@ print(len(ans))`
             const code = (codeInput?.value || '').trim().toUpperCase();
             if (codeInput) codeInput.value = code;
 
-            // Всегда выполняем полный сброс перед проверкой нового кода
             resetStudentSessionUI({ preserveRoomCodeInput: true });
 
             if (code.length < 4) {
@@ -4549,28 +4779,25 @@ print(len(ans))`
             }
 
             try {
-                const { data, error } = await sb
-                    .from('assignments')
-                    .select('*')
-                    .eq('room_code', code)
-                    .maybeSingle();
+                const { data: rpcRows, error } = await sb.rpc('get_room_by_code', { p_code: code });
+                const data = Array.isArray(rpcRows) ? rpcRows[0] : rpcRows;
 
-                if (error || !data) {
-                    return showToast('Комната с таким кодом не найдена', 'warning');
+                if (error || !data || !data.id) {
+                    return showToast('Комната с таким кодом не найдена или закрыта', 'warning');
                 }
 
                 classroomState.studentRoom = data;
 
-                // Показываем шапку и информацию о комнате
                 document.getElementById('stu-room-info').classList.remove('hidden');
                 document.getElementById('stu-room-info-text').textContent = `Комната: ${data.title}`;
                 document.getElementById('stu-room-time-text').textContent = `Таймер: ${data.time_limit_minutes || 3} мин`;
                 document.getElementById('stu-modal-title').textContent = data.title;
                 document.getElementById('stu-modal-subtitle').textContent = `Код комнаты: ${data.room_code}`;
 
-                // Показываем карточку задания, если преподаватель прикрепил текст и/или фото
+                // Совместимость: поддерживаем как новые URL из Storage, так и старые Base64 data:image/
                 const taskDesc = (data.task_description || '').trim();
-                const taskImgUrl = (data.task_image_url || '').trim();
+                const rawImgUrl = (data.task_image_url || '').trim();
+                const taskImgUrl = isSafeImageSrc(rawImgUrl) ? rawImgUrl : '';
                 const taskCard = document.getElementById('stu-task-card');
                 const taskText = document.getElementById('stu-task-text');
                 const taskImgWrap = document.getElementById('stu-task-image-wrap');
@@ -4588,7 +4815,6 @@ print(len(ans))`
                     taskCard.classList.toggle('hidden', !(taskDesc || taskImgUrl));
                 }
 
-                // Гарантируем чистое поле решения с блокировкой вставки и открываем форму
                 const codeEl = document.getElementById('stu-code-input');
                 if (codeEl) {
                     codeEl.value = '';
@@ -4597,7 +4823,6 @@ print(len(ans))`
                 }
                 document.getElementById('stu-work-area')?.classList.remove('hidden');
 
-                // Активируем защиту от ухода со вкладки сразу после входа в комнату
                 armExamAntiLeave();
                 lucide.createIcons();
             } finally {
@@ -4608,6 +4833,7 @@ print(len(ans))`
             }
         }
 
+        // Генерация вопросов защиты СТРОГО на сервере (эталоны expectedAnswer и keywords никогда не приходят в браузер)
         async function startStudentDefense() {
             if (classroomState.examFinished) return;
             if (!classroomState.studentRoom) {
@@ -4621,43 +4847,75 @@ print(len(ans))`
             if (!group) return showToast('Укажите вашу группу или класс', 'warning');
             if (code.length < 15) return showToast('Напишите код или текст работы (минимум 15 символов)', 'warning');
 
-            const report = analyzeLocally(code);
-            const info = detectContentType(code);
-            const questions = generateDefenseQuestions(code, info.isCode, 0).slice(0, 3);
+            const startBtn = document.getElementById('stu-start-defense-btn');
+            if (startBtn) {
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Подготовка вопросов на сервере...</span>';
+                lucide.createIcons();
+            }
 
-            classroomState.studentReport = report;
-            classroomState.studentQuestions = questions;
+            try {
+                const resp = await fetch(getSmoothServiceUrl(), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify({
+                        action: 'start_defense',
+                        room_code: classroomState.studentRoom.room_code,
+                        student_name: name,
+                        student_group: group,
+                        code_content: code
+                    })
+                });
 
-            document.getElementById('stu-questions-container').innerHTML = questions.map((q, idx) => `
-                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border space-y-2">
-                    <div class="text-[11px] font-mono font-bold text-indigo-700 dark:text-indigo-300">Вопрос #${idx + 1}: ${escapeHtml(q.target)}</div>
-                    <div class="p-2 rounded-lg bg-slate-900 dark:bg-obsidian-bg text-emerald-300 font-mono text-[11px] overflow-x-auto">${escapeHtml(q.snippet)}</div>
-                    <p class="text-xs font-semibold text-slate-900 dark:text-zinc-100">${escapeHtml(q.question)}</p>
-                    <input id="stu-ans-${idx}" type="text" autocomplete="off" placeholder="Ваш ответ своими словами (только вручную)..." class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg text-xs text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
-                </div>
-            `).join('');
-
-            // Блокируем вставку и в полях ответов на вопросы защиты
-            questions.forEach((_, idx) => {
-                lockManualInputOnly(document.getElementById(`stu-ans-${idx}`));
-            });
-
-            document.getElementById('stu-step-1').classList.add('hidden');
-            document.getElementById('stu-step-2').classList.remove('hidden');
-
-            classroomState.secondsLeft = (classroomState.studentRoom.time_limit_minutes || 3) * 60;
-            const timerBadge = document.getElementById('stu-timer-badge');
-            timerBadge.classList.remove('hidden');
-            updateStudentTimerBadge();
-
-            classroomState.timerInterval = setInterval(() => {
-                classroomState.secondsLeft -= 1;
-                updateStudentTimerBadge();
-                if (classroomState.secondsLeft <= 0) {
-                    stopStudentTimer();
-                    submitStudentWork(true);
+                const data = await resp.json().catch(() => ({}));
+                if (!resp.ok || !data?.session_id || !Array.isArray(data.questions)) {
+                    throw new Error(data?.error || `Ошибка сервера (HTTP ${resp.status})`);
                 }
-            }, 1000);
+
+                classroomState.examSessionId = data.session_id;
+                classroomState.studentQuestions = data.questions;
+
+                document.getElementById('stu-questions-container').innerHTML = data.questions.map((q, idx) => `
+                    <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border space-y-2">
+                        <div class="text-[11px] font-mono font-bold text-indigo-700 dark:text-indigo-300">Вопрос #${idx + 1}: ${escapeHtml(q.target)}</div>
+                        <div class="p-2 rounded-lg bg-slate-900 dark:bg-obsidian-bg text-emerald-300 font-mono text-[11px] overflow-x-auto">${escapeHtml(q.snippet)}</div>
+                        <p class="text-xs font-semibold text-slate-900 dark:text-zinc-100">${escapeHtml(q.question)}</p>
+                        <input id="stu-ans-${idx}" type="text" autocomplete="off" placeholder="Ваш ответ своими словами (только вручную)..." class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg text-xs text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                    </div>
+                `).join('');
+
+                data.questions.forEach((_, idx) => {
+                    lockManualInputOnly(document.getElementById(`stu-ans-${idx}`));
+                });
+
+                document.getElementById('stu-step-1').classList.add('hidden');
+                document.getElementById('stu-step-2').classList.remove('hidden');
+
+                const limitMins = Number(data.time_limit_minutes) || classroomState.studentRoom.time_limit_minutes || 3;
+                classroomState.secondsLeft = limitMins * 60;
+                const timerBadge = document.getElementById('stu-timer-badge');
+                timerBadge.classList.remove('hidden');
+                updateStudentTimerBadge();
+
+                classroomState.timerInterval = setInterval(() => {
+                    classroomState.secondsLeft -= 1;
+                    updateStudentTimerBadge();
+                    if (classroomState.secondsLeft <= 0) {
+                        stopStudentTimer();
+                        submitStudentWork(true);
+                    }
+                }, 1000);
+            } catch (err) {
+                showToast(`Не удалось начать защиту: ${err.message}`, 'warning');
+                if (startBtn) {
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i><span>Перейти к защите (3 вопроса на время)</span>';
+                    lucide.createIcons();
+                }
+            }
         }
 
         function updateStudentTimerBadge() {
@@ -4673,8 +4931,9 @@ print(len(ans))`
             }
         }
 
+        // Отправка работы СТРОГО через Edge Function submit_exam (клиент не считает баллы и не делает INSERT в submissions)
         async function submitStudentWork(isAuto = false, failInfo = null) {
-            if (!sb || !classroomState.studentRoom) return;
+            if (!classroomState.studentRoom) return;
             if (!failInfo && classroomState.examFinished) return;
 
             classroomState.examFinished = true;
@@ -4685,63 +4944,40 @@ print(len(ans))`
             const failReason = failInfo?.failReason || '';
 
             const btn = document.getElementById('stu-submit-final-btn');
-            if (btn) btn.disabled = true;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Серверная проверка и сохранение...</span>';
+                lucide.createIcons();
+            }
 
             const rawName = document.getElementById('stu-name').value.trim();
             const rawGroup = document.getElementById('stu-group').value.trim();
             const rawCode = document.getElementById('stu-code-input').value.trim();
 
-            const student_name = rawName || (isFailed ? 'Без ФИО (покинул вкладку)' : 'Студент');
-            const student_group = rawGroup || '—';
-            const code_content = rawCode || (isFailed ? '(экзамен провален до ввода кода)' : '');
+            // Отправляем на сервер ТОЛЬКО сырые тексты ответов студента (без эталонов и оценок!)
+            const defenseAnswersTextOnly = isFailed
+                ? []
+                : classroomState.studentQuestions.map((_, idx) => (document.getElementById(`stu-ans-${idx}`)?.value || '').trim());
 
-            let defenseScore = 0;
-            let defenseAnswers = [];
-
-            if (isFailed) {
-                defenseScore = 0;
-                defenseAnswers = [{
-                    question: '__EXAM_FAILED__',
-                    answer: failReason || 'Переход на другую вкладку',
-                    passed: false,
-                    failed: true
-                }];
-            } else {
-                defenseAnswers = classroomState.studentQuestions.map((q, idx) => {
-                    const answer = (document.getElementById(`stu-ans-${idx}`)?.value || '').trim();
-                    const lower = answer.toLowerCase();
-                    const matched = (q.keywords || []).filter(k => lower.includes(k.toLowerCase()));
-                    const redFlag = /(не знаю|хз|чатгпт|chatgpt|скопировал|не помню)/i.test(lower);
-                    const passed = !redFlag && answer.length >= 8 && (matched.length >= 1 || answer.length >= 45);
-                    if (passed) defenseScore += 1;
-                    return { question: q.question, answer, passed };
-                });
-            }
-
-            let ai_probability = classroomState.studentReport?.aiProbability ?? 0;
-            if (isFailed && rawCode.length >= 12) {
-                ai_probability = analyzeLocally(rawCode).aiProbability;
-            }
-
-            const telemetryPayload = {
-                examFailed: isFailed,
-                failReason,
-                tabSwitches: studentTelemetry.tabSwitches,
-                pasteBlockedCount: studentTelemetry.pasteBlockedCount,
-                submittedAt: new Date().toISOString()
+            const payload = {
+                action: 'submit_exam',
+                session_id: classroomState.examSessionId || null,
+                room_code: classroomState.studentRoom.room_code,
+                student_name: rawName || (isFailed ? 'Без ФИО (покинул вкладку)' : 'Студент'),
+                student_group: rawGroup || '—',
+                code_content: rawCode,
+                defense_answers: defenseAnswersTextOnly,
+                telemetry: {
+                    tabSwitches: studentTelemetry.tabSwitches,
+                    pasteBlockedCount: studentTelemetry.pasteBlockedCount,
+                    devtoolsAttempts: studentTelemetry.devtoolsAttempts
+                },
+                is_auto: Boolean(isAuto),
+                is_failed: isFailed,
+                fail_reason: failReason
             };
 
-            const basePayload = {
-                assignment_id: classroomState.studentRoom.id,
-                student_name,
-                student_group,
-                code_content,
-                ai_probability,
-                defense_score: defenseScore,
-                defense_answers: defenseAnswers
-            };
-
-            // Показываем экран результата сразу (особенно важно при автопровале)
+            // Переключаем UI на экран результата
             document.getElementById('stu-step-1').classList.add('hidden');
             document.getElementById('stu-step-2').classList.add('hidden');
             document.getElementById('stu-timer-badge').classList.add('hidden');
@@ -4756,47 +4992,59 @@ print(len(ans))`
                 iconBox.innerHTML = '<i data-lucide="alert-octagon" class="w-6 h-6"></i>';
                 titleEl.className = 'text-base font-bold text-rose-600 dark:text-rose-400';
                 titleEl.textContent = 'Экзамен автоматически провален!';
-                summaryEl.textContent = `Причина: ${failReason}. Отметка «ПРОВАЛЕН» автоматически отправлена преподавателю.`;
+                summaryEl.textContent = `Причина: ${failReason}. Отметка «ПРОВАЛЕН» отправлена на сервер преподавателю.`;
                 showToast(`Экзамен провален: ${failReason}`, 'warning');
             } else {
-                iconBox.className = 'w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto';
-                iconBox.innerHTML = '<i data-lucide="check-check" class="w-6 h-6"></i>';
+                iconBox.className = 'w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto';
+                iconBox.innerHTML = '<i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i>';
                 titleEl.className = 'text-base font-bold text-slate-900 dark:text-zinc-50';
-                titleEl.textContent = 'Работа успешно отправлена!';
-                summaryEl.textContent = `${isAuto ? 'Время вышло — работа отправлена автоматически. ' : ''}Балл защиты: ${defenseScore} из ${classroomState.studentQuestions.length}. Преподаватель уже видит вашу работу.`;
+                titleEl.textContent = 'Проверка ответов на сервере...';
+                summaryEl.textContent = 'Подождите секунду, работа фиксируется в базе преподавателя.';
             }
             lucide.createIcons();
 
             try {
-                let { error } = await sb.from('submissions').insert({
-                    ...basePayload,
-                    telemetry: telemetryPayload
+                const resp = await fetch(getSmoothServiceUrl(), {
+                    method: 'POST',
+                    keepalive: isFailed,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify(payload)
                 });
 
-                // Если колонка telemetry еще не добавлена в Supabase — сохраняем без нее,
-                // статус провала все равно сохранится в defense_answers и отобразится у учителя
-                if (error && /telemetry/i.test(error.message || '')) {
-                    const fallback = await sb.from('submissions').insert(basePayload);
-                    error = fallback.error;
+                const resData = await resp.json().catch(() => ({}));
+                if (!resp.ok || !resData?.success) {
+                    throw new Error(resData?.error || `Ошибка сервера (HTTP ${resp.status})`);
                 }
-                if (error) throw error;
+
+                if (!isFailed) {
+                    iconBox.className = 'w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto';
+                    iconBox.innerHTML = '<i data-lucide="check-check" class="w-6 h-6"></i>';
+                    titleEl.className = 'text-base font-bold text-slate-900 dark:text-zinc-50';
+                    titleEl.textContent = 'Работа успешно отправлена!';
+                    summaryEl.textContent = `${isAuto ? 'Время вышло — работа отправлена автоматически. ' : ''}Серверная оценка защиты: ${resData.defense_score} из ${resData.total_questions}. Преподаватель уже видит вашу работу.`;
+                    lucide.createIcons();
+                }
             } catch (err) {
-                showToast(`Ошибка отправки в базу: ${err.message}`, 'warning');
+                if (!isFailed) {
+                    iconBox.className = 'w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto';
+                    iconBox.innerHTML = '<i data-lucide="alert-triangle" class="w-6 h-6"></i>';
+                    titleEl.textContent = 'Ошибка отправки работы';
+                    summaryEl.textContent = err.message;
+                    lucide.createIcons();
+                }
+                showToast(`Ошибка отправки на сервер: ${err.message}`, 'warning');
             } finally {
                 if (btn) btn.disabled = false;
             }
         }
 
-        // Автооткрытие модалки сдачи при параметре ?room=КОД в URL и навешивание защиты на поле ввода
         window.addEventListener('DOMContentLoaded', () => {
             lockManualInputOnly(document.getElementById('stu-code-input'));
-
-            const params = new URLSearchParams(window.location.search);
-            const roomCode = params.get('room');
-            if (roomCode) {
-                setTimeout(() => openStudentSubmitModal(roomCode), 250);
-            }
         });
+
     </script>
 </body>
 </html>
