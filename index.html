@@ -5079,8 +5079,47 @@ print(len(ans))`
             lockManualInputOnly(document.getElementById('stu-code-input'));
         });
 
+     // =========================================================================
+        // 16. АДМИН-ПАНЕЛЬ УПРАВЛЕНИЯ ПОЛЬЗОВАТЕЛЯМИ И ТОКЕНАМИ
         // =========================================================================
-      function renderAdminUsersTable() {
+        let adminUsersCache = [];
+
+        const _prevOpenAccountEntry = openAccountEntry;
+        openAccountEntry = async function() {
+            await _prevOpenAccountEntry();
+            if (!currentUser) return;
+
+            const isAdmin = Boolean(currentProfile?.is_admin);
+            const adminSection = document.getElementById('cab-admin-section');
+            const modalBox = document.querySelector('#cabinet-modal > div');
+
+            if (adminSection) adminSection.classList.toggle('hidden', !isAdmin);
+            if (isAdmin && modalBox) {
+                modalBox.classList.remove('max-w-md', 'max-w-2xl');
+                modalBox.classList.add('max-w-4xl');
+                await loadAdminUsers();
+            }
+            lucide.createIcons();
+        };
+
+        async function loadAdminUsers() {
+            if (!sb || !currentProfile?.is_admin) return;
+            const tbody = document.getElementById('admin-users-tbody');
+            if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">Загрузка списка...</td></tr>`;
+
+            const { data, error } = await sb.rpc('admin_get_users');
+            if (error) {
+                if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-rose-600">${escapeHtml(error.message)}</td></tr>`;
+                return;
+            }
+
+            adminUsersCache = data || [];
+            const countEl = document.getElementById('admin-users-count');
+            if (countEl) countEl.textContent = `${adminUsersCache.length} польз.`;
+            renderAdminUsersTable();
+        }
+
+        function renderAdminUsersTable() {
             const tbody = document.getElementById('admin-users-tbody');
             if (!tbody) return;
 
