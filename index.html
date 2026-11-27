@@ -2471,152 +2471,28 @@ print(len(ans))`
             };
         }
 
-function computeWeightedStats(segments) {
+        function computeWeightedStats(segments) {
             if (!segments || !segments.length) return { aiProbability: 50, distribution: { ai: 0, mixed: 100, human: 0 } };
             let totalChars = 0, weightedScoreSum = 0, aiChars = 0, mixedChars = 0, humanChars = 0;
-            let hasStrongAiSeg = false;
-            let hasStrongHumanSeg = false;
-
             for (const s of segments) {
                 const len = Math.max(10, (s.text || '').length);
                 const sc = Math.max(1, Math.min(99, Number(s.score) || 50));
-                s.score = sc;
-                s.status = classifyScore(sc);
-                if (sc >= 72) hasStrongAiSeg = true;
-                if (sc <= 28) hasStrongHumanSeg = true;
-
-                totalChars += len;
-                weightedScoreSum += sc * len;
+                s.score = sc; s.status = classifyScore(sc);
+                totalChars += len; weightedScoreSum += sc * len;
                 if (s.status === 'ai') aiChars += len;
                 else if (s.status === 'mixed') mixedChars += len;
                 else humanChars += len;
             }
-
             const aiPct = Math.round((aiChars / totalChars) * 100);
             const humanPct = Math.round((humanChars / totalChars) * 100);
             let mixedPct = Math.max(0, 100 - aiPct - humanPct);
             const fixedAi = aiPct + humanPct + mixedPct !== 100 ? Math.max(0, 100 - humanPct - mixedPct) : aiPct;
-
-            let avgScore = Math.max(1, Math.min(99, Math.round(weightedScoreSum / totalChars)));
-
-            // Балансировка гибридов: если в одном файле соседствуют явный ИИ-блок и явный ручной блок
-            if (hasStrongAiSeg && hasStrongHumanSeg && humanChars >= 35 && aiChars >= 60) {
-                avgScore = Math.max(44, Math.min(60, Math.round(avgScore * 0.72 + 14)));
-            }
-
-            return { aiProbability: avgScore, distribution: { ai: fixedAi, mixed: mixedPct, human: humanPct } };
+            return { aiProbability: Math.max(1, Math.min(99, Math.round(weightedScoreSum / totalChars))), distribution: { ai: fixedAi, mixed: mixedPct, human: humanPct } };
         }
 
         function reconcileExternalReport(llmData, originalText) {
             const local = analyzeLocally(originalText);
             const merged = { ...local, ...llmData };
-            if (Array.isArray(llmData.segments) && llmData.segments.length > 0) {
-                merged.segments = llmData.segments.map(s => {
-                    const sc = typeof s.score === 'number' ? s.score : (s.status === 'ai' ? 86 : (s.status === 'human' ? 16 : 50));
-                    return { text: s.text || '', score: Math.max(1, Math.min(99, Math.round(sc))), status: classifyScore(sc), reason: s.reason || 'Оценка облачной модели' };
-                }).filter(s => s.text.trim().length > 0);
-            } else {
-                merged.segments = local.segments;
-            }
-
-            const stats = computeWeightedStats(merged.segments);
-            const rawCloudScore = Number(llmData.aiProbability);
-            const cloudScore = Number.isFinite(rawCloudScore)
-                ? Math.max(1, Math.min(99, Math.round(rawCloudScore)))
-                : stats.aiProbability;
-            const localScore = local.aiProbability;
-
-            const origInfo = detectContentType(originalText);
-            const textErrCheck = origInfo.isCode ? { penalty: 0, signals: [], count: 0 } : inspectHumanTextErrors(originalText);
-            const hasStrongHumanErrors = !origInfo.isCode && textErrCheck.count >= 2;
-
-            // Сигналы кода для защиты от перекосов LLM
-            const codeInf = origInfo.isCode ? detectInformaticsHumanSignals(originalText) : { isStrongCompetitive: false };
-            const codeOps = origInfo.isCode ? inspectOperatorSpacing(originalText) : { slitkiCount: 0 };
-            const isCompetitiveHumanCode = origInfo.isCode && codeInf.isStrongCompetitive && codeOps.slitkiCount >= 2;
-            const isStrongAcademicAiCode = origInfo.isCode && localScore >= 85 && codeOps.slitkiCount === 0 && !codeInf.isStrongCompetitive;
-
-            // Гибрид: при сильном расхождении усиливаем вес локальной стилометрии Core v5
-            const strongConflict = Math.abs(localScore - cloudScore) >= 30;
-            const cloudWeight = strongConflict ? 0.45 : 0.70;
-            let finalScore = Math.max(3, Math.min(98, Math.round(cloudScore * cloudWeight + localScore * (1 - cloudWeight))));
-
-            let calibrationTag = `[Гибрид: Облако ${cloudScore}% + Core v5 ${localScore}% → ${finalScore}%]`;
-
-            // 1. Вето по живым ошибкам в русском тексте (Тест 1)
-            if (hasStrongHumanErrors) {
-                const humanCap = textErrCheck.count >= 3 ? 12 : 22;
-                finalScore = Math.min(finalScore, humanCap);
-                merged.segments = merged.segments.map(s => {
-                    const segCap = Math.min(s.score, humanCap + 6);
-                    return { ...s, score: segCap, status: classifyScore(segCap) };
-                });
-                merged.distribution = computeWeightedStats(merged.segments).distribution;
-                calibrationTag = `[Вето по живым ошибкам автора: ${textErrCheck.signals.slice(0, 2).join('; ')} → ${finalScore}%]`;
-            }
-            // 2. Вето по олимпиадному коду со «слитками» (Тест 3)
-            else if (isCompetitiveHumanCode) {
-                finalScore = Math.min(finalScore, 20);
-                merged.segments = merged.segments.map(s => {
-                    const segCap = Math.min(s.score, 24);
-                    return { ...s, score: segCap, status: classifyScore(segCap) };
-                });
-                merged.distribution = computeWeightedStats(merged.segments).distribution;
-                calibrationTag = `[Калибровка олимпиадного кода: слитки + короткие переменные → ${finalScore}%]`;
-            }
-            // 3. Нижний порог для стерильного учебного кода ИИ с Type Hints и docstring (Тест 4)
-            else if (isStrongAcademicAiCode) {
-                finalScore = Math.max(finalScore, 84);
-                merged.segments = merged.segments.map(s => {
-                    const segFloor = Math.max(s.score, 82);
-                    return { ...s, score: segFloor, status: classifyScore(segFloor) };
-                });
-                merged.distribution = computeWeightedStats(merged.segments).distribution;
-                calibrationTag = `[Калибровка академического кода ИИ: Type Hints + Docstring → ${finalScore}%]`;
-            }
-            // 4. Гибридный код/текст с контрастными сегментами (Тест 5)
-            else if (stats.aiProbability >= 44 && stats.aiProbability <= 60 && Math.abs(localScore - cloudScore) >= 25) {
-                finalScore = stats.aiProbability;
-                merged.distribution = stats.distribution;
-                calibrationTag = `[Баланс гибрида (ИИ + ручные правки) → ${finalScore}%]`;
-            } else {
-                merged.distribution = stats.distribution;
-            }
-
-            merged.aiProbability = finalScore;
-            merged.verdictTitle = finalScore >= 65
-                ? 'Высокая вероятность ИИ'
-                : (finalScore <= 35 ? 'Написано человеком' : 'Смешанное авторство');
-
-            const baseSummary = String(merged.verdictSummary || local.verdictSummary || '').trim();
-            const hasTag = /^\[(Гибрид|Вето|Калибровка|Баланс)/.test(baseSummary);
-            merged.verdictSummary = hasTag ? baseSummary : `${calibrationTag} ${baseSummary}`;
-
-            if (!Array.isArray(merged.xaiFactors) || merged.xaiFactors.length < 4) {
-                merged.xaiFactors = local.xaiFactors;
-            } else {
-                merged.xaiFactors = merged.xaiFactors.slice(0, 4).map((f, idx) => {
-                    const cVal = Number(f?.score);
-                    const lVal = local.xaiFactors[idx]?.score ?? finalScore;
-                    let blendedFactor = Number.isFinite(cVal)
-                        ? Math.max(3, Math.min(98, Math.round(cVal * 0.70 + lVal * 0.30)))
-                        : lVal;
-                    if (hasStrongHumanErrors || isCompetitiveHumanCode) {
-                        blendedFactor = Math.min(blendedFactor, 20);
-                    } else if (isStrongAcademicAiCode) {
-                        blendedFactor = Math.max(blendedFactor, 82);
-                    }
-                    return { label: f?.label || local.xaiFactors[idx]?.label || 'Фактор', score: blendedFactor };
-                });
-            }
-
-            if (!merged.formatting || !Array.isArray(merged.formatting.metrics) || !merged.formatting.metrics.length) merged.formatting = local.formatting;
-            if (!merged.commentForensics) merged.commentForensics = local.commentForensics;
-            if (!Array.isArray(merged.lexicalMarkers) || !merged.lexicalMarkers.length) merged.lexicalMarkers = local.lexicalMarkers;
-            if (!Array.isArray(merged.reverseQA) || !merged.reverseQA.length) merged.reverseQA = local.reverseQA;
-            if (!Array.isArray(merged.defenseQuestions) || !merged.defenseQuestions.length) merged.defenseQuestions = local.defenseQuestions;
-            return merged;
-        }
             if (Array.isArray(llmData.segments) && llmData.segments.length > 0) {
                 merged.segments = llmData.segments.map(s => {
                     const sc = typeof s.score === 'number' ? s.score : (s.status === 'ai' ? 86 : (s.status === 'human' ? 16 : 50));
