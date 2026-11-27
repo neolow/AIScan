@@ -5140,7 +5140,7 @@ print(len(ans))`
             tbody.innerHTML = filtered.map(u => {
                 const isTeacher = u.role === 'Преподаватель';
                 const nextRole = isTeacher ? 'Студент' : 'Преподаватель';
-                const isSuperAdmin = (u.email || '').toLowerCase() === 'bazarbayzasulan@gmail.com';
+                const isSuperAdmin = Boolean(u.is_super_admin);
                 const isTargetAdmin = Boolean(u.is_admin);
 
                 const roleBadge = isTeacher
