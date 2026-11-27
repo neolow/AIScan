@@ -912,6 +912,12 @@
                             </select>
                             <button type="submit" id="room-create-btn" class="sm:col-span-2 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition">Создать</button>
                         </div>
+                        <div>
+                            <label for="room-create-task" class="block text-[11px] font-medium text-slate-500 dark:text-zinc-400 mb-1">
+                                Условие задачи или тема эссе <span class="text-slate-400 dark:text-zinc-500">(необязательно)</span>
+                            </label>
+                            <textarea id="room-create-task" rows="3" placeholder="Опишите условие задачи, входные/выходные данные или тему эссе, которую увидит ученик после ввода кода комнаты..." class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-panel text-xs text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none focus:border-indigo-500 resize-y"></textarea>
+                        </div>
                     </form>
 
                     <!-- Список комнат -->
@@ -1009,14 +1015,14 @@
             </div>
 
             <div class="p-6 overflow-y-auto space-y-4 text-xs">
-          <!-- ШАГ 1: Код комнаты, ФИО, группа и код решения -->
+                <!-- ШАГ 1: Код комнаты (сначала только он), затем задание, ФИО, группа и поле решения -->
                 <div id="stu-step-1" class="space-y-3.5">
                     <div class="flex items-end gap-2">
                         <div class="flex-1">
-                            <label class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Код комнаты (6 символов)</label>
-                            <input id="stu-room-code" type="text" maxlength="10" placeholder="Например: K7M92P" class="w-full px-3 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg font-mono uppercase tracking-wider text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                            <label for="stu-room-code" class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Код комнаты (6 символов)</label>
+                            <input id="stu-room-code" type="text" maxlength="10" onkeydown="if(event.key==='Enter'){event.preventDefault();verifyStudentRoomCode();}" placeholder="Например: K7M92P" class="w-full px-3 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg font-mono uppercase tracking-wider text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
                         </div>
-                        <button type="button" onclick="verifyStudentRoomCode()" id="stu-check-room-btn" class="px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-semibold shrink-0 transition">Проверить код</button>
+                        <button type="button" onclick="verifyStudentRoomCode()" id="stu-check-room-btn" class="px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-zinc-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-zinc-900 font-semibold shrink-0 transition">Проверить код</button>
                     </div>
 
                     <div id="stu-room-info" class="hidden p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-200 flex items-center justify-between gap-2">
@@ -1029,29 +1035,41 @@
                         <span><strong>Режим экзамена активен:</strong> вставка текста полностью отключена — только ручной набор. Переход на другую вкладку, страницу или окно <strong>автоматически провалит экзамен</strong> и отправит отметку преподавателю.</span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">ФИО студента</label>
-                            <input id="stu-name" type="text" placeholder="Иванов Иван" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                    <!-- Блок открывается ТОЛЬКО после успешной проверки кода комнаты -->
+                    <div id="stu-work-area" class="hidden space-y-3.5">
+                        <!-- Карточка задания от преподавателя (показывается, если заполнено task_description) -->
+                        <div id="stu-task-card" class="hidden p-3.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 space-y-1.5">
+                            <div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+                                <i data-lucide="book-open" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span>Задание от преподавателя</span>
+                            </div>
+                            <div id="stu-task-text" class="text-xs text-slate-800 dark:text-zinc-100 leading-relaxed whitespace-pre-wrap break-words max-h-48 overflow-y-auto pr-1"></div>
                         </div>
-                        <div>
-                            <label class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Группа / Класс</label>
-                            <input id="stu-group" type="text" placeholder="ИС-21 или 10А" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
-                        </div>
-                    </div>
 
-                    <div>
-                        <div class="flex items-center justify-between gap-2 mb-1">
-                            <label class="font-semibold text-slate-700 dark:text-zinc-300">Ваш код или текст работы</label>
-                            <span class="text-[10px] font-semibold text-rose-600 dark:text-rose-400">Только ручной ввод (вставка заблокирована)</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label for="stu-name" class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">ФИО студента</label>
+                                <input id="stu-name" type="text" placeholder="Иванов Иван" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="stu-group" class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Группа / Класс</label>
+                                <input id="stu-group" type="text" placeholder="ИС-21 или 10А" class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                            </div>
                         </div>
-                        <textarea id="stu-code-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Пишите решение вручную (Ctrl+V, правая кнопка и перетаскивание отключены)..." class="w-full h-44 p-3 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg font-mono text-xs text-slate-800 dark:text-zinc-100 outline-none focus:border-indigo-500 resize-y"></textarea>
-                    </div>
 
-                    <button type="button" onclick="startStudentDefense()" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm flex items-center justify-center gap-2 transition">
-                        <i data-lucide="play" class="w-4 h-4"></i>
-                        <span>Перейти к защите (3 вопроса на время)</span>
-                    </button>
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <label for="stu-code-input" class="font-semibold text-slate-700 dark:text-zinc-300">Ваш код или текст работы</label>
+                                <span class="text-[10px] font-semibold text-rose-600 dark:text-rose-400">Только ручной ввод (вставка заблокирована)</span>
+                            </div>
+                            <textarea id="stu-code-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Пишите решение вручную (Ctrl+V, правая кнопка и перетаскивание отключены)..." class="w-full h-44 p-3 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg font-mono text-xs text-slate-800 dark:text-zinc-100 outline-none focus:border-indigo-500 resize-y"></textarea>
+                        </div>
+
+                        <button type="button" onclick="startStudentDefense()" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm flex items-center justify-center gap-2 transition">
+                            <i data-lucide="play" class="w-4 h-4"></i>
+                            <span>Перейти к защите (3 вопроса на время)</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- ШАГ 2: Защита (3 вопроса без эталонного ответа + таймер) -->
@@ -3648,7 +3666,10 @@ print(len(ans))`
             e.preventDefault();
             if (!sb || !currentUser) return showToast('Войдите в аккаунт преподавателя', 'warning');
 
-            const title = document.getElementById('room-create-title').value.trim();
+            const titleEl = document.getElementById('room-create-title');
+            const taskEl = document.getElementById('room-create-task');
+            const title = titleEl.value.trim();
+            const taskDescription = (taskEl?.value || '').trim();
             const timeLimit = parseInt(document.getElementById('room-create-timer').value, 10) || 3;
             const btn = document.getElementById('room-create-btn');
             if (!title) return;
@@ -3660,11 +3681,13 @@ print(len(ans))`
                     teacher_id: currentUser.id,
                     title,
                     room_code,
-                    time_limit_minutes: timeLimit
+                    time_limit_minutes: timeLimit,
+                    task_description: taskDescription || null
                 });
                 if (error) throw error;
 
-                document.getElementById('room-create-title').value = '';
+                titleEl.value = '';
+                if (taskEl) taskEl.value = '';
                 showToast(`Комната создана! Код: ${room_code}`, 'success');
                 await loadTeacherRooms();
             } catch (err) {
@@ -3698,11 +3721,14 @@ print(len(ans))`
                 const activeCls = classroomState.activeRoomId === r.id
                     ? 'border-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/10'
                     : 'border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg';
+                const rawTask = (r.task_description || '').trim();
+                const taskPreview = rawTask.length > 140 ? rawTask.slice(0, 140) + '…' : rawTask;
                 return `
-                    <div class="p-2.5 rounded-xl border ${activeCls} flex flex-wrap items-center justify-between gap-2">
+                    <div class="p-2.5 rounded-xl border ${activeCls} flex flex-wrap items-start justify-between gap-2">
                         <div class="min-w-0 cursor-pointer flex-1" onclick="loadRoomSubmissions('${r.id}', '${escapeHtml(r.title)}', '${escapeHtml(r.room_code)}')">
                             <div class="font-semibold text-slate-900 dark:text-zinc-100 truncate">${escapeHtml(r.title)}</div>
                             <div class="text-[10px] text-slate-500 dark:text-zinc-400 font-mono">Код: <strong class="text-indigo-600 dark:text-indigo-400">${escapeHtml(r.room_code)}</strong> • ${r.time_limit_minutes || 3} мин</div>
+                            ${taskPreview ? `<div class="mt-1.5 text-[11px] text-slate-600 dark:text-zinc-300 bg-slate-50 dark:bg-obsidian-panel/70 border border-slate-200/70 dark:border-obsidian-border rounded-lg px-2 py-1 leading-snug"><span class="font-semibold text-indigo-600 dark:text-indigo-400">Задание:</span> ${escapeHtml(taskPreview)}</div>` : ''}
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
                             <button type="button" onclick="copyRoomLink('${escapeHtml(r.room_code)}')" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-obsidian-panel hover:bg-slate-200 dark:hover:bg-zinc-800 text-[11px] font-semibold text-slate-700 dark:text-zinc-200 flex items-center gap-1 transition" title="Копировать ссылку ?room=${escapeHtml(r.room_code)}">
@@ -3803,13 +3829,15 @@ print(len(ans))`
         }
 
         // --- РЕЖИМ СДАЧИ СТУДЕНТОМ ---
-        function openStudentSubmitModal(prefillCode = '') {
+        function resetStudentSessionUI({ preserveRoomCodeInput = false } = {}) {
             stopStudentTimer();
             disarmExamAntiLeave();
+
             studentTelemetry = createEmptyTelemetry();
             classroomState.studentRoom = null;
             classroomState.studentQuestions = [];
             classroomState.studentReport = null;
+            classroomState.secondsLeft = 0;
             classroomState.examFinished = false;
 
             const codeEl = document.getElementById('stu-code-input');
@@ -3819,64 +3847,141 @@ print(len(ans))`
                 lockManualInputOnly(codeEl);
             }
 
-            document.getElementById('stu-step-1').classList.remove('hidden');
-            document.getElementById('stu-step-2').classList.add('hidden');
-            document.getElementById('stu-step-3').classList.add('hidden');
-            document.getElementById('stu-timer-badge').classList.add('hidden');
-            document.getElementById('stu-room-info').classList.add('hidden');
+            const nameEl = document.getElementById('stu-name');
+            const groupEl = document.getElementById('stu-group');
+            if (nameEl) nameEl.value = '';
+            if (groupEl) groupEl.value = '';
+
+            if (!preserveRoomCodeInput) {
+                const roomInput = document.getElementById('stu-room-code');
+                if (roomInput) roomInput.value = '';
+            }
+
+            const qContainer = document.getElementById('stu-questions-container');
+            if (qContainer) qContainer.innerHTML = '';
+
+            const taskText = document.getElementById('stu-task-text');
+            if (taskText) taskText.textContent = '';
+
+            const summaryEl = document.getElementById('stu-result-summary');
+            if (summaryEl) summaryEl.textContent = '';
+
+            const submitFinalBtn = document.getElementById('stu-submit-final-btn');
+            if (submitFinalBtn) submitFinalBtn.disabled = false;
+
+            document.getElementById('stu-step-1')?.classList.remove('hidden');
+            document.getElementById('stu-step-2')?.classList.add('hidden');
+            document.getElementById('stu-step-3')?.classList.add('hidden');
+            document.getElementById('stu-work-area')?.classList.add('hidden');
+            document.getElementById('stu-task-card')?.classList.add('hidden');
+            document.getElementById('stu-room-info')?.classList.add('hidden');
             document.getElementById('stu-anticheat-banner')?.classList.add('hidden');
-            document.getElementById('stu-modal-title').textContent = 'Сдача работы по коду комнаты';
-            document.getElementById('stu-modal-subtitle').textContent = 'Введите 6-значный код от преподавателя';
+            document.getElementById('stu-timer-badge')?.classList.add('hidden');
+
+            const titleEl = document.getElementById('stu-modal-title');
+            const subtitleEl = document.getElementById('stu-modal-subtitle');
+            if (titleEl) titleEl.textContent = 'Сдача работы по коду комнаты';
+            if (subtitleEl) subtitleEl.textContent = 'Введите 6-значный код от преподавателя';
+        }
+
+        function openStudentSubmitModal(prefillCode = '') {
+            resetStudentSessionUI({ preserveRoomCodeInput: false });
 
             const codeInput = document.getElementById('stu-room-code');
-            codeInput.value = prefillCode ? prefillCode.toUpperCase() : '';
+            if (codeInput) {
+                codeInput.value = prefillCode ? prefillCode.toUpperCase() : '';
+            }
+
             document.getElementById('student-submit-modal').classList.remove('hidden');
             lucide.createIcons();
 
-            if (prefillCode) verifyStudentRoomCode();
+            if (prefillCode) {
+                verifyStudentRoomCode();
+            } else if (codeInput) {
+                codeInput.focus();
+            }
         }
 
         function closeStudentSubmitModal() {
-            stopStudentTimer();
-            disarmExamAntiLeave();
+            resetStudentSessionUI({ preserveRoomCodeInput: false });
             document.getElementById('student-submit-modal').classList.add('hidden');
         }
 
         async function verifyStudentRoomCode() {
             if (!sb) return showToast('Supabase не подключен', 'warning');
-            const code = document.getElementById('stu-room-code').value.trim().toUpperCase();
-            if (code.length < 4) return showToast('Введите код комнаты', 'warning');
 
-            const { data, error } = await sb
-                .from('assignments')
-                .select('*')
-                .eq('room_code', code)
-                .maybeSingle();
+            const codeInput = document.getElementById('stu-room-code');
+            const checkBtn = document.getElementById('stu-check-room-btn');
+            const code = (codeInput?.value || '').trim().toUpperCase();
+            if (codeInput) codeInput.value = code;
 
-            if (error || !data) {
-                classroomState.studentRoom = null;
-                disarmExamAntiLeave();
-                document.getElementById('stu-room-info').classList.add('hidden');
-                document.getElementById('stu-anticheat-banner')?.classList.add('hidden');
-                return showToast('Комната с таким кодом не найдена', 'warning');
+            // Всегда выполняем полный сброс перед проверкой нового кода
+            resetStudentSessionUI({ preserveRoomCodeInput: true });
+
+            if (code.length < 4) {
+                return showToast('Введите код комнаты', 'warning');
             }
 
-            classroomState.studentRoom = data;
-            document.getElementById('stu-room-info').classList.remove('hidden');
-            document.getElementById('stu-room-info-text').textContent = `Комната: ${data.title}`;
-            document.getElementById('stu-room-time-text').textContent = `Таймер: ${data.time_limit_minutes || 3} мин`;
-            document.getElementById('stu-modal-title').textContent = data.title;
-            document.getElementById('stu-modal-subtitle').textContent = `Код комнаты: ${data.room_code}`;
+            if (checkBtn) {
+                checkBtn.disabled = true;
+                checkBtn.textContent = 'Проверка...';
+            }
 
-            // Активируем защиту от ухода со вкладки сразу после входа в комнату
-            armExamAntiLeave();
+            try {
+                const { data, error } = await sb
+                    .from('assignments')
+                    .select('*')
+                    .eq('room_code', code)
+                    .maybeSingle();
+
+                if (error || !data) {
+                    return showToast('Комната с таким кодом не найдена', 'warning');
+                }
+
+                classroomState.studentRoom = data;
+
+                // Показываем шапку и информацию о комнате
+                document.getElementById('stu-room-info').classList.remove('hidden');
+                document.getElementById('stu-room-info-text').textContent = `Комната: ${data.title}`;
+                document.getElementById('stu-room-time-text').textContent = `Таймер: ${data.time_limit_minutes || 3} мин`;
+                document.getElementById('stu-modal-title').textContent = data.title;
+                document.getElementById('stu-modal-subtitle').textContent = `Код комнаты: ${data.room_code}`;
+
+                // Показываем карточку задания, если преподаватель его указал
+                const taskDesc = (data.task_description || '').trim();
+                const taskCard = document.getElementById('stu-task-card');
+                const taskText = document.getElementById('stu-task-text');
+                if (taskDesc && taskCard && taskText) {
+                    taskText.textContent = taskDesc;
+                    taskCard.classList.remove('hidden');
+                } else if (taskCard) {
+                    taskCard.classList.add('hidden');
+                }
+
+                // Гарантируем чистое поле решения с блокировкой вставки и открываем форму
+                const codeEl = document.getElementById('stu-code-input');
+                if (codeEl) {
+                    codeEl.value = '';
+                    codeEl.dataset.lastValidValue = '';
+                    lockManualInputOnly(codeEl);
+                }
+                document.getElementById('stu-work-area')?.classList.remove('hidden');
+
+                // Активируем защиту от ухода со вкладки сразу после входа в комнату
+                armExamAntiLeave();
+                lucide.createIcons();
+            } finally {
+                if (checkBtn) {
+                    checkBtn.disabled = false;
+                    checkBtn.textContent = 'Проверить код';
+                }
+            }
         }
 
         async function startStudentDefense() {
             if (classroomState.examFinished) return;
             if (!classroomState.studentRoom) {
-                await verifyStudentRoomCode();
-                if (!classroomState.studentRoom) return;
+                return showToast('Сначала введите и проверьте код комнаты', 'warning');
             }
             const name = document.getElementById('stu-name').value.trim();
             const group = document.getElementById('stu-group').value.trim();
