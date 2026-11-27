@@ -918,6 +918,28 @@
                             </label>
                             <textarea id="room-create-task" rows="3" placeholder="Опишите условие задачи, входные/выходные данные или тему эссе, которую увидит ученик после ввода кода комнаты..." class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-panel text-xs text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none focus:border-indigo-500 resize-y"></textarea>
                         </div>
+                        <div class="space-y-2">
+                            <input id="room-create-photo" type="file" accept="image/*" class="hidden" onchange="handleRoomTaskPhotoChange(event)">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <button type="button" onclick="document.getElementById('room-create-photo').click()" class="px-3 py-1.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50 dark:bg-obsidian-panel hover:bg-slate-100 dark:hover:bg-zinc-800 text-[11px] font-semibold text-slate-700 dark:text-zinc-200 flex items-center gap-1.5 transition">
+                                    <i data-lucide="image-plus" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400"></i>
+                                    <span>Прикрепить фото задания</span>
+                                </button>
+                                <span class="text-[10px] text-slate-400 dark:text-zinc-500">PNG/JPG/WEBP или Ctrl+V скриншот</span>
+                            </div>
+                            <div id="room-create-photo-preview-wrap" class="hidden p-2 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border flex items-center justify-between gap-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <img id="room-create-photo-preview" src="" alt="Фото задания" onclick="openTaskImageLightbox(this.src)" class="w-12 h-12 rounded-lg object-cover border border-[#E2E8F0] dark:border-zinc-700 cursor-zoom-in shrink-0">
+                                    <div class="min-w-0">
+                                        <div class="text-[11px] font-semibold text-slate-800 dark:text-zinc-100 truncate">Фото задания прикреплено</div>
+                                        <div id="room-create-photo-info" class="text-[10px] text-slate-500 dark:text-zinc-400 truncate">Готово к отправке</div>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="clearRoomTaskPhoto()" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition shrink-0" title="Удалить фото">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
                     </form>
 
                     <!-- Список комнат -->
@@ -1037,13 +1059,20 @@
 
                     <!-- Блок открывается ТОЛЬКО после успешной проверки кода комнаты -->
                     <div id="stu-work-area" class="hidden space-y-3.5">
-                        <!-- Карточка задания от преподавателя (показывается, если заполнено task_description) -->
-                        <div id="stu-task-card" class="hidden p-3.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 space-y-1.5">
+                        <!-- Карточка задания от преподавателя (показывается, если есть текст или фото задания) -->
+                        <div id="stu-task-card" class="hidden p-3.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 space-y-2.5">
                             <div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
                                 <i data-lucide="book-open" class="w-3.5 h-3.5 shrink-0"></i>
                                 <span>Задание от преподавателя</span>
                             </div>
-                            <div id="stu-task-text" class="text-xs text-slate-800 dark:text-zinc-100 leading-relaxed whitespace-pre-wrap break-words max-h-48 overflow-y-auto pr-1"></div>
+                            <div id="stu-task-text" class="hidden text-xs text-slate-800 dark:text-zinc-100 leading-relaxed whitespace-pre-wrap break-words max-h-48 overflow-y-auto pr-1"></div>
+                            <div id="stu-task-image-wrap" class="hidden space-y-1.5">
+                                <img id="stu-task-image" src="" alt="Фото задания от преподавателя" onclick="openTaskImageLightbox(this.src)" class="w-full max-h-64 object-contain rounded-xl border border-indigo-200/80 dark:border-indigo-500/30 bg-white dark:bg-obsidian-bg cursor-zoom-in">
+                                <div class="text-[10px] text-indigo-600/80 dark:text-indigo-300/80 flex items-center gap-1">
+                                    <i data-lucide="zoom-in" class="w-3 h-3 shrink-0"></i>
+                                    <span>Нажмите на фото, чтобы открыть крупнее (вкладка не закроется)</span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1094,6 +1123,16 @@
                     <button type="button" onclick="closeStudentSubmitModal()" class="px-5 py-2 rounded-xl bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-semibold transition">Закрыть</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- ЛАЙТБОКС ДЛЯ УВЕЛИЧЕНИЯ ФОТО ЗАДАНИЯ (ВНУТРИ СТРАНИЦЫ, БЕЗ СРАБАТЫВАНИЯ АНТИЧИТА) -->
+    <div id="task-image-lightbox" onclick="if(event.target===this) closeTaskImageLightbox()" class="fixed inset-0 z-[60] hidden bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="relative max-w-4xl w-full flex flex-col items-center gap-3">
+            <button type="button" onclick="closeTaskImageLightbox()" class="self-end px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+                <i data-lucide="x" class="w-4 h-4"></i> Закрыть
+            </button>
+            <img id="task-image-lightbox-img" src="" alt="Увеличенное фото задания" class="max-h-[82vh] max-w-full rounded-2xl border border-white/15 shadow-2xl object-contain bg-white dark:bg-obsidian-card">
         </div>
     </div>
     <!-- =====================================================================
@@ -1539,10 +1578,24 @@ print(len(ans))`
             window.addEventListener('paste', e => {
                 const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
                 if (!items) return;
+
+                // Не перехватываем вставку фото в OCR во время экзамена студента
+                const studentModalOpen = !document.getElementById('student-submit-modal')?.classList.contains('hidden');
+                if (studentModalOpen) return;
+
+                // Если открыт кабинет преподавателя — прикрепляем вставленный скриншот к заданию комнаты
+                const cabinetOpen = !document.getElementById('cabinet-modal')?.classList.contains('hidden');
+                const teacherVisible = !document.getElementById('cab-teacher-section')?.classList.contains('hidden');
+
                 for (const item of items) {
                     if (item.type && item.type.startsWith('image/')) {
                         const file = item.getAsFile();
                         if (file) {
+                            if (cabinetOpen && teacherVisible) {
+                                e.preventDefault();
+                                attachRoomTaskPhotoFile(file);
+                                return;
+                            }
                             switchInputTab('ocr');
                             processImageOCR(file, `Скриншот_${new Date().toLocaleTimeString('ru-RU').replace(/:/g, '-')}.png`);
                         }
@@ -3486,6 +3539,7 @@ print(len(ans))`
             teacherRooms: [],
             activeRoomId: null,
             activeSubmissions: [],
+            draftTaskImage: null,
             studentRoom: null,
             studentQuestions: [],
             studentReport: null,
@@ -3662,6 +3716,73 @@ print(len(ans))`
             return code;
         }
 
+        function openTaskImageLightbox(src) {
+            if (!src) return;
+            const modal = document.getElementById('task-image-lightbox');
+            const img = document.getElementById('task-image-lightbox-img');
+            if (!modal || !img) return;
+            img.src = src;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeTaskImageLightbox() {
+            const modal = document.getElementById('task-image-lightbox');
+            const img = document.getElementById('task-image-lightbox-img');
+            if (modal) modal.classList.add('hidden');
+            if (img) img.src = '';
+        }
+
+        function openTeacherRoomPhoto(e, idx) {
+            if (e) e.stopPropagation();
+            const room = classroomState.teacherRooms[idx];
+            if (room?.task_image_url) {
+                openTaskImageLightbox(room.task_image_url);
+            }
+        }
+
+        async function attachRoomTaskPhotoFile(file) {
+            if (!file) return;
+            if (!file.type || !file.type.startsWith('image/')) {
+                return showToast('Выберите изображение (PNG, JPG, WEBP)', 'warning');
+            }
+            try {
+                // Сжимаем фото до 1280px (JPEG 0.78), чтобы оно быстро загружалось и не перегружало БД
+                const dataUrl = await compressImageToDataUrl(file, 1280, 0.78);
+                classroomState.draftTaskImage = dataUrl;
+
+                const wrap = document.getElementById('room-create-photo-preview-wrap');
+                const img = document.getElementById('room-create-photo-preview');
+                const info = document.getElementById('room-create-photo-info');
+                if (img) img.src = dataUrl;
+                if (info) {
+                    const approxKb = Math.max(1, Math.round((dataUrl.length * 0.75) / 1024));
+                    info.textContent = `${file.name || 'Скриншот'} • ~${approxKb} KB`;
+                }
+                if (wrap) wrap.classList.remove('hidden');
+                lucide.createIcons();
+                showToast('Фото задания прикреплено', 'success');
+            } catch (err) {
+                showToast(`Не удалось обработать фото: ${err.message}`, 'warning');
+            }
+        }
+
+        function handleRoomTaskPhotoChange(e) {
+            const file = e.target.files?.[0];
+            if (file) attachRoomTaskPhotoFile(file);
+            e.target.value = '';
+        }
+
+        function clearRoomTaskPhoto() {
+            classroomState.draftTaskImage = null;
+            const input = document.getElementById('room-create-photo');
+            const wrap = document.getElementById('room-create-photo-preview-wrap');
+            const img = document.getElementById('room-create-photo-preview');
+            if (input) input.value = '';
+            if (img) img.src = '';
+            if (wrap) wrap.classList.add('hidden');
+        }
+
         async function createAssignmentRoom(e) {
             e.preventDefault();
             if (!sb || !currentUser) return showToast('Войдите в аккаунт преподавателя', 'warning');
@@ -3670,6 +3791,7 @@ print(len(ans))`
             const taskEl = document.getElementById('room-create-task');
             const title = titleEl.value.trim();
             const taskDescription = (taskEl?.value || '').trim();
+            const taskImageUrl = classroomState.draftTaskImage || null;
             const timeLimit = parseInt(document.getElementById('room-create-timer').value, 10) || 3;
             const btn = document.getElementById('room-create-btn');
             if (!title) return;
@@ -3677,17 +3799,28 @@ print(len(ans))`
             btn.disabled = true;
             try {
                 const room_code = generateRoomCode();
-                const { error } = await sb.from('assignments').insert({
+                const payload = {
                     teacher_id: currentUser.id,
                     title,
                     room_code,
                     time_limit_minutes: timeLimit,
                     task_description: taskDescription || null
-                });
-                if (error) throw error;
+                };
+                if (taskImageUrl) {
+                    payload.task_image_url = taskImageUrl;
+                }
+
+                const { error } = await sb.from('assignments').insert(payload);
+                if (error) {
+                    if (/task_image_url/i.test(error.message || '')) {
+                        throw new Error('Выполните SQL-миграцию: добавьте колонку task_image_url TEXT в таблицу assignments');
+                    }
+                    throw error;
+                }
 
                 titleEl.value = '';
                 if (taskEl) taskEl.value = '';
+                clearRoomTaskPhoto();
                 showToast(`Комната создана! Код: ${room_code}`, 'success');
                 await loadTeacherRooms();
             } catch (err) {
@@ -3717,18 +3850,20 @@ print(len(ans))`
                 return;
             }
 
-            listEl.innerHTML = classroomState.teacherRooms.map(r => {
+            listEl.innerHTML = classroomState.teacherRooms.map((r, idx) => {
                 const activeCls = classroomState.activeRoomId === r.id
                     ? 'border-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/10'
                     : 'border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg';
                 const rawTask = (r.task_description || '').trim();
                 const taskPreview = rawTask.length > 140 ? rawTask.slice(0, 140) + '…' : rawTask;
+                const hasTaskImage = Boolean((r.task_image_url || '').trim());
                 return `
                     <div class="p-2.5 rounded-xl border ${activeCls} flex flex-wrap items-start justify-between gap-2">
                         <div class="min-w-0 cursor-pointer flex-1" onclick="loadRoomSubmissions('${r.id}', '${escapeHtml(r.title)}', '${escapeHtml(r.room_code)}')">
                             <div class="font-semibold text-slate-900 dark:text-zinc-100 truncate">${escapeHtml(r.title)}</div>
                             <div class="text-[10px] text-slate-500 dark:text-zinc-400 font-mono">Код: <strong class="text-indigo-600 dark:text-indigo-400">${escapeHtml(r.room_code)}</strong> • ${r.time_limit_minutes || 3} мин</div>
                             ${taskPreview ? `<div class="mt-1.5 text-[11px] text-slate-600 dark:text-zinc-300 bg-slate-50 dark:bg-obsidian-panel/70 border border-slate-200/70 dark:border-obsidian-border rounded-lg px-2 py-1 leading-snug"><span class="font-semibold text-indigo-600 dark:text-indigo-400">Задание:</span> ${escapeHtml(taskPreview)}</div>` : ''}
+                            ${hasTaskImage ? `<div class="mt-1.5 flex items-center gap-2"><button type="button" onclick="openTeacherRoomPhoto(event, ${idx})" class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/15 border border-indigo-200/70 dark:border-indigo-500/30 text-[10px] font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-500/25 transition"><i data-lucide="image" class="w-3 h-3"></i> Фото задания (просмотр)</button></div>` : ''}
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
                             <button type="button" onclick="copyRoomLink('${escapeHtml(r.room_code)}')" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-obsidian-panel hover:bg-slate-200 dark:hover:bg-zinc-800 text-[11px] font-semibold text-slate-700 dark:text-zinc-200 flex items-center gap-1 transition" title="Копировать ссылку ?room=${escapeHtml(r.room_code)}">
@@ -3860,8 +3995,17 @@ print(len(ans))`
             const qContainer = document.getElementById('stu-questions-container');
             if (qContainer) qContainer.innerHTML = '';
 
+            closeTaskImageLightbox();
+
             const taskText = document.getElementById('stu-task-text');
-            if (taskText) taskText.textContent = '';
+            if (taskText) {
+                taskText.textContent = '';
+                taskText.classList.add('hidden');
+            }
+
+            const taskImg = document.getElementById('stu-task-image');
+            if (taskImg) taskImg.src = '';
+            document.getElementById('stu-task-image-wrap')?.classList.add('hidden');
 
             const summaryEl = document.getElementById('stu-result-summary');
             if (summaryEl) summaryEl.textContent = '';
@@ -3947,15 +4091,24 @@ print(len(ans))`
                 document.getElementById('stu-modal-title').textContent = data.title;
                 document.getElementById('stu-modal-subtitle').textContent = `Код комнаты: ${data.room_code}`;
 
-                // Показываем карточку задания, если преподаватель его указал
+                // Показываем карточку задания, если преподаватель прикрепил текст и/или фото
                 const taskDesc = (data.task_description || '').trim();
+                const taskImgUrl = (data.task_image_url || '').trim();
                 const taskCard = document.getElementById('stu-task-card');
                 const taskText = document.getElementById('stu-task-text');
-                if (taskDesc && taskCard && taskText) {
+                const taskImgWrap = document.getElementById('stu-task-image-wrap');
+                const taskImg = document.getElementById('stu-task-image');
+
+                if (taskText) {
                     taskText.textContent = taskDesc;
-                    taskCard.classList.remove('hidden');
-                } else if (taskCard) {
-                    taskCard.classList.add('hidden');
+                    taskText.classList.toggle('hidden', !taskDesc);
+                }
+                if (taskImg && taskImgWrap) {
+                    taskImg.src = taskImgUrl || '';
+                    taskImgWrap.classList.toggle('hidden', !taskImgUrl);
+                }
+                if (taskCard) {
+                    taskCard.classList.toggle('hidden', !(taskDesc || taskImgUrl));
                 }
 
                 // Гарантируем чистое поле решения с блокировкой вставки и открываем форму
