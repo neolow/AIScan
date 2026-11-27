@@ -22,6 +22,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Supabase Auth & Cloud DB -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Экспорт решений в Excel (.xlsx) -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
     <!-- Конфигурация Tailwind CSS и светлой/темной темы -->
     <script>
@@ -334,8 +336,8 @@
                 </div>
 
                 <div class="px-4 py-2 border-b border-slate-100 dark:border-obsidian-border/70 flex items-center justify-between text-[11px] text-slate-400 dark:text-zinc-500">
-                    <span>Файлы сессии — переключение в 1 клик</span>
-                    <button onclick="resetLibraryDefaults()" class="hover:text-slate-700 dark:hover:text-zinc-300 underline">Сбросить</button>
+                    <span id="library-subtitle">Облачная медиатека аккаунта</span>
+                    <button id="library-clear-btn" onclick="clearAccountLibrary()" class="hidden hover:text-rose-600 dark:hover:text-rose-400 underline transition">Очистить</button>
                 </div>
 
                 <!-- Список документов Медиатеки -->
@@ -944,11 +946,16 @@
 
                     <!-- Список комнат -->
                     <div class="space-y-2">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
                             <span class="text-[11px] font-semibold text-slate-600 dark:text-zinc-300">Ваши комнаты</span>
-                            <button type="button" onclick="loadTeacherRooms()" class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
-                                <i data-lucide="refresh-cw" class="w-3 h-3"></i> Обновить
-                            </button>
+                            <div class="flex items-center gap-2.5">
+                                <button type="button" onclick="exportAllTeacherRoomsExcel()" id="btn-export-all-excel" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/15 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-500/30 text-[11px] font-semibold flex items-center gap-1 transition" title="Скачать решения из всех комнат в Excel (.xlsx)">
+                                    <i data-lucide="file-spreadsheet" class="w-3 h-3"></i> Все в Excel
+                                </button>
+                                <button type="button" onclick="loadTeacherRooms()" class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
+                                    <i data-lucide="refresh-cw" class="w-3 h-3"></i> Обновить
+                                </button>
+                            </div>
                         </div>
                         <div id="teacher-rooms-list" class="space-y-2 max-h-44 overflow-y-auto pr-1">
                             <div class="text-[11px] text-slate-400 dark:text-zinc-500 py-2">Загрузка комнат...</div>
@@ -957,9 +964,15 @@
 
                     <!-- Таблица сданных работ выбранной комнаты -->
                     <div id="teacher-submissions-panel" class="hidden pt-3 border-t border-slate-200/70 dark:border-obsidian-border space-y-2">
-                        <div class="flex items-center justify-between gap-2">
-                            <span id="teacher-submissions-title" class="text-[11px] font-bold text-slate-800 dark:text-zinc-100">Сданные работы</span>
-                            <span id="teacher-submissions-count" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-200/80 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">0</span>
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span id="teacher-submissions-title" class="text-[11px] font-bold text-slate-800 dark:text-zinc-100 truncate">Сданные работы</span>
+                                <span id="teacher-submissions-count" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-200/80 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 shrink-0">0</span>
+                            </div>
+                            <button type="button" onclick="exportRoomSubmissionsExcel()" id="btn-export-room-excel" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold flex items-center gap-1.5 shadow-2xs shrink-0 transition" title="Скачать все решения этой комнаты в таблицу Excel (.xlsx)">
+                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+                                <span>Скачать Excel (.xlsx)</span>
+                            </button>
                         </div>
                         <div class="overflow-x-auto rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg">
                             <table class="w-full text-left border-collapse text-[11px]">
@@ -1313,7 +1326,10 @@ print(len(ans))`
 
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            loadLibraryFromStorage();
+            // Удаляем устаревший общий локальный кэш медиатеки: теперь файлы строго привязаны к аккаунту
+            try { localStorage.removeItem('veriscan_library_v5'); } catch (e) {}
+            state.library = [];
+            renderLibrary();
             setupDragAndDrop();
             setupClipboardPasteOCR();
             updateHeaderEngineBadge();
@@ -1331,43 +1347,72 @@ print(len(ans))`
         }
 
         function loadLibraryFromStorage() {
-            try {
-                const raw = localStorage.getItem('veriscan_library_v5');
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        state.library = parsed;
-                        renderLibrary();
-                        return;
-                    }
-                }
-            } catch (e) {}
-
-            state.library = Object.values(PRESETS).map(p => ({
-                id: p.id, name: p.name, ext: p.ext,
-                size: formatBytes(new Blob([p.content]).size),
-                time: 'Шаблон', lastScore: null, content: p.content
-            }));
-            persistLibrary();
+            // Локальное хранение отключено: медиатека хранится только в облаке конкретного аккаунта
+            state.library = [];
             renderLibrary();
         }
 
         function persistLibrary() {
-            try { localStorage.setItem('veriscan_library_v5', JSON.stringify(state.library.slice(0, 25))); } catch (e) {}
+            // Переопределяется в облачной секции Supabase для сохранения только в текущий аккаунт
+        }
+
+        async function clearAccountLibrary() {
+            if (!sb || !currentUser) {
+                showToast('Войдите в аккаунт для управления своей Медиатекой', 'warning');
+                return;
+            }
+            if (!state.library.length) return;
+            if (!confirm('Очистить все сохраненные файлы из Медиатеки вашего аккаунта?')) return;
+
+            const { error } = await sb
+                .from('user_documents')
+                .delete()
+                .eq('user_id', currentUser.id);
+
+            if (error) {
+                showToast(`Ошибка очистки Медиатеки: ${error.message}`, 'warning');
+                return;
+            }
+            state.library = [];
+            state.currentDocId = null;
+            renderLibrary();
+            showToast('Личная Медиатека аккаунта очищена', 'info');
         }
 
         function resetLibraryDefaults() {
-            localStorage.removeItem('veriscan_library_v5');
-            loadLibraryFromStorage();
-            showToast('Медиатека сброшена к эталонным примерам', 'info');
+            clearAccountLibrary();
         }
 
         function renderLibrary() {
             const list = document.getElementById('library-items-list');
-            document.getElementById('library-count-badge').textContent = state.library.length;
+            const badge = document.getElementById('library-count-badge');
+            const subtitle = document.getElementById('library-subtitle');
+            const clearBtn = document.getElementById('library-clear-btn');
+
+            const isAuthed = Boolean(typeof currentUser !== 'undefined' && currentUser);
+            if (badge) badge.textContent = isAuthed ? state.library.length : 0;
+            if (subtitle) subtitle.textContent = isAuthed ? 'Личные файлы аккаунта — в 1 клик' : 'Личная медиатека доступна после входа';
+            if (clearBtn) clearBtn.classList.toggle('hidden', !isAuthed || state.library.length === 0);
+
+            if (!isAuthed) {
+                list.innerHTML = `
+                    <div class="py-10 px-4 text-center space-y-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
+                            <i data-lucide="lock" class="w-5 h-5"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-xs font-semibold text-slate-700 dark:text-zinc-200">Медиатека привязана к аккаунту</p>
+                            <p class="text-[11px] text-slate-400 dark:text-zinc-500 leading-relaxed">Файлы не сохраняются локально в браузере. Войдите, чтобы видеть и сохранять только свои документы.</p>
+                        </div>
+                        <button type="button" onclick="openAccountEntry()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-2xs transition">Войти в аккаунт</button>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
 
             if (!state.library.length) {
-                list.innerHTML = `<div class="py-10 text-center text-xs text-slate-400 dark:text-zinc-500">Медиатека пуста. Загрузите файл, фото или сохраните текст из редактора.</div>`;
+                list.innerHTML = `<div class="py-10 px-3 text-center text-xs text-slate-400 dark:text-zinc-500">В вашем аккаунте пока нет сохраненных файлов. Загрузите файл, фото или нажмите «В медиатеку».</div>`;
                 return;
             }
 
@@ -1439,6 +1484,11 @@ print(len(ans))`
         }
 
         function saveCurrentToLibrary() {
+            if (!sb || !currentUser) {
+                showToast('Войдите в аккаунт, чтобы сохранять файлы в личную Медиатеку', 'warning');
+                openAccountEntry();
+                return;
+            }
             const text = document.getElementById('source-input').value.trim();
             if (!text) return showToast('Поле редактора пустое — нечего сохранять.', 'warning');
             const info = detectContentType(text);
@@ -1450,10 +1500,11 @@ print(len(ans))`
                 ext, size: formatBytes(new Blob([text]).size), time: now, lastScore: null, content: text
             };
             state.library.unshift(newItem);
+            state.library = state.library.slice(0, 25);
             state.currentDocId = newItem.id;
             persistLibrary();
             renderLibrary();
-            showToast(`Сохранено в Медиатеку: «${newItem.name}»`, 'success');
+            showToast(`Сохранено в Медиатеку аккаунта: «${newItem.name}»`, 'success');
         }
 
         function loadPreset(key, autoRun = true) {
@@ -1547,13 +1598,18 @@ print(len(ans))`
                     id: 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
                     name: file.name, ext, size: formatBytes(file.size), time: now, lastScore: null, content: text
                 };
-                state.library.unshift(newItem);
-                state.currentDocId = newItem.id;
+                if (sb && currentUser) {
+                    state.library.unshift(newItem);
+                    state.library = state.library.slice(0, 25);
+                    state.currentDocId = newItem.id;
+                } else {
+                    state.currentDocId = null;
+                }
                 state.currentDocName = newItem.name;
                 document.getElementById('source-input').value = text;
                 document.getElementById('current-doc-name').textContent = newItem.name;
             }
-            persistLibrary();
+            if (sb && currentUser) persistLibrary();
             renderLibrary();
             switchInputTab('editor');
             handleEditorInput();
@@ -1790,12 +1846,17 @@ print(len(ans))`
                     lastScore: null,
                     content: extracted
                 };
-                state.library.unshift(newItem);
-                state.currentDocId = newItem.id;
+                if (sb && currentUser) {
+                    state.library.unshift(newItem);
+                    state.library = state.library.slice(0, 25);
+                    state.currentDocId = newItem.id;
+                } else {
+                    state.currentDocId = null;
+                }
                 state.currentDocName = newItem.name;
                 document.getElementById('source-input').value = extracted;
                 document.getElementById('current-doc-name').textContent = newItem.name;
-                persistLibrary();
+                if (sb && currentUser) persistLibrary();
                 renderLibrary();
 
                 setTimeout(() => {
@@ -2608,7 +2669,8 @@ print(len(ans))`
         function buildAnalysisCacheKey(rawText, mode) {
             const normText = String(rawText || '').replace(/\r\n/g, '\n').trim();
             const modelTag = mode === 'custom' ? (state.config.model || 'custom') : 'smooth-service-v63';
-            return `${mode}|${modelTag}|${hashStringStable(normText)}|${normText.length}`;
+            const uid = (typeof currentUser !== 'undefined' && currentUser?.id) ? currentUser.id : 'guest';
+            return `${uid}|${mode}|${modelTag}|${hashStringStable(normText)}|${normText.length}`;
         }
 
         function readCachedAnalysis(cacheKey) {
@@ -3117,11 +3179,22 @@ print(len(ans))`
         }
         function importLibraryJson(e) {
             const file = e.target.files?.[0]; if (!file) return;
+            if (!sb || !currentUser) {
+                e.target.value = '';
+                showToast('Войдите в аккаунт для импорта в личную Медиатеку', 'warning');
+                return;
+            }
             const reader = new FileReader();
             reader.onload = ev => {
                 try {
                     const data = JSON.parse(ev.target.result);
-                    if (Array.isArray(data)) { state.library = data; persistLibrary(); renderLibrary(); closeShareModal(); showToast(`Импортировано файлов: ${data.length}`, 'success'); }
+                    if (Array.isArray(data)) {
+                        state.library = data.slice(0, 25);
+                        persistLibrary();
+                        renderLibrary();
+                        closeShareModal();
+                        showToast(`Импортировано в ваш аккаунт: ${state.library.length}`, 'success');
+                    }
                 } catch (err) { showToast('Неверный формат JSON', 'warning'); }
             };
             reader.readAsText(file); e.target.value = '';
@@ -3241,6 +3314,8 @@ print(len(ans))`
 
         async function initAuth() {
             if (!sb) {
+                state.library = [];
+                renderLibrary();
                 updateCreditsUI();
                 return;
             }
@@ -3251,23 +3326,44 @@ print(len(ans))`
                 await Promise.all([loadUserProfile(), syncLibraryFromCloud()]);
             } else {
                 currentProfile = null;
+                state.library = [];
+                renderLibrary();
                 updateCreditsUI();
             }
 
             sb.auth.onAuthStateChange(async (event, session) => {
+                const prevUserId = currentUser?.id || null;
                 currentUser = session?.user || null;
+                const nextUserId = currentUser?.id || null;
                 updateAuthHeaderUI();
 
                 if (event === 'PASSWORD_RECOVERY') {
                     openAccountEntry();
                     showToast('Введите новый пароль в личном кабинете', 'info');
                 }
+
+                // Сразу очищаем чужую/предыдущую медиатеку при смене или выходе из аккаунта
+                if (prevUserId !== nextUserId) {
+                    state.library = [];
+                    state.currentDocId = null;
+                    renderLibrary();
+                }
+
                 if (currentUser) {
                     await Promise.all([loadUserProfile(), syncLibraryFromCloud()]);
                 } else {
                     currentProfile = null;
+                    state.library = [];
+                    state.currentDocId = null;
+                    if (typeof classroomState !== 'undefined') {
+                        classroomState.teacherRooms = [];
+                        classroomState.activeRoomId = null;
+                        classroomState.activeRoomMeta = null;
+                        classroomState.activeSubmissions = [];
+                    }
+                    document.getElementById('teacher-submissions-panel')?.classList.add('hidden');
+                    renderLibrary();
                     updateCreditsUI();
-                    loadLibraryFromStorage();
                 }
             });
         }
@@ -3493,28 +3589,56 @@ print(len(ans))`
 
         async function handleLogout() {
             await sb.auth.signOut();
+            currentUser = null;
             currentProfile = null;
+            state.library = [];
+            state.currentDocId = null;
+            if (typeof classroomState !== 'undefined') {
+                classroomState.teacherRooms = [];
+                classroomState.activeRoomId = null;
+                classroomState.activeRoomMeta = null;
+                classroomState.activeSubmissions = [];
+            }
+            document.getElementById('teacher-submissions-panel')?.classList.add('hidden');
+            renderLibrary();
             updateCreditsUI();
             closeCabinetModal();
             showToast('Вы вышли из аккаунта', 'info');
         }
 
         async function syncLibraryFromCloud() {
-            if (!sb || !currentUser) return;
-            const { data, error } = await sb.from('user_documents').select('*').order('created_at', { ascending: false });
-            if (!error && data && data.length > 0) {
-                state.library = data.map(d => ({
+            if (!sb || !currentUser) {
+                state.library = [];
+                renderLibrary();
+                return;
+            }
+            const uid = currentUser.id;
+            const { data, error } = await sb
+                .from('user_documents')
+                .select('*')
+                .eq('user_id', uid)
+                .order('created_at', { ascending: false })
+                .limit(25);
+
+            // Защита от гонки запросов при быстрой смене аккаунта
+            if (!currentUser || currentUser.id !== uid) return;
+
+            if (error) {
+                console.warn('Cloud library load error:', error.message);
+                state.library = [];
+            } else {
+                // Всегда полностью заменяем список (даже если 0 файлов), чтобы не показывать чужие/локальные документы
+                state.library = (data || []).map(d => ({
                     id: d.id, name: d.name, ext: d.ext, size: d.size,
                     time: d.time, lastScore: d.last_score, content: d.content
                 }));
-                renderLibrary();
             }
+            renderLibrary();
         }
 
-        const _origPersistLibrary = persistLibrary;
         persistLibrary = function() {
-            _origPersistLibrary();
-            if (!sb || !currentUser) return;
+            // Строго облачное сохранение в аккаунт текущего пользователя (без localStorage)
+            if (!sb || !currentUser || !state.library.length) return;
             const rows = state.library.slice(0, 25).map(item => ({
                 id: item.id, user_id: currentUser.id, name: item.name, ext: item.ext,
                 size: item.size || '', time: item.time || '',
@@ -3526,18 +3650,22 @@ print(len(ans))`
             });
         };
 
-        const _origDeleteLibraryItem = deleteLibraryItem;
         deleteLibraryItem = function(e, id) {
-            _origDeleteLibraryItem(e, id);
-            if (sb && currentUser) {
-                sb.from('user_documents').delete().eq('id', id).eq('user_id', currentUser.id).then();
-            }
+            e.stopPropagation();
+            if (!sb || !currentUser) return;
+            state.library = state.library.filter(x => x.id !== id);
+            if (state.currentDocId === id) state.currentDocId = null;
+            renderLibrary();
+            sb.from('user_documents').delete().eq('id', id).eq('user_id', currentUser.id).then(({ error }) => {
+                if (error) console.warn('Cloud delete error:', error);
+            });
         };// =========================================================================
         // 15. РЕЖИМ «КЛАСС / КОНТРОЛЬНАЯ РАБОТА» + ЖЕСТКИЙ АНТИЧИТ
         // =========================================================================
         const classroomState = {
             teacherRooms: [],
             activeRoomId: null,
+            activeRoomMeta: null,
             activeSubmissions: [],
             draftTaskImage: null,
             studentRoom: null,
@@ -3886,6 +4014,7 @@ print(len(ans))`
         async function loadRoomSubmissions(roomId, title, code) {
             if (!sb) return;
             classroomState.activeRoomId = roomId;
+            classroomState.activeRoomMeta = { id: roomId, title, code };
             const panel = document.getElementById('teacher-submissions-panel');
             const tbody = document.getElementById('teacher-submissions-tbody');
             panel.classList.remove('hidden');
@@ -3961,6 +4090,227 @@ print(len(ans))`
                 runAnalysis();
             }
             showToast(`Открыта работа студента: ${sub.student_name}`, 'info');
+        }
+
+        // --- ЭКСПОРТ РЕШЕНИЙ СТУДЕНТОВ В EXCEL (.XLSX) ---
+        function formatExcelSafeFilename(str) {
+            return String(str || 'VeriScan')
+                .replace(/[\\/:*?"<>|\s]+/g, '_')
+                .replace(/_+/g, '_')
+                .replace(/^_|_$/g, '')
+                .slice(0, 48) || 'VeriScan';
+        }
+
+        function formatSubmissionForExcel(s, idx, roomTitle, roomCode) {
+            const failRecord = Array.isArray(s.defense_answers)
+                ? s.defense_answers.find(a => a && (a.failed || a.question === '__EXAM_FAILED__'))
+                : null;
+            const isFailed = Boolean(s.telemetry?.examFailed || failRecord);
+            const failReason = s.telemetry?.failReason || failRecord?.answer || (isFailed ? 'Выход со вкладки' : '');
+            const pasteTries = Number(s.telemetry?.pasteBlockedCount || 0);
+
+            const antiCheatParts = [];
+            if (isFailed && failReason) antiCheatParts.push(failReason);
+            if (pasteTries > 0) antiCheatParts.push(`Попыток вставки: ${pasteTries}`);
+
+            const qaList = Array.isArray(s.defense_answers)
+                ? s.defense_answers
+                    .filter(a => a && a.question !== '__EXAM_FAILED__')
+                    .map((a, i) => `${i + 1}) ${a.question || 'Вопрос'} — ${a.answer || '—'} [${a.passed ? 'Зачтено' : 'Не зачтено'}]`)
+                    .join('\n')
+                : '';
+
+            const submittedDate = s.created_at
+                ? new Date(s.created_at).toLocaleString('ru-RU')
+                : (s.telemetry?.submittedAt ? new Date(s.telemetry.submittedAt).toLocaleString('ru-RU') : '—');
+
+            // В Excel одна ячейка вмещает до 32 767 символов
+            const rawCode = String(s.code_content || '');
+            const safeCode = rawCode.length > 32000 ? rawCode.slice(0, 32000) + '\n... [обрезано до лимита ячейки Excel]' : rawCode;
+
+            return {
+                '№': idx + 1,
+                'Комната': roomTitle || '—',
+                'Код комнаты': roomCode || '—',
+                'ФИО студента': s.student_name || '—',
+                'Группа / Класс': s.student_group || '—',
+                'Вероятность ИИ (%)': Number(s.ai_probability) || 0,
+                'Защита': isFailed ? '0/3' : `${s.defense_score ?? 0}/3`,
+                'Статус': isFailed ? 'ПРОВАЛЕН' : 'Сдано',
+                'Античит / Нарушения': antiCheatParts.join('; ') || 'Нарушений нет',
+                'Ответы на защиту': qaList || (isFailed ? 'Экзамен прерван' : '—'),
+                'Код / Текст решения': safeCode,
+                'Дата и время сдачи': submittedDate
+            };
+        }
+
+        function downloadExcelFallbackCsv(rows, baseFileName) {
+            if (!rows.length) return;
+            const headers = Object.keys(rows[0]);
+            const escapeCell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+            const csvLines = [
+                headers.map(escapeCell).join(';'),
+                ...rows.map(r => headers.map(h => escapeCell(r[h])).join(';'))
+            ];
+            const blob = new Blob(['\uFEFF' + csvLines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${baseFileName}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportRoomSubmissionsExcel() {
+            const subs = classroomState.activeSubmissions || [];
+            const meta = classroomState.activeRoomMeta || { title: 'Комната', code: 'ROOM' };
+            if (!subs.length) {
+                return showToast('В этой комнате пока нет сданных работ для выгрузки', 'warning');
+            }
+
+            const rows = subs.map((s, idx) => formatSubmissionForExcel(s, idx, meta.title, meta.code));
+            const dateStamp = new Date().toISOString().slice(0, 10);
+            const baseFileName = `VeriScan_${formatExcelSafeFilename(meta.title)}_${formatExcelSafeFilename(meta.code)}_${dateStamp}`;
+
+            if (!window.XLSX) {
+                downloadExcelFallbackCsv(rows, baseFileName);
+                showToast('Таблица скачана в формате CSV для Excel', 'success');
+                return;
+            }
+
+            const failedCount = rows.filter(r => r['Статус'] === 'ПРОВАЛЕН').length;
+            const avgAi = Math.round(rows.reduce((sum, r) => sum + (Number(r['Вероятность ИИ (%)']) || 0), 0) / rows.length);
+
+            const summaryRows = [
+                { 'Показатель': 'Название комнаты', 'Значение': meta.title },
+                { 'Показатель': 'Код комнаты', 'Значение': meta.code },
+                { 'Показатель': 'Всего сдано работ', 'Значение': rows.length },
+                { 'Показатель': 'Успешно сдано', 'Значение': rows.length - failedCount },
+                { 'Показатель': 'Провалено (Античит)', 'Значение': failedCount },
+                { 'Показатель': 'Средняя вероятность ИИ (%)', 'Значение': avgAi },
+                { 'Показатель': 'Дата выгрузки', 'Значение': new Date().toLocaleString('ru-RU') }
+            ];
+
+            const wb = window.XLSX.utils.book_new();
+            const wsSolutions = window.XLSX.utils.json_to_sheet(rows);
+            wsSolutions['!cols'] = [
+                { wch: 5 },  // №
+                { wch: 24 }, // Комната
+                { wch: 13 }, // Код комнаты
+                { wch: 26 }, // ФИО
+                { wch: 15 }, // Группа
+                { wch: 18 }, // Вероятность ИИ
+                { wch: 10 }, // Защита
+                { wch: 12 }, // Статус
+                { wch: 30 }, // Античит
+                { wch: 45 }, // Ответы на защиту
+                { wch: 65 }, // Код / Текст решения
+                { wch: 20 }  // Дата
+            ];
+            if (wsSolutions['!ref']) {
+                wsSolutions['!autofilter'] = { ref: wsSolutions['!ref'] };
+            }
+
+            const wsSummary = window.XLSX.utils.json_to_sheet(summaryRows);
+            wsSummary['!cols'] = [{ wch: 28 }, { wch: 36 }];
+
+            window.XLSX.utils.book_append_sheet(wb, wsSolutions, 'Решения');
+            window.XLSX.utils.book_append_sheet(wb, wsSummary, 'Сводка');
+            window.XLSX.writeFile(wb, `${baseFileName}.xlsx`);
+            showToast(`Скачан Excel-файл (${rows.length} раб.)`, 'success');
+        }
+
+        async function exportAllTeacherRoomsExcel() {
+            if (!sb || !currentUser) return showToast('Войдите в аккаунт преподавателя', 'warning');
+            const rooms = classroomState.teacherRooms || [];
+            if (!rooms.length) {
+                return showToast('У вас пока нет созданных комнат', 'warning');
+            }
+
+            const btn = document.getElementById('btn-export-all-excel');
+            if (btn) btn.disabled = true;
+
+            try {
+                const roomIds = rooms.map(r => r.id);
+                const roomMap = new Map(rooms.map(r => [r.id, r]));
+
+                const { data, error } = await sb
+                    .from('submissions')
+                    .select('*')
+                    .in('assignment_id', roomIds)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                if (!data || !data.length) {
+                    return showToast('По вашим комнатам еще нет сданных работ', 'warning');
+                }
+
+                const rows = data.map((s, idx) => {
+                    const rm = roomMap.get(s.assignment_id) || {};
+                    return formatSubmissionForExcel(s, idx, rm.title || 'Комната', rm.room_code || '—');
+                });
+
+                const dateStamp = new Date().toISOString().slice(0, 10);
+                const baseFileName = `VeriScan_Все_решения_${dateStamp}`;
+
+                if (!window.XLSX) {
+                    downloadExcelFallbackCsv(rows, baseFileName);
+                    showToast(`Скачан CSV для Excel (${rows.length} раб.)`, 'success');
+                    return;
+                }
+
+                const roomsSummary = rooms.map((r, i) => {
+                    const roomSubs = data.filter(s => s.assignment_id === r.id);
+                    const failed = roomSubs.filter(s => {
+                        const fr = Array.isArray(s.defense_answers) ? s.defense_answers.find(a => a && (a.failed || a.question === '__EXAM_FAILED__')) : null;
+                        return Boolean(s.telemetry?.examFailed || fr);
+                    }).length;
+                    const avgAi = roomSubs.length
+                        ? Math.round(roomSubs.reduce((acc, s) => acc + (Number(s.ai_probability) || 0), 0) / roomSubs.length)
+                        : 0;
+                    return {
+                        '№': i + 1,
+                        'Комната': r.title,
+                        'Код': r.room_code,
+                        'Таймер (мин)': r.time_limit_minutes || 3,
+                        'Задание': (r.task_description || '').slice(0, 500) || '—',
+                        'Сдано работ': roomSubs.length,
+                        'Провалено (Античит)': failed,
+                        'Средний % ИИ': avgAi
+                    };
+                });
+
+                const wb = window.XLSX.utils.book_new();
+                const wsAll = window.XLSX.utils.json_to_sheet(rows);
+                wsAll['!cols'] = [
+                    { wch: 5 }, { wch: 24 }, { wch: 13 }, { wch: 26 }, { wch: 15 },
+                    { wch: 18 }, { wch: 10 }, { wch: 12 }, { wch: 30 }, { wch: 45 },
+                    { wch: 65 }, { wch: 20 }
+                ];
+                if (wsAll['!ref']) {
+                    wsAll['!autofilter'] = { ref: wsAll['!ref'] };
+                }
+
+                const wsRooms = window.XLSX.utils.json_to_sheet(roomsSummary);
+                wsRooms['!cols'] = [
+                    { wch: 5 }, { wch: 26 }, { wch: 12 }, { wch: 13 },
+                    { wch: 45 }, { wch: 13 }, { wch: 20 }, { wch: 15 }
+                ];
+                if (wsRooms['!ref']) {
+                    wsRooms['!autofilter'] = { ref: wsRooms['!ref'] };
+                }
+
+                window.XLSX.utils.book_append_sheet(wb, wsAll, 'Все решения');
+                window.XLSX.utils.book_append_sheet(wb, wsRooms, 'Комнаты');
+                window.XLSX.writeFile(wb, `${baseFileName}.xlsx`);
+                showToast(`Скачан общий Excel-отчет (${rows.length} раб. из ${rooms.length} комн.)`, 'success');
+            } catch (err) {
+                showToast(`Ошибка выгрузки Excel: ${err.message}`, 'warning');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
         }
 
         // --- РЕЖИМ СДАЧИ СТУДЕНТОМ ---
