@@ -910,6 +910,40 @@
                         </div>
                     </div>
                     <!-- Секция: Мои классы и контрольные (только для роли Преподаватель) -->
+                    <!-- Секция: Админ-панель (видна только bazarbayzasulan@gmail.com) -->
+                <div id="cab-admin-section" class="hidden p-4 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-rose-200/80 dark:border-rose-500/30 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="font-bold text-slate-900 dark:text-zinc-50 flex items-center gap-1.5">
+                            <i data-lucide="shield-alert" class="w-4 h-4 text-rose-600 dark:text-rose-400"></i>
+                            Админ-панель: Пользователи и токены
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <span id="admin-users-count" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-200/70 dark:border-rose-500/30">0 польз.</span>
+                            <button type="button" onclick="loadAdminUsers()" class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
+                                <i data-lucide="refresh-cw" class="w-3 h-3"></i> Обновить
+                            </button>
+                        </div>
+                    </div>
+
+                    <input id="admin-search-input" type="text" oninput="renderAdminUsersTable()" placeholder="Поиск по имени, email или роли..." class="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg text-xs text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+
+                    <div class="overflow-x-auto rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg max-h-72">
+                        <table class="w-full text-left border-collapse text-[11px]">
+                            <thead>
+                                <tr class="border-b border-[#E2E8F0] dark:border-obsidian-border bg-slate-50 dark:bg-obsidian-panel text-slate-500 dark:text-zinc-400">
+                                    <th class="py-2 px-2.5 font-semibold">Пользователь</th>
+                                    <th class="py-2 px-2 font-semibold">Роль</th>
+                                    <th class="py-2 px-2 font-semibold">Тесты / Работы</th>
+                                    <th class="py-2 px-2 font-semibold">Баланс</th>
+                                    <th class="py-2 px-2.5 font-semibold text-right">Токены / Роль</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-users-tbody" class="divide-y divide-slate-100 dark:divide-obsidian-border">
+                                <tr><td colspan="5" class="py-4 text-center text-slate-400">Загрузка...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 <div id="cab-teacher-section" class="hidden p-4 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-indigo-200/80 dark:border-indigo-500/30 space-y-4">
                     <div class="flex items-center justify-between gap-2">
                         <span class="font-bold text-slate-900 dark:text-zinc-50 flex items-center gap-1.5">
