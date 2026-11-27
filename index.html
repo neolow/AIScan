@@ -1244,7 +1244,7 @@ print(len(ans))`
             openai: { endpoint: 'https://api.openai.com/v1/chat/completions', model: 'gpt-4o-mini' },
             openrouter: { endpoint: 'https://openrouter.ai/api/v1/chat/completions', model: 'openai/gpt-4o-mini' },
             gemini: { endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', model: 'gemini-2.0-flash' },
-            groq: { endpoint: 'https://api.groq.com/openai/v1/chat/completions', model: 'llama-3.3-70b-versatile' },
+            groq: { endpoint: 'https://api.groq.com/openai/v1/chat/completions', model: 'meta-llama/llama-4-scout-17b-16e-instruct' },
             custom: { endpoint: '', model: '' }
         };
 
@@ -2059,20 +2059,43 @@ print(len(ans))`
 
             const stats = computeWeightedStats(merged.segments);
             const rawCloudScore = Number(llmData.aiProbability);
-            merged.aiProbability = Number.isFinite(rawCloudScore)
+            const cloudScore = Number.isFinite(rawCloudScore)
                 ? Math.max(1, Math.min(99, Math.round(rawCloudScore)))
                 : stats.aiProbability;
-            merged.distribution = stats.distribution;
+            const localScore = local.aiProbability;
 
-            if (!merged.verdictTitle) {
-                merged.verdictTitle = merged.aiProbability >= 65
-                    ? 'Высокая вероятность ИИ'
-                    : (merged.aiProbability <= 35 ? 'Написано человеком' : 'Смешанное авторство');
+            // Гибридная страховка: 75% Облачный ИИ + 25% VeriScan Core v5
+            // При жестком конфликте (олимпиадный код <=22% или очевидный ИИ >=85%) усиливаем вес Core v5 до 45%
+            const strongConflict = (localScore <= 22 && cloudScore >= 65) || (localScore >= 85 && cloudScore <= 35);
+            const cloudWeight = strongConflict ? 0.55 : 0.75;
+            const finalScore = Math.max(3, Math.min(98, Math.round(cloudScore * cloudWeight + localScore * (1 - cloudWeight))));
+
+            merged.aiProbability = finalScore;
+            merged.distribution = stats.distribution;
+            merged.verdictTitle = finalScore >= 65
+                ? 'Высокая вероятность ИИ'
+                : (finalScore <= 35 ? 'Написано человеком' : 'Смешанное авторство');
+
+            const hybridNote = `[Гибрид: Облако ${cloudScore}% + Core v5 ${localScore}% → ${finalScore}%]`;
+            const baseSummary = String(merged.verdictSummary || local.verdictSummary || '').trim();
+            merged.verdictSummary = baseSummary.includes('[Гибрид:') ? baseSummary : `${hybridNote} ${baseSummary}`;
+
+            if (!Array.isArray(merged.xaiFactors) || merged.xaiFactors.length < 4) {
+                merged.xaiFactors = local.xaiFactors;
+            } else {
+                merged.xaiFactors = merged.xaiFactors.slice(0, 4).map((f, idx) => {
+                    const cVal = Number(f?.score);
+                    const lVal = local.xaiFactors[idx]?.score ?? finalScore;
+                    const blendedFactor = Number.isFinite(cVal)
+                        ? Math.max(3, Math.min(98, Math.round(cVal * 0.75 + lVal * 0.25)))
+                        : lVal;
+                    return { label: f?.label || local.xaiFactors[idx]?.label || 'Фактор', score: blendedFactor };
+                });
             }
-            if (!Array.isArray(merged.xaiFactors) || merged.xaiFactors.length < 4) merged.xaiFactors = local.xaiFactors;
-            if (!merged.formatting || !Array.isArray(merged.formatting.metrics)) merged.formatting = local.formatting;
+
+            if (!merged.formatting || !Array.isArray(merged.formatting.metrics) || !merged.formatting.metrics.length) merged.formatting = local.formatting;
             if (!merged.commentForensics) merged.commentForensics = local.commentForensics;
-            if (!Array.isArray(merged.lexicalMarkers)) merged.lexicalMarkers = local.lexicalMarkers;
+            if (!Array.isArray(merged.lexicalMarkers) || !merged.lexicalMarkers.length) merged.lexicalMarkers = local.lexicalMarkers;
             if (!Array.isArray(merged.reverseQA) || !merged.reverseQA.length) merged.reverseQA = local.reverseQA;
             if (!Array.isArray(merged.defenseQuestions) || !merged.defenseQuestions.length) merged.defenseQuestions = local.defenseQuestions;
             return merged;
@@ -2215,6 +2238,59 @@ print(len(ans))`
             throw new Error('Модель вернула поврежденный JSON');
         }
 
+        const ANALYSIS_CACHE_KEY = 'veriscan_cloud_cache_v1';
+        const memoryAnalysisCache = new Map();
+
+        function hashStringStable(str) {
+            let h1 = 0xdeadbeef ^ str.length;
+            let h2 = 0x41c6ce57 ^ str.length;
+            for (let i = 0; i < str.length; i++) {
+                const ch = str.charCodeAt(i);
+                h1 = Math.imul(h1 ^ ch, 2654435761);
+                h2 = Math.imul(h2 ^ ch, 1597334677);
+            }
+            h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+            h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+            return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+        }
+
+        function buildAnalysisCacheKey(rawText, mode) {
+            const normText = String(rawText || '').replace(/\r\n/g, '\n').trim();
+            const modelTag = mode === 'custom' ? (state.config.model || 'custom') : 'smooth-service-v61';
+            const promptTag = hashStringStable(state.config.systemPrompt || SYSTEM_PROMPT);
+            return `${mode}|${modelTag}|${promptTag}|${hashStringStable(normText)}|${normText.length}`;
+        }
+
+        function readCachedAnalysis(cacheKey) {
+            if (memoryAnalysisCache.has(cacheKey)) {
+                return memoryAnalysisCache.get(cacheKey);
+            }
+            try {
+                const store = JSON.parse(localStorage.getItem(ANALYSIS_CACHE_KEY) || '{}');
+                if (store && store[cacheKey] && store[cacheKey].report) {
+                    memoryAnalysisCache.set(cacheKey, store[cacheKey]);
+                    return store[cacheKey];
+                }
+            } catch (_) {}
+            return null;
+        }
+
+        function writeCachedAnalysis(cacheKey, entry) {
+            memoryAnalysisCache.set(cacheKey, entry);
+            try {
+                const store = JSON.parse(localStorage.getItem(ANALYSIS_CACHE_KEY) || '{}');
+                store[cacheKey] = { ...entry, ts: Date.now() };
+                const keys = Object.keys(store);
+                if (keys.length > 30) {
+                    keys.sort((a, b) => (store[a].ts || 0) - (store[b].ts || 0));
+                    for (const oldKey of keys.slice(0, keys.length - 30)) {
+                        delete store[oldKey];
+                    }
+                }
+                localStorage.setItem(ANALYSIS_CACHE_KEY, JSON.stringify(store));
+            } catch (_) {}
+        }
+
         async function runAnalysis() {
             const rawText = document.getElementById('source-input').value;
             if (!rawText || rawText.trim().length < 12) return showToast('Введите текст или программный код (минимум 12 символов).', 'warning');
@@ -2231,6 +2307,27 @@ print(len(ans))`
 
             let report = null, engineLabel = 'VeriScan Core v5 (Офлайн)', usedCloud = false, piiMaskedCount = 0;
             let effectiveMode = state.config.mode;
+
+            // Проверяем кэш для облачных режимов: одинаковый текст всегда дает тот же % и не тратит кредит повторно
+            if (effectiveMode === 'cloud_free' || (effectiveMode === 'custom' && state.config.apiKey && state.config.endpoint)) {
+                const cacheKey = buildAnalysisCacheKey(rawText, effectiveMode);
+                const cached = readCachedAnalysis(cacheKey);
+                if (cached && cached.report) {
+                    report = JSON.parse(JSON.stringify(cached.report));
+                    usedCloud = true;
+                    piiMaskedCount = cached.piiMaskedCount || 0;
+                    engineLabel = effectiveMode === 'cloud_free'
+                        ? 'Cloud Auto ИИ (из кэша • 0 кред.)'
+                        : `API: ${state.config.model} (из кэша)`;
+                    state.lastReport = report;
+                    const libItem = state.library.find(x => x.id === state.currentDocId);
+                    if (libItem) { libItem.lastScore = report.aiProbability; libItem.content = rawText; persistLibrary(); renderLibrary(); }
+                    loading.classList.add('hidden');
+                    results.classList.remove('hidden');
+                    renderResults(report, engineLabel, usedCloud, piiMaskedCount);
+                    return;
+                }
+            }
 
             // Проверяем сессию и баланс ДО запроса (списываем только после успешного ответа)
             if (effectiveMode === 'cloud_free') {
@@ -2271,6 +2368,10 @@ print(len(ans))`
                             throw new Error(spendRes?.error || 'Недостаточно кредитов');
                         }
                     }
+
+                    const cacheKey = buildAnalysisCacheKey(rawText, effectiveMode);
+                    writeCachedAnalysis(cacheKey, { report, piiMaskedCount });
+
                     engineLabel = effectiveMode === 'cloud_free' ? 'Cloud Auto ИИ (-1 кред.)' : `API: ${state.config.model}`;
                 } catch (err) {
                     console.error('Cloud AI error:', err);
@@ -2299,7 +2400,7 @@ print(len(ans))`
             const timeoutId = setTimeout(() => controller.abort(), 45000);
 
             try {
-                // Режим Cloud Auto (1 кред.) — запрос через скрытый прокси Supabase Edge Function (Groq)
+                // Режим Cloud Auto (1 кред.) — запрос через скрытый прокси Supabase Edge Function (smooth-service)
                 if (mode === 'cloud_free') {
                     if (!sb) throw new Error('Supabase не подключен');
                     const { data: { session } } = await sb.auth.getSession();
@@ -2340,7 +2441,7 @@ print(len(ans))`
                 }
 
                 // Режим «Свой API-ключ» (0 кред.) — прямой запрос к выбранному пользователем провайдеру
-                const doCustomRequest = async (useJsonFormat) => {
+                const doCustomRequest = async (useStrictOpts) => {
                     const headers = { 'Content-Type': 'application/json' };
                     if (state.config.apiKey) {
                         headers['Authorization'] = `Bearer ${state.config.apiKey.trim()}`;
@@ -2348,15 +2449,18 @@ print(len(ans))`
 
                     const payload = {
                         model: state.config.model.trim() || 'gpt-4o-mini',
-                        temperature: 0.1,
-                        max_tokens: 4000,
+                        temperature: 0,
+                        max_tokens: 2200,
                         messages: [
                             { role: 'system', content: state.config.systemPrompt || SYSTEM_PROMPT },
                             { role: 'user', content: 'Проанализируй документ и верни СТРОГО валидный компактный JSON (максимум 4 сегмента и 3 вопроса защиты, корректно экранируй все кавычки внутри строк).\n\n' + textToSend.slice(0, 6000) }
                         ]
                     };
 
-                    if (useJsonFormat) payload.response_format = { type: 'json_object' };
+                    if (useStrictOpts) {
+                        payload.response_format = { type: 'json_object' };
+                        payload.seed = 42;
+                    }
                     return fetch(state.config.endpoint.trim(), {
                         method: 'POST',
                         headers,
@@ -3738,4 +3842,3 @@ print(len(ans))`
     </script>
 </body>
 </html>
-Diagnosing cloud API free limit payment errors
