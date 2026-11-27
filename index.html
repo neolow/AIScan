@@ -785,7 +785,7 @@
             </div>
 
             <div class="p-6 space-y-4 text-xs">
-                <div class="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                <div id="auth-bonus-banner" class="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 flex items-center gap-2">
                     <i data-lucide="zap" class="w-4 h-4 shrink-0"></i>
                     <span>При регистрации начисляем <strong>+10 бесплатных кредитов</strong> для Cloud Auto и Vision OCR.</span>
                 </div>
@@ -844,8 +844,25 @@
                         <label class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Ваш Email</label>
                         <input id="forgot-email" type="email" required placeholder="teacher@mail.ru" class="w-full px-3 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
                     </div>
-                    <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm transition">Отправить письмо</button>
+                    <button type="submit" id="forgot-submit-btn" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm transition">Отправить письмо</button>
                     <button type="button" onclick="switchAuthView('login')" class="w-full py-1 text-slate-500 hover:text-indigo-600">← Назад ко входу</button>
+                </form>
+
+                <!-- НОВЫЙ ПАРОЛЬ ПОСЛЕ ПЕРЕХОДА ПО ССЫЛКЕ ИЗ ПИСЬМА -->
+                <form id="form-recovery" onsubmit="handleRecoveryPasswordSubmit(event)" class="hidden space-y-3">
+                    <div class="p-3 rounded-xl bg-indigo-50/80 dark:bg-indigo-500/10 border border-indigo-200/80 dark:border-indigo-500/30 text-indigo-800 dark:text-indigo-200 flex items-start gap-2">
+                        <i data-lucide="key-round" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                        <span id="recovery-email-hint">Ссылка подтверждена. Придумайте и сохраните новый пароль для вашего аккаунта.</span>
+                    </div>
+                    <div>
+                        <label for="recovery-new-pass" class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Новый пароль (от 6 символов)</label>
+                        <input id="recovery-new-pass" type="password" minlength="6" required autocomplete="new-password" placeholder="••••••••" class="w-full px-3 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="recovery-confirm-pass" class="block font-semibold text-slate-700 dark:text-zinc-300 mb-1">Повторите новый пароль</label>
+                        <input id="recovery-confirm-pass" type="password" minlength="6" required autocomplete="new-password" placeholder="••••••••" class="w-full px-3 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-slate-50/60 dark:bg-obsidian-bg text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
+                    </div>
+                    <button type="submit" id="recovery-submit-btn" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm transition">Сохранить новый пароль</button>
                 </form>
             </div>
         </div>
@@ -3306,11 +3323,54 @@ print(len(ans))`
         // =========================================================================
         const SUPABASE_URL = 'https://qientxhhgaumdckzsxlq.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_MwVeEsKaad2UO5y1ScksrQ_HURDqPJe';
+
+        // Фиксируем параметры ссылки сброса пароля ДО инициализации Supabase (пока клиент не очистил hash)
+        const _INITIAL_AUTH_HASH = window.location.hash || '';
+        const _INITIAL_AUTH_SEARCH = window.location.search || '';
+        const _IS_RECOVERY_URL = /type=recovery\b/i.test(_INITIAL_AUTH_HASH) || /type=recovery\b/i.test(_INITIAL_AUTH_SEARCH);
+        const _AUTH_URL_ERROR = (() => {
+            const hashParams = new URLSearchParams(_INITIAL_AUTH_HASH.replace(/^#/, ''));
+            const searchParams = new URLSearchParams(_INITIAL_AUTH_SEARCH);
+            const err = hashParams.get('error') || searchParams.get('error');
+            if (!err) return null;
+            return {
+                error: err,
+                code: hashParams.get('error_code') || searchParams.get('error_code') || '',
+                description: hashParams.get('error_description') || searchParams.get('error_description') || ''
+            };
+        })();
+
+        function getAuthRedirectUrl() {
+            if (window.location.protocol.startsWith('http')) {
+                return `${window.location.origin}${window.location.pathname}`;
+            }
+            return 'https://neolow.github.io/AIScan/';
+        }
+
         const isSupabaseConfigured = !SUPABASE_URL.includes('ТВОЙ_ПРОЕКТ') && window.supabase;
         const sb = isSupabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
         let currentUser = null;
         let currentProfile = null;
+        let isPasswordRecoveryFlow = _IS_RECOVERY_URL;
+
+        function openPasswordRecoveryModal() {
+            closeCabinetModal();
+            switchAuthView('recovery');
+            const hint = document.getElementById('recovery-email-hint');
+            if (hint) {
+                hint.textContent = currentUser?.email
+                    ? `Ссылка подтверждена для ${currentUser.email}. Придумайте новый пароль.`
+                    : 'Ссылка подтверждена. Придумайте и сохраните новый пароль для вашего аккаунта.';
+            }
+            const newPassEl = document.getElementById('recovery-new-pass');
+            const confPassEl = document.getElementById('recovery-confirm-pass');
+            if (newPassEl) newPassEl.value = '';
+            if (confPassEl) confPassEl.value = '';
+            document.getElementById('auth-modal')?.classList.remove('hidden');
+            lucide.createIcons();
+            setTimeout(() => newPassEl?.focus(), 80);
+        }
 
         async function initAuth() {
             if (!sb) {
@@ -3319,18 +3379,19 @@ print(len(ans))`
                 updateCreditsUI();
                 return;
             }
-            const { data: { session } } = await sb.auth.getSession();
-            currentUser = session?.user || null;
-            updateAuthHeaderUI();
-            if (currentUser) {
-                await Promise.all([loadUserProfile(), syncLibraryFromCloud()]);
-            } else {
-                currentProfile = null;
-                state.library = [];
-                renderLibrary();
-                updateCreditsUI();
+
+            // Если пользователь перешел по просроченной или уже использованной ссылке сброса
+            if (_AUTH_URL_ERROR) {
+                const msg = _AUTH_URL_ERROR.code === 'otp_expired'
+                    ? 'Ссылка для сброса пароля устарела или уже использована. Запросите новое письмо.'
+                    : `Ошибка ссылки восстановления: ${_AUTH_URL_ERROR.description || _AUTH_URL_ERROR.error}`;
+                showToast(msg, 'warning');
+                switchAuthView('forgot');
+                document.getElementById('auth-modal')?.classList.remove('hidden');
+                try { history.replaceState(null, '', window.location.pathname); } catch (_) {}
             }
 
+            // Подписываемся на события авторизации ДО getSession(), чтобы точно поймать PASSWORD_RECOVERY
             sb.auth.onAuthStateChange(async (event, session) => {
                 const prevUserId = currentUser?.id || null;
                 currentUser = session?.user || null;
@@ -3338,8 +3399,8 @@ print(len(ans))`
                 updateAuthHeaderUI();
 
                 if (event === 'PASSWORD_RECOVERY') {
-                    openAccountEntry();
-                    showToast('Введите новый пароль в личном кабинете', 'info');
+                    isPasswordRecoveryFlow = true;
+                    openPasswordRecoveryModal();
                 }
 
                 // Сразу очищаем чужую/предыдущую медиатеку при смене или выходе из аккаунта
@@ -3351,6 +3412,9 @@ print(len(ans))`
 
                 if (currentUser) {
                     await Promise.all([loadUserProfile(), syncLibraryFromCloud()]);
+                    if (isPasswordRecoveryFlow) {
+                        openPasswordRecoveryModal();
+                    }
                 } else {
                     currentProfile = null;
                     state.library = [];
@@ -3366,6 +3430,21 @@ print(len(ans))`
                     updateCreditsUI();
                 }
             });
+
+            const { data: { session } } = await sb.auth.getSession();
+            currentUser = session?.user || null;
+            updateAuthHeaderUI();
+            if (currentUser) {
+                await Promise.all([loadUserProfile(), syncLibraryFromCloud()]);
+                if (isPasswordRecoveryFlow) {
+                    openPasswordRecoveryModal();
+                }
+            } else {
+                currentProfile = null;
+                state.library = [];
+                renderLibrary();
+                updateCreditsUI();
+            }
         }
         window.addEventListener('DOMContentLoaded', initAuth);
 
@@ -3481,12 +3560,18 @@ print(len(ans))`
         function closeCabinetModal() { document.getElementById('cabinet-modal').classList.add('hidden'); }
 
         function switchAuthView(view) {
-            ['login', 'register', 'forgot'].forEach(v => {
-                document.getElementById(`form-${v}`).classList.toggle('hidden', v !== view);
+            ['login', 'register', 'forgot', 'recovery'].forEach(v => {
+                document.getElementById(`form-${v}`)?.classList.toggle('hidden', v !== view);
             });
-            document.getElementById('auth-tabs').classList.toggle('hidden', view === 'forgot');
-            const titles = { login: 'Вход в VeriScan AI', register: 'Регистрация', forgot: 'Восстановление пароля' };
-            document.getElementById('auth-modal-title').textContent = titles[view];
+            document.getElementById('auth-tabs')?.classList.toggle('hidden', view === 'forgot' || view === 'recovery');
+            document.getElementById('auth-bonus-banner')?.classList.toggle('hidden', view === 'recovery');
+            const titles = {
+                login: 'Вход в VeriScan AI',
+                register: 'Регистрация',
+                forgot: 'Восстановление пароля',
+                recovery: 'Смена пароля'
+            };
+            document.getElementById('auth-modal-title').textContent = titles[view] || 'VeriScan AI';
 
             const activeCls = 'py-1.5 rounded-lg font-semibold bg-white dark:bg-obsidian-card text-slate-900 dark:text-zinc-100 shadow-2xs transition';
             const idleCls = 'py-1.5 rounded-lg font-semibold text-slate-500 dark:text-zinc-400 transition';
@@ -3505,7 +3590,7 @@ print(len(ans))`
                 email, password,
                 options: {
                     data: { full_name, role },
-                    emailRedirectTo: 'https://veriscandemo.alwaysdata.net/'
+                    emailRedirectTo: getAuthRedirectUrl()
                 }
             });
             if (error) return showToast(error.message, 'warning');
@@ -3526,12 +3611,54 @@ print(len(ans))`
         async function handleForgotPassword(e) {
             e.preventDefault();
             const email = document.getElementById('forgot-email').value.trim();
-            const { error } = await sb.auth.resetPasswordForEmail(email, {
-                redirectTo: 'https://veriscandemo.alwaysdata.net/'
-            });
-            if (error) return showToast(error.message, 'warning');
-            closeAuthModal();
-            showToast('Ссылка для сброса пароля отправлена на почту!', 'success');
+            const btn = document.getElementById('forgot-submit-btn');
+            if (btn) btn.disabled = true;
+            try {
+                const { error } = await sb.auth.resetPasswordForEmail(email, {
+                    redirectTo: getAuthRedirectUrl()
+                });
+                if (error) return showToast(error.message, 'warning');
+                closeAuthModal();
+                showToast('Ссылка для смены пароля отправлена на вашу почту!', 'success');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function handleRecoveryPasswordSubmit(e) {
+            e.preventDefault();
+            if (!sb) return;
+            const newPass = document.getElementById('recovery-new-pass').value;
+            const confirmPass = document.getElementById('recovery-confirm-pass').value;
+            const btn = document.getElementById('recovery-submit-btn');
+
+            if (newPass.length < 6) {
+                return showToast('Пароль должен быть не короче 6 символов', 'warning');
+            }
+            if (newPass !== confirmPass) {
+                return showToast('Пароли не совпадают — проверьте ввод', 'warning');
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Сохранение...';
+            }
+            try {
+                const { error } = await sb.auth.updateUser({ password: newPass });
+                if (error) return showToast(`Ошибка смены пароля: ${error.message}`, 'warning');
+
+                isPasswordRecoveryFlow = false;
+                document.getElementById('recovery-new-pass').value = '';
+                document.getElementById('recovery-confirm-pass').value = '';
+                try { history.replaceState(null, '', window.location.pathname); } catch (_) {}
+                closeAuthModal();
+                showToast('Новый пароль успешно сохранен! Вы вошли в аккаунт.', 'success');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Сохранить новый пароль';
+                }
+            }
         }
 
         async function handleChangePassword(e) {
