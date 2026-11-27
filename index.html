@@ -110,8 +110,13 @@
                 </div>
             </div>
 
-            <!-- Действия в шапке: Поделиться, Настройки ИИ, Тема, Баланс кредитов и Личный кабинет -->
+            <!-- Действия в шапке: Сдать по коду, Поделиться, Настройки ИИ, Тема, Баланс кредитов и Личный кабинет -->
             <div class="flex items-center gap-2">
+                <button onclick="openStudentSubmitModal()" id="header-student-btn" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 shadow-2xs dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30 dark:hover:bg-emerald-500/25 transition" title="Войти как студент и сдать работу по 6-значному коду комнаты">
+                    <i data-lucide="graduation-cap" class="w-3.5 h-3.5 shrink-0"></i>
+                    <span class="hidden md:inline">Сдать по коду</span>
+                </button>
+
                 <button onclick="openShareModal()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-[#E2E8F0] shadow-2xs dark:bg-obsidian-card dark:text-zinc-200 dark:border-obsidian-border dark:hover:bg-obsidian-panel transition" title="Поделиться по AirDrop, ссылкой или QR">
                     <i data-lucide="share" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0"></i>
                     <span class="hidden sm:inline">Поделиться</span>
@@ -159,8 +164,12 @@
                     </span>
                 </p>
             </div>
-            <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400 shrink-0">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs dark:bg-obsidian-card dark:border-obsidian-border">
+            <div class="flex flex-wrap items-center gap-2 text-xs shrink-0">
+                <button onclick="openStudentSubmitModal()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-semibold shadow-sm shadow-emerald-600/20 transition">
+                    <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+                    <span>Я студент — сдать по коду</span>
+                </button>
+                <span class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white text-slate-500 dark:text-zinc-400 border border-[#E2E8F0] shadow-2xs dark:bg-obsidian-card dark:border-obsidian-border">
                     <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
                     Приватная обработка в браузере
                 </span>
@@ -666,33 +675,11 @@
                     </label>
                 </div>
 
-                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border space-y-3">
-                    <div class="flex items-center justify-between gap-2">
-                        <label class="text-xs font-semibold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
-                            <i data-lucide="lock" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400"></i>
-                            Системный промпт ИИ (доступ администратора)
-                        </label>
-                        <button type="button" id="admin-prompt-toggle-btn" onclick="toggleAdminPromptGate()" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30 transition">
-                            Открыть (код админа)
-                        </button>
-                    </div>
-
-                    <div id="admin-prompt-gate" class="hidden flex items-center gap-2">
-                        <input id="admin-prompt-pass" type="password" autocomplete="off" placeholder="Введите админский код..." onkeydown="if(event.key==='Enter'){event.preventDefault();unlockSystemPrompt();}" class="flex-1 px-3 py-2 rounded-xl border border-[#E2E8F0] dark:border-obsidian-border bg-white dark:bg-obsidian-bg text-xs font-mono text-slate-900 dark:text-zinc-100 outline-none focus:border-indigo-500">
-                        <button type="button" onclick="unlockSystemPrompt()" class="px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-semibold shrink-0 transition">
-                            Открыть
-                        </button>
-                    </div>
-
-                    <div id="admin-prompt-box" class="hidden space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">Режим администратора разблокирован</span>
-                            <div class="flex items-center gap-3">
-                                <button type="button" onclick="resetSystemPrompt()" class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline">Сбросить</button>
-                                <button type="button" onclick="lockSystemPrompt()" class="text-[11px] text-slate-500 hover:text-rose-600">Скрыть</button>
-                            </div>
-                        </div>
-                        <textarea id="cfg-system-prompt" class="w-full h-40 p-3 rounded-xl bg-slate-900 text-zinc-200 font-mono text-[11px] leading-relaxed border border-zinc-800 outline-none focus:border-indigo-500 resize-y"></textarea>
+                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-obsidian-panel border border-[#E2E8F0] dark:border-obsidian-border flex items-start gap-2.5">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5"></i>
+                    <div class="space-y-0.5">
+                        <div class="text-xs font-bold text-slate-800 dark:text-zinc-100">Серверная защита Cloud Auto активна</div>
+                        <p class="text-[11px] text-slate-500 dark:text-zinc-400">Системный промпт, проверка прав и списание кредитов выполняются строго на сервере (Supabase Edge Function) и не передаются из браузера.</p>
                     </div>
                 </div>
             </div>
@@ -1263,8 +1250,7 @@ print(len(ans))`
                 endpoint: localStorage.getItem('veriscan_endpoint') || PROVIDER_PRESETS.openai.endpoint,
                 model: localStorage.getItem('veriscan_model') || PROVIDER_PRESETS.openai.model,
                 apiKey: localStorage.getItem('veriscan_apikey') || '',
-                maskPii: localStorage.getItem('veriscan_mask_pii') !== 'false',
-                systemPrompt: localStorage.getItem('veriscan_sysprompt_v8') || SYSTEM_PROMPT
+                maskPii: localStorage.getItem('veriscan_mask_pii') !== 'false'
             }
         };
 
@@ -2336,7 +2322,7 @@ print(len(ans))`
             throw new Error('Модель вернула поврежденный JSON');
         }
 
-        const ANALYSIS_CACHE_KEY = 'veriscan_cloud_cache_v2';
+        const ANALYSIS_CACHE_KEY = 'veriscan_cloud_cache_v3';
         const memoryAnalysisCache = new Map();
 
         function hashStringStable(str) {
@@ -2354,9 +2340,8 @@ print(len(ans))`
 
         function buildAnalysisCacheKey(rawText, mode) {
             const normText = String(rawText || '').replace(/\r\n/g, '\n').trim();
-            const modelTag = mode === 'custom' ? (state.config.model || 'custom') : 'smooth-service-v61';
-            const promptTag = hashStringStable(state.config.systemPrompt || SYSTEM_PROMPT);
-            return `${mode}|${modelTag}|${promptTag}|${hashStringStable(normText)}|${normText.length}`;
+            const modelTag = mode === 'custom' ? (state.config.model || 'custom') : 'smooth-service-v63';
+            return `${mode}|${modelTag}|${hashStringStable(normText)}|${normText.length}`;
         }
 
         function readCachedAnalysis(cacheKey) {
@@ -2460,10 +2445,15 @@ print(len(ans))`
                     report = reconcileExternalReport(llmJson, rawText);
                     usedCloud = true;
 
+                    // Для Cloud Auto кредит списывается строго на сервере внутри smooth-service;
+                    // здесь только синхронизируем отображение баланса, если сервер не вернул его в метаданных
                     if (effectiveMode === 'cloud_free') {
-                        const spendRes = await spendUserCredits(1, 'cloud_analysis');
-                        if (!spendRes?.success) {
-                            throw new Error(spendRes?.error || 'Недостаточно кредитов');
+                        if (typeof llmJson?._serverCredits === 'number') {
+                            if (!currentProfile) currentProfile = { user_id: currentUser.id };
+                            currentProfile.credits = llmJson._serverCredits;
+                            updateCreditsUI();
+                        } else {
+                            await loadUserProfile();
                         }
                     }
 
@@ -2514,8 +2504,7 @@ print(len(ans))`
                             'Authorization': `Bearer ${session.access_token}`
                         },
                         body: JSON.stringify({
-                            text: textToSend.slice(0, 6000),
-                            systemPrompt: state.config.systemPrompt || SYSTEM_PROMPT
+                            text: textToSend.slice(0, 6000)
                         })
                     });
 
@@ -2526,16 +2515,23 @@ print(len(ans))`
 
                     const rawText = await resp.text();
                     let content = rawText;
+                    let serverCredits = null;
                     try {
                         const parsedResp = JSON.parse(rawText);
+                        if (typeof parsedResp?._veriscan?.credits === 'number') {
+                            serverCredits = parsedResp._veriscan.credits;
+                        }
                         if (parsedResp?.choices?.[0]?.message?.content) {
                             content = parsedResp.choices[0].message.content;
                         } else if (typeof parsedResp?.aiProbability === 'number') {
+                            if (serverCredits !== null) parsedResp._serverCredits = serverCredits;
                             return parsedResp;
                         }
                     } catch (_) {}
 
-                    return extractValidJsonObject(content);
+                    const extracted = extractValidJsonObject(content);
+                    if (serverCredits !== null) extracted._serverCredits = serverCredits;
+                    return extracted;
                 }
 
                 // Режим «Свой API-ключ» (0 кред.) — прямой запрос к выбранному пользователем провайдеру
@@ -2550,7 +2546,7 @@ print(len(ans))`
                         temperature: 0,
                         max_tokens: 2200,
                         messages: [
-                            { role: 'system', content: state.config.systemPrompt || SYSTEM_PROMPT },
+                            { role: 'system', content: SYSTEM_PROMPT },
                             { role: 'user', content: 'Проанализируй документ и верни СТРОГО валидный компактный JSON (максимум 4 сегмента и 3 вопроса защиты, корректно экранируй все кавычки внутри строк).\n\n' + textToSend.slice(0, 6000) }
                         ]
                     };
@@ -2864,58 +2860,6 @@ print(len(ans))`
             reader.readAsText(file); e.target.value = '';
         }
 
-        let isAdminPromptUnlocked = false;
-        const ADMIN_PROMPT_KEY_B64 = 'a3Jhc2F2YURAMTIz';
-
-        function toggleAdminPromptGate() {
-            if (isAdminPromptUnlocked) {
-                lockSystemPrompt();
-                return;
-            }
-            const gate = document.getElementById('admin-prompt-gate');
-            if (!gate) return;
-            gate.classList.toggle('hidden');
-            if (!gate.classList.contains('hidden')) {
-                document.getElementById('admin-prompt-pass')?.focus();
-            }
-        }
-
-        function unlockSystemPrompt() {
-            const input = document.getElementById('admin-prompt-pass');
-            if (!input) return;
-            const entered = input.value;
-            let expected = '';
-            try { expected = atob(ADMIN_PROMPT_KEY_B64); } catch (e) {}
-
-            if (entered !== expected) {
-                input.value = '';
-                showToast('Неверный админский код', 'warning');
-                return;
-            }
-
-            isAdminPromptUnlocked = true;
-            input.value = '';
-            document.getElementById('admin-prompt-gate')?.classList.add('hidden');
-            document.getElementById('admin-prompt-box')?.classList.remove('hidden');
-            const btn = document.getElementById('admin-prompt-toggle-btn');
-            if (btn) btn.textContent = 'Скрыть промпт';
-            const ta = document.getElementById('cfg-system-prompt');
-            if (ta) ta.value = state.config.systemPrompt;
-            showToast('Доступ к системному промпту открыт', 'success');
-        }
-
-        function lockSystemPrompt() {
-            isAdminPromptUnlocked = false;
-            const ta = document.getElementById('cfg-system-prompt');
-            if (ta) ta.value = '';
-            document.getElementById('admin-prompt-box')?.classList.add('hidden');
-            document.getElementById('admin-prompt-gate')?.classList.add('hidden');
-            const passInput = document.getElementById('admin-prompt-pass');
-            if (passInput) passInput.value = '';
-            const btn = document.getElementById('admin-prompt-toggle-btn');
-            if (btn) btn.textContent = 'Открыть (код админа)';
-        }
-
         function openSettingsModal() {
             document.querySelectorAll('input[name="ai-mode"]').forEach(r => { r.checked = r.value === state.config.mode; });
             document.getElementById('cfg-provider').value = state.config.provider;
@@ -2924,14 +2868,12 @@ print(len(ans))`
             document.getElementById('cfg-apikey').value = state.config.apiKey;
             document.getElementById('cfg-mask-pii').checked = state.config.maskPii;
             document.getElementById('test-conn-status').textContent = '';
-            lockSystemPrompt();
             onAiModeRadioChange();
             document.getElementById('settings-modal').classList.remove('hidden');
             lucide.createIcons();
         }
 
         function closeSettingsModal() {
-            lockSystemPrompt();
             document.getElementById('settings-modal').classList.add('hidden');
         }
 
@@ -2951,12 +2893,6 @@ print(len(ans))`
         function toggleKeyVisibility() {
             const el = document.getElementById('cfg-apikey');
             el.type = el.type === 'password' ? 'text' : 'password';
-        }
-
-        function resetSystemPrompt() {
-            if (!isAdminPromptUnlocked) return showToast('Требуется код администратора', 'warning');
-            document.getElementById('cfg-system-prompt').value = SYSTEM_PROMPT;
-            showToast('Системный промпт восстановлен', 'info');
         }
 
         async function testCustomApiConnection() {
@@ -2981,10 +2917,6 @@ print(len(ans))`
             state.config.apiKey = document.getElementById('cfg-apikey').value.trim();
             state.config.maskPii = document.getElementById('cfg-mask-pii').checked;
 
-            if (isAdminPromptUnlocked) {
-                state.config.systemPrompt = document.getElementById('cfg-system-prompt').value.trim() || SYSTEM_PROMPT;
-            }
-
             try {
                 localStorage.setItem('veriscan_mode', state.config.mode);
                 localStorage.setItem('veriscan_provider', state.config.provider);
@@ -2992,9 +2924,6 @@ print(len(ans))`
                 localStorage.setItem('veriscan_endpoint', state.config.endpoint);
                 localStorage.setItem('veriscan_apikey', state.config.apiKey);
                 localStorage.setItem('veriscan_mask_pii', String(state.config.maskPii));
-                if (isAdminPromptUnlocked) {
-                    localStorage.setItem('veriscan_sysprompt_v8', state.config.systemPrompt);
-                }
             } catch (e) {}
             updateHeaderEngineBadge();
             closeSettingsModal();
