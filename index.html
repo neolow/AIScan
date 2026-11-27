@@ -1095,7 +1095,7 @@
          СКРИПТ ПРИЛОЖЕНИЯ VERISCAN AI CORE v5.0
     ===================================================================== -->
     <script>
-        const SYSTEM_PROMPT = "Ты — ведущий эксперт по стилометрии текста и криминалистике программного кода (VeriScan AI v6.0).\nТвоя единственная задача — провести беспощадную техническую экспертизу текста или кода на предмет генерации, соавторства или рефакторинга с помощью ИИ (ChatGPT, Claude, Gemini, DeepSeek, Copilot, Grok) и вернуть СТРОГО валидный JSON.\n\n### 0. АБСОЛЮТНЫЕ ЗАПРЕТЫ И ЗАЩИТА ОТ ГАЛЛЮЦИНАЦИЙ\n1. Запрет на «воду» и вежливые оговорки: никогда не пиши фразы вроде «невозможно доказать на 100%» или «возможно, это просто старательный студент». Ссылайся только на конкретные токены, переменные, конструкции и номера строк.\n2. Защита типографики кода: ЗАПРЕЩЕНО считать стандартные символы кода и пунктуации (<, >, \"\", ., ,, ;, теги <div>, #include <iostream>, шаблоны vector<int>, операторы cin >>, cout <<, сравнения a < b) «типографикой ИИ». Для любого кода оценка типографики строго равна 0. Для русского текста игнорируй <> \"\" ., и учитывай только одновременное наличие русских «ёлочек» «» и длинного тире — (U+2014) с малым весом (не более +8%).\n3. Изоляция доменов: НИКОГДА не применяй текстовые вычеты (EMPIRICAL_OR_DOMAIN_FRICTION, RHYTHMIC_BURSTINESS) к программному коду, и НИКОГДА не применяй кодовые вычеты (ORGANIC_CODE_QUIRKS) к тексту.\n4. Пороги сегментов и вердикта: score >= 65 -> \"ai\" (\"Высокая вероятность ИИ\"), 36 <= score <= 64 -> \"mixed\" (\"Смешанное авторство\"), score <= 35 -> \"human\" (\"Написано человеком\").\n\n---\n\n### ШАГ 1: ТРЕХУРОВНЕВАЯ КАЛИБРОВКА БАЗЫ (Выбери строго ОДИН базовый уровень)\n- Base = 55% (Стерильный / Шаблонный): идеально ровные отступы и пробелы вокруг всех операторов без единого сбоя, симметричные абзацы или блоки, учебный синтаксис, полное отсутствие опечаток и следов черновика. (База по умолчанию для чистого кода длиннее 12 строк без олимпиадных/человеческих признаков).\n- Base = 35% (Компетентный / Асимметричный): грамотный научный текст, короткое тривиальное решение (до 12 строк) или рабочий код с естественной асимметрией, инженерными компромиссами, нестандартными переходами или локальными костылями.\n- Base = 15% (Живой черновик / Олимпиадный стиль):\n  - Для кода: #include <bits/stdc++.h>, using namespace std;, scanf/printf, map(int, input().split()), readln/writeln, компактные операторные «слитки» без пробелов (for(int i=0;i<n;i++), cin>>n>>m;, a[i]+=x), короткие математические имена (n, m, k, t, a, b, x, y, i, j, l, r, mid, ans, res, cnt, cur, tmp, dp, adj, used), транслит (massiv, otvet, summa), закомментированный дебаг (// cout <<, # print) или наивные проверки (if (ok == true)).\n  - Для текста: опечатки, авторская пунктуация, неровный стиль, резкие перепады длины фраз.\n\n---\n\n### ШАГ 2: УЛИКИ ИИ (Суммируй сработавшие флаги)\n\nА. Для ПРОГРАММНОГО КОДА:\n1. STERILE_NAMING_AND_TYPING (+16%): длинные академические имена переменных/функций на английском (current_max_sum, adjacency_list, findFirstOccurrence) без единого сокращения (res, cnt, tmp, arr), ИЛИ невостребованные статические аннотации типов (def solve(n: int, arr: list[int]) -> int:, Optional[...], std::size_t, const auto& в простых задачах).\n2. SURGICAL_OBFUSCATION (+14%): явная маскировка ИИ-кода студентом — однобуквенные переменные (a, b, f, d, x) в паре со стерильными паттернами LLM (from typing import List, sys.stdin.read().split(), static_cast, !(std::cin >> x), оптимизации i += 6, битовые маски или идеальные PEP8/Clang пробелы без единого олимпиадного сокращения).\n3. DEFENSIVE_PARANOIA (+12%): избыточные проверки граничных случаев, не требуемые в задаче (if not isinstance(...), !(std::cin >> x), .empty(), try/except/catch, raise TypeError).\n4. ABOVE_LEVEL_IDIOMS (+12%): продвинутые/учебные конструкции (const &, static_cast, auto, nullptr, std::gcd, enumerate/zip, генераторы, тернарный ? :) в базовой или учебной задаче при наличии стерильного оформления.\n5. LLM_ARCHITECTURAL_FINGERPRINTS (+8%): избыточное дробление простой задачи на вспомогательные функции, тотальный отказ от using namespace std; (везде std::) в школьной задаче, докстринги \"\"\"...\"\"\" или пошаговые комментарии к очевидным строкам (# Инициализируем массив).\n6. ZERO_ENTROPY_FLOW (+6%): линейный, стерильный поток управления без мертвого кода, отладочных следов и с 100% одинаковыми отступами.\n\nБ. Для ТЕКСТА / ЭССЕ / НАУЧНЫХ РАБОТ:\n1. LLM_CONNECTIVE_LEXICON (+14%): частотные штампы и канцелярит LLM («в современном мире», «в эпоху стремительной цифровизации», «играет ключевую/важную роль», «необходимо отметить», «резюмируя вышесказанное», «многогранный», «спектр», «комплексный подход», «данный подход» или англ. delve, crucial, moreover, tapestry, testament).\n2. ILLUSTRATIVE_GENERICNESS (+12%): псевдонаучная «вода» — текст звучит солидно, но оперирует общими фразами («исследования показывают», «повышает эффективность») без реальных объемов выборок, метрик, инструментов и методологических сбоев.\n3. STRUCTURAL_SYMMETRY (+12%): зеркально равные по объему абзацы, шаблонный каркас «Во-первых... Во-вторых... В-третьих...» или списки строго по схеме «Жирный заголовок: пояснение».\n4. LOW_PERPLEXITY_SMOOTHNESS (+8%): стерильно гладкий, предсказуемый текст без эмоциональных акцентов, разговорной лексики или острых авторских оценок.\n5. ZERO_DRAFTING_ARTIFACTS (+6%): полное отсутствие шероховатостей, авторских знаков препинания и швов редактирования (+ до 8% при одновременном сочетании «ёлочек» и тире — в русском тексте).\n\n---\n\n### ШАГ 3: ЧЕЛОВЕЧЕСКИЕ ВЫЧЕТЫ (Применять только при наличии неоспоримых улик)\nНе снижай оценку просто за «чистоту» или «краткость». Вычитай баллы только за реальные следы работы человека:\n- ORGANIC_CODE_QUIRKS (-12% — ТОЛЬКО КОД): олимпиадные или живые привычки — компактные операторы без пробелов (cin>>n;, i++), смешанный стиль именования, магические константы (999999999), вложенные if вместо min/max, закомментированный дебаг.\n- EMPIRICAL_OR_DOMAIN_FRICTION (-12% — ТОЛЬКО ТЕКСТ): конкретные некруглые цифры, метрики и названия инструментов (например, N = 14 820, 4,3%, ROC-AUC 0,68 -> 0,81, Grad-CAM, p < 0,01), описание реальных неудачных экспериментов, ошибок и ограничений выборки.\n- RHYTHMIC_BURSTINESS (-10% — ТОЛЬКО ТЕКСТ): резкий контраст между длинными сложными предложениями и короткими рублеными акцентами (например, «Это сработало.», «Проблема уперлась в шум.»), инверсии и живая авторская интонация.\n\n---\n\n### ШАГ 4: РАСЧЕТ ИТОГА И СИНХРОНИЗАЦИЯ xaiFactors\n1. aiProbability = clamp(5, 99, Base + Sum(Улики ИИ) - Sum(Человеческие вычеты)). (Предохранитель: если Base = 55 и нет человеческих вычетов, aiProbability НЕ МОЖЕТ быть ниже 55).\n2. Синхронизация 4 шкал xaiFactors (0-100): оценки факторов не должны противоречить aiProbability:\n  - Синтаксис и операторные «слитки»: 80–98 (если пробелы 100% стерильны / идеальная пунктуация), 10–25 (если есть слитки cin>>n, a[i]+=x или авторские шероховатости).\n  - Именование переменных и типизация: 80–98 (если сработал STERILE_NAMING_AND_TYPING или SURGICAL_OBFUSCATION), 5–20 (если олимпиадные n, m, dp, ans или транслит).\n  - Комментарии и речевые связки: 80–98 (если есть учебные комментарии, докстринги или штампы LLM), 5–20 (если комментариев нет, есть // fix, # print или живая речь).\n  - Структура алгоритма / Ритм текста: 80–98 (если сработали DEFENSIVE_PARANOIA, ABOVE_LEVEL_IDIOMS или STRUCTURAL_SYMMETRY), 10–25 (если прямолинейный цикл или рваный авторский ритм).\n\n---\n\n### ФОРМАТ ВЫВОДА: СТРОГО ВАЛИДНЫЙ JSON БЕЗ MARKDOWN-ОБЕРТКИ\nВсегда корректно экранируй кавычки внутри строк JSON. Возвращай не более 4 сегментов и 3 вопросов защиты, чтобы JSON не обрывался. Верни только чистый JSON-объект без markdown-обертки и любого текста до или после:\n{\n  \"aiProbability\": 0-100,\n  \"contentType\": \"Программный код (C++)\" | \"Программный код (Python)\" | \"Текст\",\n  \"verdictTitle\": \"Высокая вероятность ИИ\" | \"Смешанное авторство\" | \"Написано человеком\",\n  \"verdictSummary\": \"Формула расчета (База + Улики - Вычеты = Итог%) и конкретное техническое обоснование со ссылками на токены и строки\",\n  \"xaiFactors\": [\n    { \"label\": \"Синтаксис и операторные «слитки»\", \"score\": 0-100 },\n    { \"label\": \"Именование переменных и типизация\", \"score\": 0-100 },\n    { \"label\": \"Комментарии и речевые связки\", \"score\": 0-100 },\n    { \"label\": \"Структура алгоритма / Ритм текста\", \"score\": 0-100 }\n  ],\n  \"formatting\": {\n    \"sterilityScore\": 0-100,\n    \"summary\": \"Технический вывод по пробелам, отступам, синтаксису и типографике\",\n    \"metrics\": [\n      { \"label\": \"Название метрики\", \"value\": \"Значение\", \"status\": \"ai\"|\"mixed\"|\"human\", \"detail\": \"Конкретное пояснение со ссылкой на код/текст\" }\n    ]\n  },\n  \"commentForensics\": {\n    \"placement\": \"Где и как расположены комментарии (или штампы/связки для текста)\",\n    \"prepositions\": [\"найденные предлоги/союзы или маркеры\"],\n    \"verbsAndPatterns\": [\"найденные шаблоны ИИ или живые заметки\"]\n  },\n  \"lexicalMarkers\": [\n    { \"text\": \"конкретный токен/конструкция/фраза\", \"kind\": \"ai\"|\"human\", \"category\": \"Название сработавшего флага или маркер человека\" }\n  ],\n  \"reverseQA\": [\n    { \"prompt\": \"Вероятный промпт пользователя, которым это сгенерировали (или 'Не применимо — ручная работа')\", \"excerpt\": \"Фрагмент из документа\", \"confidence\": \"92%\" }\n  ],\n  \"defenseQuestions\": [\n    {\n      \"target\": \"Функция / цикл / абзац (строка N)\",\n      \"snippet\": \"Точная цитата строки из документа\",\n      \"question\": \"Конкретный вопрос-ловушка автору по работе этой конструкции или логике вывода\",\n      \"expectedAnswer\": \"Эталонный технический ответ настоящего автора\",\n      \"keywords\": [\"ключ1\", \"ключ2\", \"ключ3\"]\n    }\n  ],\n  \"segments\": [\n    { \"text\": \"Точный фрагмент\", \"score\": 0-100, \"status\": \"ai\"|\"mixed\"|\"human\", \"reason\": \"Конкретная причина со ссылкой на токены и флаги\" }\n  ]\n}";
+        const SYSTEM_PROMPT = "Ты — ведущий эксперт по стилометрии текста и криминалистике программного кода (VeriScan AI v6.0).\nТвоя единственная задача — провести беспощадную техническую экспертизу текста или кода на предмет генерации, соавторства или рефакторинга с помощью ИИ (ChatGPT, Claude, Gemini, DeepSeek, Copilot, Grok) и вернуть СТРОГО валидный JSON.\n\n### 0. АБСОЛЮТНЫЕ ЗАПРЕТЫ И ЗАЩИТА ОТ ГАЛЛЮЦИНАЦИЙ\n1. Запрет на «воду» и вежливые оговорки: никогда не пиши фразы вроде «невозможно доказать на 100%» или «возможно, это просто старательный студент». Ссылайся только на конкретные токены, переменные, конструкции и номера строк.\n2. Защита типографики кода: ЗАПРЕЩЕНО считать стандартные символы кода и пунктуации (<, >, \"\", ., ,, ;, теги <div>, #include <iostream>, шаблоны vector<int>, операторы cin >>, cout <<, сравнения a < b) «типографикой ИИ». Для любого кода оценка типографики строго равна 0. Для русского текста игнорируй <> \"\" ., и учитывай только одновременное наличие русских «ёлочек» «» и длинного тире — (U+2014) с малым весом (не более +8%).\n3. Изоляция доменов и вето на живые ошибки ученика: НИКОГДА не принимай школьную банальность («беречь природу», «будущее поколение», «достойное наследие») за генерацию ИИ, если в тексте есть живые опечатки (губять, доставлюят, мусороли, молодежам), ошибки -тся/-ться («надо относится»), слитная пунктуация без пробелов («использовать.Людям»), начало абзацев со строчной буквы или массовый пропуск запятых. Нейросети так не пишут — при наличии 2+ таких ошибок это ЧЕЛОВЕК (Base = 15%, итог строго <= 20%). НИКОГДА не применяй текстовые вычеты (EMPIRICAL_OR_DOMAIN_FRICTION, RHYTHMIC_BURSTINESS) к программному коду, и НИКОГДА не применяй кодовые вычеты (ORGANIC_CODE_QUIRKS) к тексту.\n4. Пороги сегментов и вердикта: score >= 65 -> \"ai\" (\"Высокая вероятность ИИ\"), 36 <= score <= 64 -> \"mixed\" (\"Смешанное авторство\"), score <= 35 -> \"human\" (\"Написано человеком\").\n\n---\n\n### ШАГ 1: ТРЕХУРОВНЕВАЯ КАЛИБРОВКА БАЗЫ (Выбери строго ОДИН базовый уровень)\n- Base = 55% (Стерильный / Шаблонный): идеально ровные отступы и пробелы вокруг всех операторов без единого сбоя, симметричные абзацы или блоки, учебный синтаксис, полное отсутствие опечаток и следов черновика. (База по умолчанию для чистого кода длиннее 12 строк без олимпиадных/человеческих признаков).\n- Base = 35% (Компетентный / Асимметричный): грамотный научный текст, короткое тривиальное решение (до 12 строк) или рабочий код с естественной асимметрией, инженерными компромиссами, нестандартными переходами или локальными костылями.\n- Base = 15% (Живой черновик / Олимпиадный стиль):\n  - Для кода: #include <bits/stdc++.h>, using namespace std;, scanf/printf, map(int, input().split()), readln/writeln, компактные операторные «слитки» без пробелов (for(int i=0;i<n;i++), cin>>n>>m;, a[i]+=x), короткие математические имена (n, m, k, t, a, b, x, y, i, j, l, r, mid, ans, res, cnt, cur, tmp, dp, adj, used), транслит (massiv, otvet, summa), закомментированный дебаг (// cout <<, # print) или наивные проверки (if (ok == true)).\n  - Для текста: опечатки, авторская пунктуация, неровный стиль, резкие перепады длины фраз.\n\n---\n\n### ШАГ 2: УЛИКИ ИИ (Суммируй сработавшие флаги)\n\nА. Для ПРОГРАММНОГО КОДА:\n1. STERILE_NAMING_AND_TYPING (+16%): длинные академические имена переменных/функций на английском (current_max_sum, adjacency_list, findFirstOccurrence) без единого сокращения (res, cnt, tmp, arr), ИЛИ невостребованные статические аннотации типов (def solve(n: int, arr: list[int]) -> int:, Optional[...], std::size_t, const auto& в простых задачах).\n2. SURGICAL_OBFUSCATION (+14%): явная маскировка ИИ-кода студентом — однобуквенные переменные (a, b, f, d, x) в паре со стерильными паттернами LLM (from typing import List, sys.stdin.read().split(), static_cast, !(std::cin >> x), оптимизации i += 6, битовые маски или идеальные PEP8/Clang пробелы без единого олимпиадного сокращения).\n3. DEFENSIVE_PARANOIA (+12%): избыточные проверки граничных случаев, не требуемые в задаче (if not isinstance(...), !(std::cin >> x), .empty(), try/except/catch, raise TypeError).\n4. ABOVE_LEVEL_IDIOMS (+12%): продвинутые/учебные конструкции (const &, static_cast, auto, nullptr, std::gcd, enumerate/zip, генераторы, тернарный ? :) в базовой или учебной задаче при наличии стерильного оформления.\n5. LLM_ARCHITECTURAL_FINGERPRINTS (+8%): избыточное дробление простой задачи на вспомогательные функции, тотальный отказ от using namespace std; (везде std::) в школьной задаче, докстринги \"\"\"...\"\"\" или пошаговые комментарии к очевидным строкам (# Инициализируем массив).\n6. ZERO_ENTROPY_FLOW (+6%): линейный, стерильный поток управления без мертвого кода, отладочных следов и с 100% одинаковыми отступами.\n\nБ. Для ТЕКСТА / ЭССЕ / НАУЧНЫХ РАБОТ:\n1. LLM_CONNECTIVE_LEXICON (+14%): частотные штампы и канцелярит LLM («в современном мире», «в эпоху стремительной цифровизации», «играет ключевую/важную роль», «необходимо отметить», «резюмируя вышесказанное», «многогранный», «спектр», «комплексный подход», «данный подход» или англ. delve, crucial, moreover, tapestry, testament).\n2. ILLUSTRATIVE_GENERICNESS (+12%): псевдонаучная «вода» — текст звучит солидно, но оперирует общими фразами («исследования показывают», «повышает эффективность») без реальных объемов выборок, метрик, инструментов и методологических сбоев.\n3. STRUCTURAL_SYMMETRY (+12%): зеркально равные по объему абзацы, шаблонный каркас «Во-первых... Во-вторых... В-третьих...» или списки строго по схеме «Жирный заголовок: пояснение».\n4. LOW_PERPLEXITY_SMOOTHNESS (+8%): стерильно гладкий, предсказуемый текст без эмоциональных акцентов, разговорной лексики или острых авторских оценок.\n5. ZERO_DRAFTING_ARTIFACTS (+6%): полное отсутствие шероховатостей, авторских знаков препинания и швов редактирования (+ до 8% при одновременном сочетании «ёлочек» и тире — в русском тексте).\n\n---\n\n### ШАГ 3: ЧЕЛОВЕЧЕСКИЕ ВЫЧЕТЫ (Применять только при наличии неоспоримых улик)\nНе снижай оценку просто за «чистоту» или «краткость». Вычитай баллы только за реальные следы работы человека:\n- ORGANIC_CODE_QUIRKS (-12% — ТОЛЬКО КОД): олимпиадные или живые привычки — компактные операторы без пробелов (cin>>n;, i++), смешанный стиль именования, магические константы (999999999), вложенные if вместо min/max, закомментированный дебаг.\n- EMPIRICAL_OR_DOMAIN_FRICTION (-12% — ТОЛЬКО ТЕКСТ): конкретные некруглые цифры, метрики и названия инструментов (например, N = 14 820, 4,3%, ROC-AUC 0,68 -> 0,81, Grad-CAM, p < 0,01), описание реальных неудачных экспериментов, ошибок и ограничений выборки.\n- RHYTHMIC_BURSTINESS (-10% — ТОЛЬКО ТЕКСТ): резкий контраст между длинными сложными предложениями и короткими рублеными акцентами (например, «Это сработало.», «Проблема уперлась в шум.»), инверсии и живая авторская интонация.\n\n---\n\n### ШАГ 4: РАСЧЕТ ИТОГА И СИНХРОНИЗАЦИЯ xaiFactors\n1. aiProbability = clamp(5, 99, Base + Sum(Улики ИИ) - Sum(Человеческие вычеты)). (Предохранитель: если Base = 55 и нет человеческих вычетов, aiProbability НЕ МОЖЕТ быть ниже 55).\n2. Синхронизация 4 шкал xaiFactors (0-100): оценки факторов не должны противоречить aiProbability:\n  - Синтаксис и операторные «слитки»: 80–98 (если пробелы 100% стерильны / идеальная пунктуация), 10–25 (если есть слитки cin>>n, a[i]+=x или авторские шероховатости).\n  - Именование переменных и типизация: 80–98 (если сработал STERILE_NAMING_AND_TYPING или SURGICAL_OBFUSCATION), 5–20 (если олимпиадные n, m, dp, ans или транслит).\n  - Комментарии и речевые связки: 80–98 (если есть учебные комментарии, докстринги или штампы LLM), 5–20 (если комментариев нет, есть // fix, # print или живая речь).\n  - Структура алгоритма / Ритм текста: 80–98 (если сработали DEFENSIVE_PARANOIA, ABOVE_LEVEL_IDIOMS или STRUCTURAL_SYMMETRY), 10–25 (если прямолинейный цикл или рваный авторский ритм).\n\n---\n\n### ФОРМАТ ВЫВОДА: СТРОГО ВАЛИДНЫЙ JSON БЕЗ MARKDOWN-ОБЕРТКИ\nВсегда корректно экранируй кавычки внутри строк JSON. Возвращай не более 4 сегментов и 3 вопросов защиты, чтобы JSON не обрывался. Верни только чистый JSON-объект без markdown-обертки и любого текста до или после:\n{\n  \"aiProbability\": 0-100,\n  \"contentType\": \"Программный код (C++)\" | \"Программный код (Python)\" | \"Текст\",\n  \"verdictTitle\": \"Высокая вероятность ИИ\" | \"Смешанное авторство\" | \"Написано человеком\",\n  \"verdictSummary\": \"Формула расчета (База + Улики - Вычеты = Итог%) и конкретное техническое обоснование со ссылками на токены и строки\",\n  \"xaiFactors\": [\n    { \"label\": \"Синтаксис и операторные «слитки»\", \"score\": 0-100 },\n    { \"label\": \"Именование переменных и типизация\", \"score\": 0-100 },\n    { \"label\": \"Комментарии и речевые связки\", \"score\": 0-100 },\n    { \"label\": \"Структура алгоритма / Ритм текста\", \"score\": 0-100 }\n  ],\n  \"formatting\": {\n    \"sterilityScore\": 0-100,\n    \"summary\": \"Технический вывод по пробелам, отступам, синтаксису и типографике\",\n    \"metrics\": [\n      { \"label\": \"Название метрики\", \"value\": \"Значение\", \"status\": \"ai\"|\"mixed\"|\"human\", \"detail\": \"Конкретное пояснение со ссылкой на код/текст\" }\n    ]\n  },\n  \"commentForensics\": {\n    \"placement\": \"Где и как расположены комментарии (или штампы/связки для текста)\",\n    \"prepositions\": [\"найденные предлоги/союзы или маркеры\"],\n    \"verbsAndPatterns\": [\"найденные шаблоны ИИ или живые заметки\"]\n  },\n  \"lexicalMarkers\": [\n    { \"text\": \"конкретный токен/конструкция/фраза\", \"kind\": \"ai\"|\"human\", \"category\": \"Название сработавшего флага или маркер человека\" }\n  ],\n  \"reverseQA\": [\n    { \"prompt\": \"Вероятный промпт пользователя, которым это сгенерировали (или 'Не применимо — ручная работа')\", \"excerpt\": \"Фрагмент из документа\", \"confidence\": \"92%\" }\n  ],\n  \"defenseQuestions\": [\n    {\n      \"target\": \"Функция / цикл / абзац (строка N)\",\n      \"snippet\": \"Точная цитата строки из документа\",\n      \"question\": \"Конкретный вопрос-ловушка автору по работе этой конструкции или логике вывода\",\n      \"expectedAnswer\": \"Эталонный технический ответ настоящего автора\",\n      \"keywords\": [\"ключ1\", \"ключ2\", \"ключ3\"]\n    }\n  ],\n  \"segments\": [\n    { \"text\": \"Точный фрагмент\", \"score\": 0-100, \"status\": \"ai\"|\"mixed\"|\"human\", \"reason\": \"Конкретная причина со ссылкой на токены и флаги\" }\n  ]\n}";
 
         const PRESETS = {
             cpp_human: {
@@ -1264,7 +1264,7 @@ print(len(ans))`
                 model: localStorage.getItem('veriscan_model') || PROVIDER_PRESETS.openai.model,
                 apiKey: localStorage.getItem('veriscan_apikey') || '',
                 maskPii: localStorage.getItem('veriscan_mask_pii') !== 'false',
-                systemPrompt: localStorage.getItem('veriscan_sysprompt_v7') || SYSTEM_PROMPT
+                systemPrompt: localStorage.getItem('veriscan_sysprompt_v8') || SYSTEM_PROMPT
             }
         };
 
@@ -1852,10 +1852,78 @@ print(len(ans))`
             return { localScore, strength, reason };
         }
 
+        function inspectHumanTextErrors(text) {
+            const signals = [];
+            let penalty = 0;
+            const raw = String(text || '');
+
+            // Убираем URL, домены и стандартные сокращения, чтобы не было ложных срабатываний
+            const cleaned = raw
+                .replace(/https?:\/\/\S+|\S+\.(?:ru|com|net|org|io|kz|py|cpp|js|html|txt|pdf|docx)(?=$|[^a-zA-Z0-9])/gi, ' ')
+                .replace(/(?:^|[^а-яёА-ЯЁ])(?:т\.д|т\.е|т\.п|и\.о|к\.т\.н|д\.т\.н|н\.э|в\.в)\./gi, ' ');
+
+            // 1. Нет пробела после знака препинания (например: использовать.Людям, надо.Начнем)
+            const missingSpaces = cleaned.match(/[а-яА-ЯёЁ]{2,}[.!?,;:][А-ЯЁа-яё]{2,}/g) || [];
+            if (missingSpaces.length > 0) {
+                penalty += Math.min(40, 22 + (missingSpaces.length - 1) * 12);
+                signals.push(`нет пробела после знака препинания (${missingSpaces.slice(0, 3).join(', ')})`);
+            }
+
+            // 2. Начало текста или абзаца со строчной буквы
+            const paras = raw.split(/\r\n|\r|\n/).map(p => p.trim()).filter(p => p.length > 12);
+            const lowerStarts = paras.filter(p => /^[а-яё]/.test(p));
+            if (lowerStarts.length > 0) {
+                penalty += Math.min(24, 14 + (lowerStarts.length - 1) * 8);
+                signals.push(`начало абзаца со строчной буквы (${lowerStarts.length} шт.)`);
+            }
+
+            // 3. Типичная человеческая ошибка -тся/-ться после глаголов, требующих инфинитива
+            const tsyaRegex = /(?:^|[^а-яёА-ЯЁ])((?:надо|нужно|можно|нельзя|перестать|начать|должны|должен|должна|хочу|хочет|хотят|будем|будут|может|могут|стоит)\s+(?:[а-яёА-ЯЁ-]+\s+){0,3}[а-яёА-ЯЁ]{3,}(?:и|а|я|у|ы|о)тся)(?=$|[^а-яёА-ЯЁ])/gi;
+            const tsyaMatches = [];
+            let tm;
+            while ((tm = tsyaRegex.exec(raw)) !== null) tsyaMatches.push(tm[1]);
+            if (tsyaMatches.length > 0) {
+                penalty += Math.min(32, 18 + (tsyaMatches.length - 1) * 8);
+                signals.push(`ошибка -тся/-ться («${tsyaMatches[0]}»)`);
+            }
+
+            // 4. Пропуск обязательных запятых перед союзами (без ложных срабатываний на «для того чтобы»)
+            const commaRegex = /(?:^|[^а-яёА-ЯЁ])([а-яёА-ЯЁ]{3,}\s+(?:а\s+также|а\s+так\s+же|ведь|потому\s+что|раньше\s+чем|больше\s+чем|меньше\s+чем|лучше\s+чем|хуже\s+чем)|(?:понимают|понимает|знают|знает|думают|думает|говорят|говорит|видят|видит|считают|считает|с\s+того)\s+что)(?=$|[^а-яёА-ЯЁ])/gi;
+            const commaMatches = [];
+            let cm;
+            while ((cm = commaRegex.exec(raw)) !== null) commaMatches.push(cm[1]);
+            if (commaMatches.length >= 2) {
+                penalty += Math.min(30, 14 + commaMatches.length * 4);
+                signals.push(`пропуск обязательных запятых (${commaMatches.length} шт.)`);
+            } else if (commaMatches.length === 1) {
+                penalty += 10;
+                signals.push(`пропуск запятой («${commaMatches[0]}»)`);
+            }
+
+            // 5. Раздельное/школьное написание союзов и наречий («что бы», «а так же», «по уважительнее»)
+            const splitRegex = /(?:^|[^а-яёА-ЯЁ])(что\s+бы\s+(?:я|ты|он|она|мы|вы|они|люди|дети|все|никто|не)|(?:а|и)\s+так\s+же(?!\s+как)|по\s+(?:уважительнее|быстрее|лучше|больше|меньше|чаще|аккуратнее|бережнее|внимательнее|ответственнее|скорее|проще))(?=$|[^а-яёА-ЯЁ])/gi;
+            const splitMatches = [];
+            let sm;
+            while ((sm = splitRegex.exec(raw)) !== null) splitMatches.push(sm[1]);
+            if (splitMatches.length > 0) {
+                penalty += Math.min(26, 14 + (splitMatches.length - 1) * 6);
+                signals.push(`живое раздельное написание («${splitMatches[0]}»)`);
+            }
+
+            return { penalty: Math.min(75, penalty), signals, count: signals.length };
+        }
+
         function scoreTextSegment(segText) {
             const lower = segText.toLowerCase();
             const reasonsAi = [], reasonsHuman = [];
             let delta = 0, evidence = 0;
+
+            const humanErr = inspectHumanTextErrors(segText);
+            if (humanErr.penalty > 0) {
+                delta -= humanErr.penalty;
+                evidence += Math.min(0.95, 0.35 + humanErr.count * 0.2);
+                reasonsHuman.push(...humanErr.signals.slice(0, 3));
+            }
 
             const prepHits = AI_PREPOSITIONS.filter(p => lower.includes(p));
             if (prepHits.length >= 2) {
@@ -1873,7 +1941,7 @@ print(len(ans))`
             if (/  +/.test(segText.trim()) || /\s-\s/.test(segText)) { delta -= 18; evidence += 0.35; reasonsHuman.push('неровная ручная пунктуация'); }
 
             const sentences = (segText.match(/[^.!?]+[.!?]+/g) || [segText]).map(s => s.trim().split(/\s+/).length).filter(n => n > 2);
-            if (sentences.length >= 2) {
+            if (sentences.length >= 4 && humanErr.count === 0) {
                 const mean = sentences.reduce((a, b) => a + b, 0) / sentences.length;
                 const std = Math.sqrt(sentences.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / sentences.length);
                 const cv = mean > 0 ? std / mean : 0;
@@ -1881,7 +1949,10 @@ print(len(ans))`
                 else if (cv > 0.50) { delta -= 18; evidence += 0.25; reasonsHuman.push('естественная вариативность длины предложений'); }
             }
 
-            const localScore = Math.max(4, Math.min(97, Math.round(50 + delta)));
+            let localScore = Math.max(4, Math.min(97, Math.round(50 + delta)));
+            if (humanErr.count >= 2 && prepHits.length === 0) {
+                localScore = Math.min(localScore, 14);
+            }
             const strength = Math.min(1, evidence);
             const reason = localScore >= 65
                 ? (reasonsAi.join('; ') || 'выровненный академический стиль и предложные связки')
@@ -1932,12 +2003,16 @@ print(len(ans))`
                 if (/:\s*(List|Dict|Optional|Tuple|int|float|str)\b/.test(rawText)) docPrior += 18;
                 if (shortHumanNotes.length > 0) docPrior -= 16;
             } else {
+                const humanErr = inspectHumanTextErrors(rawText);
                 docPrior += Math.min(40, foundPreps.length * 10);
                 if (hasEmDash && hasGuillemets) docPrior += 8;
-                if (burstinessCV < 0.32) docPrior += 14;
-                else if (burstinessCV > 0.50) docPrior -= 16;
+                if (allSentences.length >= 5 && humanErr.count === 0) {
+                    if (burstinessCV < 0.32) docPrior += 14;
+                    else if (burstinessCV > 0.50) docPrior -= 16;
+                }
                 if (inlineDoubleSpaces > 0) docPrior -= 14;
                 if (/[!?]{2,}/.test(rawText)) docPrior -= 22;
+                if (humanErr.penalty > 0) docPrior -= humanErr.penalty;
             }
             docPrior = Math.max(5, Math.min(96, Math.round(docPrior)));
 
@@ -1951,18 +2026,19 @@ print(len(ans))`
 
             const { aiProbability, distribution } = computeWeightedStats(segments);
 
+            const textHumanErr = isCode ? { penalty: 0, signals: [], count: 0 } : inspectHumanTextErrors(rawText);
             const factorSpacing = isCode
                 ? (ops.slitkiCount === 0 && !inf.isStrongCompetitive ? 94 : Math.max(8, ops.cleanSpacingRatio - ops.slitkiCount * 6 - (inf.isStrongCompetitive ? 20 : 0)))
-                : (inlineDoubleSpaces === 0 && hasEmDash && hasGuillemets ? 86 : (inlineDoubleSpaces > 0 ? 22 : 60));
+                : (textHumanErr.count > 0 ? Math.max(6, 22 - textHumanErr.count * 4) : (inlineDoubleSpaces === 0 && hasEmDash && hasGuillemets ? 86 : (inlineDoubleSpaces > 0 ? 22 : 58)));
             const factorNaming = isCode
                 ? Math.max(6, Math.min(96, 52 + (/:\s*(List|Dict|Optional|Tuple|int|float|str)\b/.test(rawText) ? 26 : 0) + (docstringCount * 14) - (inf.shortVars.length * 6) - (inf.constructsFound.length * 8)))
-                : Math.max(8, Math.min(96, 42 + foundPreps.length * 12));
+                : Math.max(6, Math.min(96, 42 + foundPreps.length * 12 - textHumanErr.penalty));
             const factorComments = isCode
                 ? Math.max(6, Math.min(96, 48 + (tutorialComments.length * 16) + (docstringCount * 16) + (foundPreps.length * 12) - (shortHumanNotes.length * 22) - (commentLines.length === 0 && inf.isStrongCompetitive ? 28 : 0)))
-                : Math.max(8, Math.min(96, 45 + foundPreps.length * 11));
+                : Math.max(6, Math.min(96, 45 + foundPreps.length * 11 - textHumanErr.penalty));
             const factorStructure = isCode
                 ? Math.max(8, Math.min(96, Math.round(indentRatio * 0.65 + (ops.slitkiCount === 0 ? 25 : 0) - (inf.isStrongCompetitive ? 32 : 0) - (hasTabs ? 18 : 0))))
-                : (burstinessCV < 0.32 ? 91 : (burstinessCV > 0.50 ? 22 : 58));
+                : (textHumanErr.count > 0 ? Math.max(8, 24 - textHumanErr.count * 3) : (allSentences.length >= 5 && burstinessCV < 0.32 ? 91 : (burstinessCV > 0.50 ? 22 : 52)));
 
             const sterilityScore = Math.round((factorSpacing + factorStructure) / 2);
 
@@ -1982,6 +2058,7 @@ print(len(ans))`
             if (inf.shortVars.length >= 2) lexicalMarkers.push({ text: `Переменные: ${inf.shortVars.slice(0, 5).join(', ')}`, kind: 'human', category: 'Математический нейминг' });
             ops.slitkiExamples.slice(0, 4).forEach(s => lexicalMarkers.push({ text: s, kind: 'human', category: 'Операторный слиток' }));
             shortHumanNotes.slice(0, 3).forEach(n => lexicalMarkers.push({ text: n.trim(), kind: 'human', category: 'Заметка автора' }));
+            textHumanErr.signals.slice(0, 4).forEach(sig => lexicalMarkers.push({ text: sig, kind: 'human', category: 'Живые ошибки автора' }));
             foundPreps.slice(0, 5).forEach(p => lexicalMarkers.push({ text: p, kind: 'ai', category: 'Предлог / союз ИИ' }));
             tutorialComments.slice(0, 3).forEach(tc => lexicalMarkers.push({ text: tc.trim(), kind: 'ai', category: 'Учебный комментарий ИИ' }));
             if (/:\s*(List|Dict|Optional|Tuple|int|float|str)\b/.test(rawText)) lexicalMarkers.push({ text: 'Type Hints (: int / List[...])', kind: 'ai', category: 'Аннотации типов ИИ' });
@@ -2065,20 +2142,38 @@ print(len(ans))`
             const localScore = local.aiProbability;
 
             // Гибридная страховка: 75% Облачный ИИ + 25% VeriScan Core v5
-            // При жестком конфликте (олимпиадный код <=22% или очевидный ИИ >=85%) усиливаем вес Core v5 до 45%
+            const origInfo = detectContentType(originalText);
+            const textErrCheck = origInfo.isCode ? { penalty: 0, signals: [], count: 0 } : inspectHumanTextErrors(originalText);
+            const hasStrongHumanErrors = !origInfo.isCode && textErrCheck.count >= 2;
+
             const strongConflict = (localScore <= 22 && cloudScore >= 65) || (localScore >= 85 && cloudScore <= 35);
             const cloudWeight = strongConflict ? 0.55 : 0.75;
-            const finalScore = Math.max(3, Math.min(98, Math.round(cloudScore * cloudWeight + localScore * (1 - cloudWeight))));
+            let finalScore = Math.max(3, Math.min(98, Math.round(cloudScore * cloudWeight + localScore * (1 - cloudWeight))));
+
+            // Жесткое вето: если в русском тексте 2+ явных человеческих ошибки (нет пробелов после точек, -тся/-ться, пропуски запятых),
+            // не позволяем облачной модели ошибочно записать ученика в ИИ из-за банальной школьной темы
+            if (hasStrongHumanErrors) {
+                const humanCap = textErrCheck.count >= 3 ? 12 : 22;
+                finalScore = Math.min(finalScore, humanCap);
+                merged.segments = merged.segments.map(s => {
+                    const segCap = Math.min(s.score, humanCap + 6);
+                    return { ...s, score: segCap, status: classifyScore(segCap) };
+                });
+                merged.distribution = computeWeightedStats(merged.segments).distribution;
+            } else {
+                merged.distribution = stats.distribution;
+            }
 
             merged.aiProbability = finalScore;
-            merged.distribution = stats.distribution;
             merged.verdictTitle = finalScore >= 65
                 ? 'Высокая вероятность ИИ'
                 : (finalScore <= 35 ? 'Написано человеком' : 'Смешанное авторство');
 
-            const hybridNote = `[Гибрид: Облако ${cloudScore}% + Core v5 ${localScore}% → ${finalScore}%]`;
+            const hybridNote = hasStrongHumanErrors
+                ? `[Вето по живым ошибкам автора: ${textErrCheck.signals.slice(0, 2).join('; ')} → ${finalScore}%]`
+                : `[Гибрид: Облако ${cloudScore}% + Core v5 ${localScore}% → ${finalScore}%]`;
             const baseSummary = String(merged.verdictSummary || local.verdictSummary || '').trim();
-            merged.verdictSummary = baseSummary.includes('[Гибрид:') ? baseSummary : `${hybridNote} ${baseSummary}`;
+            merged.verdictSummary = (baseSummary.includes('[Гибрид:') || baseSummary.includes('[Вето по живым')) ? baseSummary : `${hybridNote} ${baseSummary}`;
 
             if (!Array.isArray(merged.xaiFactors) || merged.xaiFactors.length < 4) {
                 merged.xaiFactors = local.xaiFactors;
@@ -2086,9 +2181,12 @@ print(len(ans))`
                 merged.xaiFactors = merged.xaiFactors.slice(0, 4).map((f, idx) => {
                     const cVal = Number(f?.score);
                     const lVal = local.xaiFactors[idx]?.score ?? finalScore;
-                    const blendedFactor = Number.isFinite(cVal)
+                    let blendedFactor = Number.isFinite(cVal)
                         ? Math.max(3, Math.min(98, Math.round(cVal * 0.75 + lVal * 0.25)))
                         : lVal;
+                    if (hasStrongHumanErrors) {
+                        blendedFactor = Math.min(blendedFactor, 18);
+                    }
                     return { label: f?.label || local.xaiFactors[idx]?.label || 'Фактор', score: blendedFactor };
                 });
             }
@@ -2238,7 +2336,7 @@ print(len(ans))`
             throw new Error('Модель вернула поврежденный JSON');
         }
 
-        const ANALYSIS_CACHE_KEY = 'veriscan_cloud_cache_v1';
+        const ANALYSIS_CACHE_KEY = 'veriscan_cloud_cache_v2';
         const memoryAnalysisCache = new Map();
 
         function hashStringStable(str) {
@@ -2895,7 +2993,7 @@ print(len(ans))`
                 localStorage.setItem('veriscan_apikey', state.config.apiKey);
                 localStorage.setItem('veriscan_mask_pii', String(state.config.maskPii));
                 if (isAdminPromptUnlocked) {
-                    localStorage.setItem('veriscan_sysprompt_v7', state.config.systemPrompt);
+                    localStorage.setItem('veriscan_sysprompt_v8', state.config.systemPrompt);
                 }
             } catch (e) {}
             updateHeaderEngineBadge();
