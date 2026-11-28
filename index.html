@@ -5156,6 +5156,10 @@ print(len(ans))`
                     ? `<span class="px-2 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-400 text-[10px] font-semibold">Владелец</span>`
                     : `<button type="button" onclick="adminToggleAdmin('${u.user_id}', ${!isTargetAdmin}, '${escapeHtml(u.email)}')" class="px-2 py-1 rounded-lg ${isTargetAdmin ? 'bg-rose-100 hover:bg-rose-200 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300' : 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300'} font-semibold transition" title="${isTargetAdmin ? 'Забрать права админа' : 'Назначить админом'}">${isTargetAdmin ? '− Админ' : '+ Админ'}</button>`;
 
+                const deleteBtn = isSuperAdmin
+                    ? ''
+                    : `<button type="button" data-user-id="${escapeHtml(u.user_id)}" data-email="${escapeHtml(u.email)}" onclick="adminDeleteUser(this.dataset.userId, this.dataset.email)" class="px-2 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold transition" title="Удалить аккаунт навсегда">Удалить</button>`;
+
                 return `
                     <tr class="hover:bg-slate-50/70 dark:hover:bg-obsidian-panel/50">
                         <td class="py-2 px-2.5">
@@ -5181,6 +5185,7 @@ print(len(ans))`
                                 <button type="button" onclick="adminZeroCredits('${u.user_id}', ${u.credits})" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 font-semibold transition" title="Забрать все кредиты">0</button>
                                 <button type="button" onclick="adminModifyUser('${u.user_id}', 0, '${nextRole}', null)" class="px-2 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 font-semibold transition" title="Сменить роль на: ${nextRole}">${isTeacher ? '→ Студ.' : '→ Преп.'}</button>
                                 ${adminActionBtn}
+                                ${deleteBtn}
                             </div>
                         </td>
                     </tr>
@@ -5224,6 +5229,22 @@ print(len(ans))`
             if (!currentCredits) return;
             if (!confirm(`Обнулить все ${currentCredits} кредитов у этого пользователя?`)) return;
             adminModifyUser(targetUserId, -Math.abs(currentCredits), null, null);
+        }
+
+        async function adminDeleteUser(targetUserId, email) {
+            if (!sb || !currentProfile?.is_admin) return;
+            if (!confirm(`Удалить аккаунт ${email} и все его файлы навсегда? Это действие необратимо.`)) return;
+
+            const { data, error } = await sb.rpc('admin_delete_user', {
+                target_user_id: targetUserId
+            });
+
+            if (error || !data?.success) {
+                return showToast(data?.error || error?.message || 'Ошибка удаления аккаунта', 'warning');
+            }
+
+            showToast(`Аккаунт ${email} удален`, 'success');
+            await loadAdminUsers();
         }
     </script>
 </body>
